@@ -32,6 +32,9 @@ ovlcmd(
     },
     async (ms_org, ovl, cmd_options) => {
         try {
+           if (!cmd_options.prenium_id) {
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+           }
            const themePath = './lib/theme.json';
            const rawData = fs.readFileSync(themePath, 'utf8');
            const themes = JSON.parse(rawData);

@@ -336,6 +336,47 @@ ovlcmd(
   }
 );
 
+ovlcmd(
+  {
+    nom_cmd: "kickall2",
+    classe: "Groupe",
+    react: "🛑",
+    desc: "Supprime tous les membres non administrateurs du groupe en une seule fois.",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { verif_Groupe, verif_Ovl_Admin, infos_Groupe, prenium_id, dev_num, ms, auteur_Message } = cmd_options;
+    
+    if (!verif_Groupe)
+      return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
+
+    const membres = infos_Groupe.participants;
+    const createur = membres[0]?.id;
+
+    if (!(prenium_id || auteur_Message === createur))
+      return ovl.sendMessage(ms_org, { text: "Seuls le créateur du groupe ou un utilisateur premium peuvent utiliser cette commande." }, { quoted: ms });
+
+    if (!verif_Ovl_Admin)
+      return ovl.sendMessage(ms_org, { text: "Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
+
+    const settings = await GroupSettings.findOne({ where: { id: ms_org } });
+    if (settings?.goodbye === "oui")
+      return ovl.sendMessage(ms_org, { text: "Désactivez le goodbye message (goodbye off) avant de continuer." }, { quoted: ms });
+
+    const nonAdmins = membres.filter(m => !m.admin && !dev_num.includes(m.id)).map(m => m.id);
+
+    if (nonAdmins.length === 0)
+      return ovl.sendMessage(ms_org, { text: "Aucun membre non administrateur à exclure." }, { quoted: ms });
+
+    try {
+      await ovl.groupParticipantsUpdate(ms_org, nonAdmins, "remove");
+      ovl.sendMessage(ms_org, { text: `✅ ${nonAdmins.length} membre(s) ont été exclus en une seule opération.` }, { quoted: ms });
+    } catch (err) {
+      console.error("Erreur exclusion multiple :", err);
+      ovl.sendMessage(ms_org, { text: "Une erreur est survenue lors de l'exclusion." }, { quoted: ms });
+    }
+  }
+);
+
 /*ovlcmd(
   {
     nom_cmd: "ckick",

@@ -1178,33 +1178,10 @@ ovlcmd(
     await Plugin.destroy({ where: { name: input } });
 
     await repondre(`🗑️ Plugin *${input}* supprimé.`);
+    exec('pm2 restart all', (error, stdout, stderr) => {
+});
   }
 );
-
-
-function extractNpmModules(code) {
-  const regex = /require\s*\(\s*['"]([^\.\/][^'"]*)['"]\s*\)/g;
-  const modules = new Set();
-  let match;
-  while ((match = regex.exec(code)) !== null) {
-    modules.add(match[1]);
-  }
-  return Array.from(modules);
-}
-
-async function installModules(modules) {
-  if (modules.length === 0) return;
-  return new Promise((resolve, reject) => {
-    const cmd = `npm install ${modules.join(' ')}`;
-    exec(cmd, { cwd: path.resolve(__dirname, '../') }, (error, stdout, stderr) => {
-      if (error) {
-        reject(stderr || stdout || error.message);
-      } else {
-        resolve(stdout);
-      }
-    });
-  });
-}
 
 ovlcmd(
   {
@@ -1250,5 +1227,7 @@ ovlcmd(
     } else {
       await installOne(input, path.basename(input).replace('.js', ''));
     }
+    exec('pm2 restart all', (error, stdout, stderr) => {
+});
   }
 );

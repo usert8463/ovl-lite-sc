@@ -9,6 +9,7 @@ const cheerio = require('cheerio');
 const { WA_CONF } = require('../DataBase/wa_conf');
 const { ChatbotConf } = require('../DataBase/chatbot');
 const path = require('path');
+const fs = require('fs');
 const get_session = require('../DataBase/session');
 const { saveSecondSession, getSecondAllSessions, deleteSecondSession } = require("../DataBase/connect");
 const  { setMention, delMention, getMention } = require("../DataBase/mention");
@@ -1167,7 +1168,9 @@ ovlcmd(
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         await Plugin.destroy({ where: { name: p.name } });
       }
-      return repondre("🗑️ Tous les plugins ont été supprimés.");
+      repondre("🗑️ Tous les plugins ont été supprimés.");
+      return exec('pm2 restart all', (error, stdout, stderr) => {
+});
     }
 
     const plugin = await Plugin.findOne({ where: { name: input } });
@@ -1178,7 +1181,7 @@ ovlcmd(
     await Plugin.destroy({ where: { name: input } });
 
     await repondre(`🗑️ Plugin *${input}* supprimé.`);
-    exec('pm2 restart all', (error, stdout, stderr) => {
+   return exec('pm2 restart all', (error, stdout, stderr) => {
 });
   }
 );
@@ -1209,6 +1212,8 @@ ovlcmd(
 
         await Plugin.findOrCreate({ where: { name }, defaults: { url } });
         await repondre(`✅ Plugin *${name}* installé.`);
+       return exec('pm2 restart all', (error, stdout, stderr) => {
+});
       } catch (e) {
         await repondre("❌ Erreur : " + e);
       }
@@ -1227,7 +1232,5 @@ ovlcmd(
     } else {
       await installOne(input, path.basename(input).replace('.js', ''));
     }
-    exec('pm2 restart all', (error, stdout, stderr) => {
-});
   }
 );

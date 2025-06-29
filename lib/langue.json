@@ -1,0 +1,10 @@
+{
+  "fr": {
+    "ping_msg": "*OVL-MD-V2 Ping...*",
+    "ping_result": "*🏓 Pong ! Latence : {latency}ms*"
+  },
+  "en": {
+    "ping_msg": "*OVL-MD-V2 Ping...*",
+    "ping_result": "*🏓 Pong! Latency: {latency}ms*"
+  }
+}

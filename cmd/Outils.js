@@ -1,5 +1,5 @@
 const { ovlcmd, cmd } = require("../lib/ovlcmd");
-const t = require('../lib/funcLangue');
+const { t } = require('../lib/funcLangue');
 const config = require("../set");
 const { translate } = require('@vitalets/google-translate-api');
 const prefixe = config.PREFIXE;

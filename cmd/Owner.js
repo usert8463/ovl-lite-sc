@@ -14,6 +14,7 @@ const { saveSecondSession, getSecondAllSessions, deleteSecondSession } = require
 const  { setMention, delMention, getMention } = require("../DataBase/mention");
 const { set_stick_cmd, del_stick_cmd, get_stick_cmd } = require("../DataBase/stick_cmd");
 const { set_cmd, del_cmd, list_cmd } = require("../DataBase/public_private_cmd");
+const { fetchGistPlugins, extractRequires, installModules, savePlugin, deletePlugin, listInstalled } = require("../lib/plugin");
 
 ovlcmd(
   {
@@ -1115,5 +1116,92 @@ ovlcmd(
       console.error("❌ Erreur dans la commande chatbot :", err);
       repondre("Une erreur est survenue.");
     }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "plugininstall",
+    classe: "Système",
+    desc: "Installe un plugin du gist ou tous.",
+    react: "📥",
+    alias: ["pgi"]
+  },
+  async (ms, ovl, { repondre, arg, prenium_id }) => {
+    if (!prenium_id) {
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+    }
+    const nom = arg[0];
+    if (!nom) return repondre("❗ Utilisation : plugininstall <nom|all>");
+
+    const plugins = await fetchGistPlugins();
+
+    if (nom === "all") {
+      for (const plug of plugins) {
+        installModules(extractRequires(plug.content));
+        savePlugin(plug.name, plug.content);
+      }
+      return repondre("✅ Tous les plugins ont été installés.");
+    }
+
+    const plugin = plugins.find(p => p.name === nom);
+    if (!plugin) return repondre("❌ Plugin introuvable dans le gist.");
+
+    installModules(extractRequires(plugin.content));
+    savePlugin(plugin.name, plugin.content);
+    return repondre(`✅ Plugin *${plugin.name}* installé avec succès.`);
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "pluginlist",
+    classe: "Système",
+    desc: "Liste tous les plugins du gist.",
+    react: "📋",
+    alias: ["pgl"]
+  },
+  async (ms, ovl, { repondre, prenium_id }) => {
+    if (!prenium_id) {
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+    }
+    const remote = await fetchGistPlugins();
+    const local = listInstalled();
+
+    const lines = remote.map(p => {
+      return local.includes(p.name)
+        ? `✅ ${p.name} (installé)`
+        : `🔻 ${p.name}`;
+    }).join("\n");
+
+    return repondre("📦 *Plugins disponibles :*\n\n" + lines);
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "pluginremove",
+    classe: "Système",
+    desc: "Supprime un plugin installé ou tous.",
+    react: "🗑️",
+    alias: ["pgd"]
+  },
+  async (ms, ovl, { repondre, arg, prenium_id }) => {
+    if (!prenium_id) {
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+    }
+    const nom = arg[0];
+    if (!nom) return repondre("❗ Utilisation : pluginremove <nom|all>");
+
+    const installed = listInstalled();
+
+    if (nom === "all") {
+      for (const p of installed) deletePlugin(p);
+      return repondre("🗑️ Tous les plugins ont été supprimés.");
+    }
+
+    if (!installed.includes(nom)) return repondre("❌ Plugin non installé.");
+    deletePlugin(nom);
+    return repondre(`🗑️ Plugin *${nom}* supprimé.`);
   }
 );

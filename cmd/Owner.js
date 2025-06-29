@@ -14,7 +14,7 @@ const { saveSecondSession, getSecondAllSessions, deleteSecondSession } = require
 const  { setMention, delMention, getMention } = require("../DataBase/mention");
 const { set_stick_cmd, del_stick_cmd, get_stick_cmd } = require("../DataBase/stick_cmd");
 const { set_cmd, del_cmd, list_cmd } = require("../DataBase/public_private_cmd");
-const { fetchGistPlugins, extractRequires, installModules, savePlugin, deletePlugin, listInstalled } = require("../lib/plugin");
+const { Plugin } = require('../DataBase/plugin');
 
 ovlcmd(
   {
@@ -1121,87 +1121,133 @@ ovlcmd(
 
 ovlcmd(
   {
-    nom_cmd: "plugininstall",
+    nom_cmd: "list",
     classe: "Système",
-    desc: "Installe un plugin du gist ou tous.",
-    react: "📥",
-    alias: ["pgi"]
+    react: "📃",
+    desc: "Affiche la liste des plugins disponibles (✓ installé, ✗ non installé).",
   },
-  async (ms, ovl, { repondre, arg, prenium_id }) => {
-    if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+  async (ms, ovl, { repondre }) => {
+    try {
+      const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
+      const installs = await Plugin.findAll();
+      const installedNames = installs.map(p => p.name);
+
+      const lignes = data.map(p => {
+        const estInstalle = installedNames.includes(p.name);
+        return `${estInstalle ? '✓' : '✗'} ${p.name}`;
+      });
+
+      const message = lignes.length > 0
+        ? `📦 Liste des plugins disponibles :\n\n${lignes.join('\n')}`
+        : "Aucun plugin disponible.";
+
+      await repondre(message);
+    } catch (e) {
+      await repondre("❌ Erreur lors du chargement de la liste.");
     }
-    const nom = arg[0];
-    if (!nom) return repondre("❗ Utilisation : plugininstall <nom|all>");
-
-    const plugins = await fetchGistPlugins();
-
-    if (nom === "all") {
-      for (const plug of plugins) {
-        installModules(extractRequires(plug.content));
-        savePlugin(plug.name, plug.content);
-      }
-      return repondre("✅ Tous les plugins ont été installés.");
-    }
-
-    const plugin = plugins.find(p => p.name === nom);
-    if (!plugin) return repondre("❌ Plugin introuvable dans le gist.");
-
-    installModules(extractRequires(plugin.content));
-    savePlugin(plugin.name, plugin.content);
-    return repondre(`✅ Plugin *${plugin.name}* installé avec succès.`);
   }
 );
 
 ovlcmd(
   {
-    nom_cmd: "pluginlist",
+    nom_cmd: "remove",
     classe: "Système",
-    desc: "Liste tous les plugins du gist.",
-    react: "📋",
-    alias: ["pgl"]
-  },
-  async (ms, ovl, { repondre, prenium_id }) => {
-    if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
-    }
-    const remote = await fetchGistPlugins();
-    const local = listInstalled();
-
-    const lines = remote.map(p => {
-      return local.includes(p.name)
-        ? `✅ ${p.name} (installé)`
-        : `🔻 ${p.name}`;
-    }).join("\n");
-
-    return repondre("📦 *Plugins disponibles :*\n\n" + lines);
-  }
-);
-
-ovlcmd(
-  {
-    nom_cmd: "pluginremove",
-    classe: "Système",
-    desc: "Supprime un plugin installé ou tous.",
     react: "🗑️",
-    alias: ["pgd"]
+    desc: "Supprime un plugin installé par nom ou tape `remove all` pour tous.",
   },
-  async (ms, ovl, { repondre, arg, prenium_id }) => {
-    if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
-    }
-    const nom = arg[0];
-    if (!nom) return repondre("❗ Utilisation : pluginremove <nom|all>");
+  async (ms, ovl, { arg, repondre }) => {
+    const input = arg[0];
+    if (!input) return repondre("❌ Utilise `remove nom_plugin` ou `remove all`.");
 
-    const installed = listInstalled();
-
-    if (nom === "all") {
-      for (const p of installed) deletePlugin(p);
+    if (input === 'all') {
+      const plugins = await Plugin.findAll();
+      for (const p of plugins) {
+        const filePath = path.join(__dirname, '../cmd', `${p.name}.js`);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        await Plugin.destroy({ where: { name: p.name } });
+      }
       return repondre("🗑️ Tous les plugins ont été supprimés.");
     }
 
-    if (!installed.includes(nom)) return repondre("❌ Plugin non installé.");
-    deletePlugin(nom);
-    return repondre(`🗑️ Plugin *${nom}* supprimé.`);
+    const plugin = await Plugin.findOne({ where: { name: input } });
+    if (!plugin) return repondre("❌ Plugin non trouvé dans la base.");
+
+    const filePath = path.join(__dirname, '../cmd', `${plugin.name}.js`);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    await Plugin.destroy({ where: { name: input } });
+
+    await repondre(`🗑️ Plugin *${input}* supprimé.`);
+  }
+);
+
+
+function extractNpmModules(code) {
+  const regex = /require\s*\(\s*['"]([^\.\/][^'"]*)['"]\s*\)/g;
+  const modules = new Set();
+  let match;
+  while ((match = regex.exec(code)) !== null) {
+    modules.add(match[1]);
+  }
+  return Array.from(modules);
+}
+
+async function installModules(modules) {
+  if (modules.length === 0) return;
+  return new Promise((resolve, reject) => {
+    const cmd = `npm install ${modules.join(' ')}`;
+    exec(cmd, { cwd: path.resolve(__dirname, '../') }, (error, stdout, stderr) => {
+      if (error) {
+        reject(stderr || stdout || error.message);
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
+}
+
+ovlcmd(
+  {
+    nom_cmd: "install",
+    classe: "Système",
+    react: "📥",
+    desc: "Installe un plugin.",
+  },
+  async (ms, ovl, { arg, repondre }) => {
+    const input = arg[0];
+    if (!input) return repondre("❌ Donne un lien direct vers un plugin ou tape `install all` pour tout installer.");
+
+    const installOne = async (url, name) => {
+      try {
+        const res = await axios.get(url);
+        const code = res.data;
+        const filePath = path.join(__dirname, '../cmd', `${name}.js`);
+        fs.writeFileSync(filePath, code);
+
+        const modules = extractNpmModules(code);
+        if (modules.length > 0) {
+          await repondre(`⚙️ Installation des dépendances npm : ${modules.join(', ')}`);
+          await installModules(modules);
+        }
+
+        await Plugin.findOrCreate({ where: { name }, defaults: { url } });
+        await repondre(`✅ Plugin *${name}* installé.`);
+      } catch (e) {
+        await repondre("❌ Erreur : " + e);
+      }
+    };
+
+    if (input === 'all') {
+      try {
+        const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
+        for (const p of data) {
+          await installOne(p.url, p.name);
+        }
+        await repondre('✅ Tous les plugins disponibles ont été installés.');
+      } catch (e) {
+        await repondre("❌ Erreur : " + e.message);
+      }
+    } else {
+      await installOne(input, path.basename(input).replace('.js', ''));
+    }
   }
 );

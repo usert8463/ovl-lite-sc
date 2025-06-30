@@ -4,6 +4,7 @@ const { Bans } = require('../DataBase/ban');
 const { Sudo } = require('../DataBase/sudo');
 const config = require('../set');
 const axios = require("axios");
+const { t } = require('../lib/funcLangue');
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const cheerio = require('cheerio');
 const { WA_CONF } = require('../DataBase/wa_conf');
@@ -26,20 +27,20 @@ ovlcmd(
     desc: "Bloquer un utilisateur par son JID"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, verif_Groupe, prenium_id } = cmd_options;
-    
+    const { repondre, verif_Groupe, prenium_id, t } = cmd_options;
+
     if (verif_Groupe) {
-      return repondre("Veuillez vous diriger dans l'inbox de la personne à bloquer.");
+      return repondre(t("block_group_error"));
     }
     if (!prenium_id) {
-        return repondre("Vous n'avez pas le droit d'exécuter cette commande.");
+      return repondre(t("block_no_permission"));
     }
     try {
       await ovl.updateBlockStatus(ms_org, "block");
-      repondre(`✅ Utilisateur bloqué avec succès.`);
+      repondre(t("block_success"));
     } catch (error) {
       console.error("Erreur block:", error);
-      repondre(`Impossible de bloquer l'utilisateur.`);
+      repondre(t("block_fail"));
     }
   }
 );
@@ -52,20 +53,20 @@ ovlcmd(
     desc: "Débloquer un utilisateur par son JID"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, repondre, prenium_id } = cmd_options;
-    
+    const { verif_Groupe, repondre, prenium_id, t } = cmd_options;
+
     if (verif_Groupe) {
-      return repondre("Veuillez vous diriger dans l'inbox de la personne à bloquer.");
+      return repondre(t("unblock_group_error"));
     }
     if (!prenium_id) {
-        return repondre("Vous n'avez pas le droit d'exécuter cette commande.");
+      return repondre(t("unblock_no_permission"));
     }
     try {
       await ovl.updateBlockStatus(ms_org, "unblock");
-      repondre(`✅ Utilisateur débloqué avec succès.`);
+      repondre(t("unblock_success"));
     } catch (error) {
       console.error("Erreur deblock:", error);
-      repondre(`Impossible de débloquer l'utilisateur.`);
+      repondre(t("unblock_fail"));
     }
   }
 );
@@ -75,37 +76,41 @@ ovlcmd(
     nom_cmd: "ban",
     classe: "Owner",
     react: "🚫",
-    desc: "Bannir un utilisateur des commandes du bot",
+    desc: "Bannir un utilisateur des commandes du bot"
   },
-  async (jid, ovl, cmd_options) => {
-    const { repondre, ms, arg, auteur_Msg_Repondu, prenium_id, dev_num } = cmd_options;
+  async (ms_org, ovl, cmd_options) => {
+    const { repondre, ms, arg, auteur_Msg_Repondu, prenium_id, dev_num, t } = cmd_options;
 
     try {
       if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+        return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
       }
+
       const cible =
-        auteur_Msg_Repondu || 
+        auteur_Msg_Repondu ||
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
- 
-      if (!cible) return repondre("Mentionnez un utilisateur valide à bannir.");
+
+      if (!cible) return repondre(t("ban_mention_user"));
 
       if (dev_num.includes(cible)) {
-      return ovl.sendMessage(jid, { text: "Vous ne pouvez pas bannir un développeur." }, { quoted: ms });
+        return ovl.sendMessage(ms_org, { text: t("ban_dev_protect") }, { quoted: ms });
       }
+
       const [ban] = await Bans.findOrCreate({
         where: { id: cible },
-        defaults: { id: cible, type: "user" },
+        defaults: { id: cible, type: "user" }
       });
 
-      if (!ban._options.isNewRecord) return repondre("Cet utilisateur est déjà banni !");
-      return ovl.sendMessage(jid, { 
-        text: `Utilisateur @${cible.split('@')[0]} banni avec succès.`, 
+      if (!ban._options.isNewRecord) return repondre(t("ban_already"));
+
+      return ovl.sendMessage(ms_org, {
+        text: t("ban_success").replace("{username}", cible.split("@")[0]),
         mentions: [cible]
       }, { quoted: ms });
+
     } catch (error) {
       console.error("Erreur lors de l'exécution de la commande ban :", error);
-      return repondre("Une erreur s'est produite.");
+      return repondre(t("ban_fail"));
     }
   }
 );
@@ -118,27 +123,29 @@ ovlcmd(
     desc: "Débannir un utilisateur des commandes du bot",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
+    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms, t } = cmd_options;
 
     try {
       if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+        return ovl.sendMessage(jid, { text: t("ban_no_permission") }, { quoted: ms });
       }
+
       const cible =
-        auteur_Msg_Repondu || 
+        auteur_Msg_Repondu ||
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
- 
-      if (!cible) return repondre("Mentionnez un utilisateur valide à débannir.");
+
+      if (!cible) return repondre(t("deban_mention_user"));
 
       const suppression = await Bans.destroy({ where: { id: cible, type: "user" } });
-      if (suppression === 0) return repondre("Cet utilisateur n'est pas banni.");
-      return ovl.sendMessage(jid, { 
-        text: `Utilisateur @${cible.split('@')[0]} débanni avec succès.`, 
+      if (suppression === 0) return repondre(t("deban_not_banned"));
+
+      return ovl.sendMessage(jid, {
+        text: t("deban_success").replace("{username}", cible.split("@")[0]),
         mentions: [cible]
       }, { quoted: ms });
     } catch (error) {
-      console.error("Erreur lors de l'exécution de la commande debannir :", error);
-      return repondre("Une erreur s'est produite.");
+      console.error("Erreur lors de l'exécution de la commande deban :", error);
+      return repondre(t("deban_fail"));
     }
   }
 );
@@ -151,28 +158,28 @@ ovlcmd(
     desc: "Bannir un groupe des commandes du bot",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, arg, verif_Groupe, prenium_id, ms } = cmd_options;
+    const { repondre, verif_Groupe, prenium_id, ms, t } = cmd_options;
 
     try {
       if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+        return ovl.sendMessage(jid, { text: t("ban_no_permission") }, { quoted: ms });
       }
-      if (!verif_Groupe) return repondre("Cette commande fonctionne uniquement dans les groupes.");
+
+      if (!verif_Groupe) return repondre(t("bangroup_not_group"));
 
       const cible = jid;
-
-      if (!cible) return repondre("Impossible de récupérer l'identifiant du groupe.");
+      if (!cible) return repondre(t("bangroup_no_id"));
 
       const [ban] = await Bans.findOrCreate({
         where: { id: cible },
         defaults: { id: cible, type: "group" },
       });
 
-      if (!ban._options.isNewRecord) return repondre("Ce groupe est déjà banni !");
-      return repondre(`Groupe banni avec succès.`);
+      if (!ban._options.isNewRecord) return repondre(t("bangroup_already_banned"));
+      return repondre(t("bangroup_success"));
     } catch (error) {
       console.error("Erreur lors de l'exécution de la commande bangroup :", error);
-      return repondre("Une erreur s'est produite.");
+      return repondre(t("bangroup_fail"));
     }
   }
 );
@@ -185,29 +192,29 @@ ovlcmd(
     desc: "Débannir un groupe des commandes du bot",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, arg, verif_Groupe, prenium_id, ms } = cmd_options;
+    const { repondre, verif_Groupe, prenium_id, ms, t } = cmd_options;
 
     try {
       if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+        return ovl.sendMessage(jid, { text: t("ban_no_permission") }, { quoted: ms });
       }
-      if (!verif_Groupe) return repondre("Cette commande fonctionne uniquement dans les groupes.");
+
+      if (!verif_Groupe) return repondre(t("bangroup_not_group"));
 
       const cible = jid;
-
-      if (!cible) return repondre("Impossible de récupérer l'identifiant du groupe.");
+      if (!cible) return repondre(t("bangroup_no_id"));
 
       const suppression = await Bans.destroy({ where: { id: cible, type: "group" } });
-      if (suppression === 0) return repondre("Ce groupe n'est pas banni.");
-      return repondre(`Groupe débanni avec succès.`);
+      if (suppression === 0) return repondre(t("debangroup_not_banned"));
+      return repondre(t("debangroup_success"));
     } catch (error) {
       console.error("Erreur lors de l'exécution de la commande debangroup :", error);
-      return repondre("Une erreur s'est produite.");
+      return repondre(t("debangroup_fail"));
     }
   }
 );
 
- ovlcmd(
+ovlcmd(
   {
     nom_cmd: "setsudo",
     classe: "Owner",
@@ -215,18 +222,15 @@ ovlcmd(
     desc: "Ajoute un utilisateur dans la liste des utilisateurs premium.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
+    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms, t } = cmd_options;
 
     if (!prenium_id) {
-      return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
     }
+
     const cible =
-      auteur_Msg_Repondu ||
-      (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
- 
-    if (!cible) {
-      return repondre("Veuillez mentionner un utilisateur valide pour l'ajouter en premium.");
-    }
+      auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+    if (!cible) return repondre(t("setsudo_no_user"));
 
     try {
       const [user] = await Sudo.findOrCreate({
@@ -235,19 +239,20 @@ ovlcmd(
       });
 
       if (!user._options.isNewRecord) {
-        return ovl.sendMessage(ms_org, { 
-        text: `L'utilisateur @${cible.split('@')[0]} est déjà un utilisateur premium.`, 
-        mentions: [cible]
-      }, { quoted: ms });
+        return ovl.sendMessage(ms_org, {
+          text: t("setsudo_already_premium").replace("{username}", cible.split("@")[0]),
+          mentions: [cible]
+        }, { quoted: ms });
       }
 
-      return ovl.sendMessage(ms_org, { 
-        text: `Utilisateur @${cible.split('@')[0]} ajouté avec succès en tant qu'utilisateur premium.`, 
+      return ovl.sendMessage(ms_org, {
+        text: t("setsudo_success").replace("{username}", cible.split("@")[0]),
         mentions: [cible]
       }, { quoted: ms });
-      } catch (error) {
-      console.error("Erreur lors de l'exécution de la commande setsudo :", error);
-      return repondre("Une erreur est survenue lors de l'ajout de l'utilisateur en premium.");
+
+    } catch (error) {
+      console.error("Erreur setsudo:", error);
+      return repondre(t("setsudo_fail"));
     }
   }
 );
@@ -260,29 +265,32 @@ ovlcmd(
     desc: "Affiche la liste des utilisateurs premium.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, prenium_id, ms } = cmd_options;
+    const { repondre, prenium_id, ms, t } = cmd_options;
 
     if (!prenium_id) {
-      return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission d'exécuter cette commande." }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
     }
 
     try {
       const sudoUsers = await Sudo.findAll();
-
-      if (!sudoUsers.length) {
-        return repondre("Aucun utilisateur premium n'est actuellement enregistré.");
-      }
+      if (!sudoUsers.length) return repondre(t("sudolist_empty"));
 
       const userList = sudoUsers
-        .map((user, index) => `🔹 *${index + 1}.* @${user.id.split('@')[0]}`)
+        .map((user, i) => `🔹 *${i + 1}.* @${user.id.split("@")[0]}`)
         .join("\n");
 
-      const message = `✨ *Liste des utilisateurs Premium* ✨\n\n*Total*: ${sudoUsers.length}\n\n${userList}`;
+      const message = t("sudolist_template")
+        .replace("{count}", sudoUsers.length)
+        .replace("{users}", userList);
 
-      return ovl.sendMessage(ms_org, { text: message, mentions: sudoUsers.map(user => user.id) }, { quoted: ms });
+      return ovl.sendMessage(ms_org, {
+        text: message,
+        mentions: sudoUsers.map(u => u.id)
+      }, { quoted: ms });
+
     } catch (error) {
-      console.error("Erreur lors de l'exécution de la commande sudolist :", error);
-      return repondre("Une erreur est survenue lors de l'affichage de la liste des utilisateurs premium.");
+      console.error("Erreur sudolist:", error);
+      return repondre(t("sudolist_fail"));
     }
   }
 );
@@ -295,104 +303,104 @@ ovlcmd(
     desc: "Supprime un utilisateur de la liste des utilisateurs premium.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
-    
+    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms, t } = cmd_options;
+
     if (!prenium_id) {
-      return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
     }
+
     const cible =
-      auteur_Msg_Repondu ||
-      (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
-     
-    if (!cible) {
-      return repondre("Veuillez mentionner un utilisateur");
-    }
+      auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+    if (!cible) return repondre(t("delsudo_no_user"));
 
     try {
       const deletion = await Sudo.destroy({ where: { id: cible } });
 
       if (deletion === 0) {
-        return ovl.sendMessage(ms_org, { 
-        text: `L'utilisateur @${cible.split('@')[0]} n'est pas un utilisateur premium.`, 
-        mentions: [cible]
-      }, { quoted: ms });
+        return ovl.sendMessage(ms_org, {
+          text: t("delsudo_not_found").replace("{username}", cible.split("@")[0]),
+          mentions: [cible]
+        }, { quoted: ms });
       }
 
-        return ovl.sendMessage(ms_org, { 
-        text: `Utilisateur @${cible.split('@')[0]} supprimé avec succès de la liste premium.`, 
+      return ovl.sendMessage(ms_org, {
+        text: t("delsudo_success").replace("{username}", cible.split("@")[0]),
         mentions: [cible]
       }, { quoted: ms });
+
     } catch (error) {
-      console.error("Erreur lors de l'exécution de la commande delsudo :", error);
-      return repondre("Une erreur est survenue lors de la suppression de l'utilisateur de la liste premium.");
+      console.error("Erreur delsudo:", error);
+      return repondre(t("delsudo_fail"));
     }
   }
 );
 
 ovlcmd(
-    {
-        nom_cmd: "tgs",
-        classe: "Owner",
-        react: "🔍",
-        desc: "Importe des stickers Telegram sur WhatsApp",
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const { repondre, arg, prenium_id, ms } = cmd_options;
+  {
+    nom_cmd: "tgs",
+    classe: "Owner",
+    react: "🔍",
+    desc: "Importe des stickers Telegram sur WhatsApp",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { repondre, arg, prenium_id, ms, t } = cmd_options;
 
-         if (!prenium_id) {
-      return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." });
-         }
-        if (!arg[0]) {
-            repondre("Merci de fournir un lien de stickers Telegram valide.");
-            return;
-        }
-
-        const lien = arg[0];
-        const nomStickers = lien.split("/addstickers/")[1];
-
-        if (!nomStickers) {
-            repondre("Lien incorrect");
-            return;
-        }
-
-        const urlAPI = `https://api.telegram.org/bot7644701915:AAGP8fIx_wv1pC7BNMpgncL4i-rRSDLlvqI/getStickerSet?name=${nomStickers}`;
-
-        try {
-            const { data } = await axios.get(urlAPI);
-            const stickers = data.result.stickers;
-
-            if (!stickers || stickers.length === 0) {
-                repondre("Aucun sticker trouvé dans cet ensemble.");
-                return;
-            }
-
-            repondre(`Nom du pack: ${data.result.name}\nType : ${data.result.is_animated ? "animés" : "statiques"}\nTotal : ${stickers.length} stickers\n`);
-
-            for (const stickerData of stickers) {
-                const fileInfo = await axios.get(`https://api.telegram.org/bot7644701915:AAGP8fIx_wv1pC7BNMpgncL4i-rRSDLlvqI/getFile?file_id=${stickerData.file_id}`);
-                const stickerBuffer = await axios({
-                    method: "get",
-                    url: `https://api.telegram.org/file/bot7644701915:AAGP8fIx_wv1pC7BNMpgncL4i-rRSDLlvqI/${fileInfo.data.result.file_path}`,
-                    responseType: "arraybuffer",
-                });
-
-                const sticker = new Sticker(stickerBuffer.data, {
-                    pack: config.STICKER_PACK_NAME,
-                    author: config.STICKER_AUTHOR_NAME,
-                    type: StickerTypes.FULL,
-                });
-
-                await ovl.sendMessage(ms_org, {
-                    sticker: await sticker.toBuffer(),
-                }, { quoted: ms });
-            }
-
-            repondre("Tous les stickers ont été envoyés.");
-        } catch (error) {
-            console.error(error);
-            repondre("Une erreur s'est produite lors du téléchargement des stickers.");
-        }
+    if (!prenium_id) {
+      return ovl.sendMessage(ms_org, { text: t("ban_no_permission") });
     }
+
+    if (!arg[0]) {
+      return repondre(t("tgs_no_link"));
+    }
+
+    const lien = arg[0];
+    const nomStickers = lien.split("/addstickers/")[1];
+
+    if (!nomStickers) {
+      return repondre(t("tgs_invalid_link"));
+    }
+
+    const urlAPI = `https://api.telegram.org/bot<API_KEY>/getStickerSet?name=${nomStickers}`;
+
+    try {
+      const { data } = await axios.get(urlAPI);
+      const stickers = data.result.stickers;
+
+      if (!stickers || stickers.length === 0) {
+        return repondre(t("tgs_no_stickers"));
+      }
+
+      repondre(t("tgs_pack_info", {
+        name: data.result.name,
+        type: data.result.is_animated ? t("tgs_type_animated") : t("tgs_type_static"),
+        count: stickers.length
+      }));
+
+      for (const stickerData of stickers) {
+        const fileInfo = await axios.get(`https://api.telegram.org/bot<API_KEY>/getFile?file_id=${stickerData.file_id}`);
+        const stickerBuffer = await axios({
+          method: "get",
+          url: `https://api.telegram.org/file/bot<API_KEY>/${fileInfo.data.result.file_path}`,
+          responseType: "arraybuffer",
+        });
+
+        const sticker = new Sticker(stickerBuffer.data, {
+          pack: config.STICKER_PACK_NAME,
+          author: config.STICKER_AUTHOR_NAME,
+          type: StickerTypes.FULL,
+        });
+
+        await ovl.sendMessage(ms_org, {
+          sticker: await sticker.toBuffer(),
+        }, { quoted: ms });
+      }
+
+      repondre(t("tgs_done"));
+    } catch (error) {
+      console.error(error);
+      repondre(t("tgs_error"));
+    }
+  }
 );
 
 ovlcmd(
@@ -403,17 +411,19 @@ ovlcmd(
     desc: "Extrait les données d'une page web, y compris HTML, CSS, JavaScript et médias",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { arg, prenium_id, ms } = cmd_options;
+    const { arg, prenium_id, ms, t } = cmd_options;
     const lien = arg[0];
-if (!prenium_id) {
-      return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
-}
+
+    if (!prenium_id) {
+      return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
+    }
+
     if (!lien) {
-      return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien valide. Le bot extraira le HTML, CSS, JavaScript, et les médias de la page web." }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: t("fetchsc_no_link") }, { quoted: ms });
     }
 
     if (!/^https?:\/\//i.test(lien)) {
-      return ovl.sendMessage(ms_org, { text: "Veuillez fournir une URL valide commençant par http:// ou https://" }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: t("fetchsc_invalid_link") }, { quoted: ms });
     }
 
     try {
@@ -422,54 +432,43 @@ if (!prenium_id) {
       const $ = cheerio.load(html);
 
       const fichiersMedia = [];
-      $('img[src], video[src], audio[src]').each((i, element) => {
-        let src = $(element).attr('src');
-        if (src) fichiersMedia.push(src);
-      });
+      $('img[src], video[src], audio[src]').each((i, el) => fichiersMedia.push($(el).attr('src')));
 
       const fichiersCSS = [];
-      $('link[rel="stylesheet"]').each((i, element) => {
-        let href = $(element).attr('href');
-        if (href) fichiersCSS.push(href);
-      });
+      $('link[rel="stylesheet"]').each((i, el) => fichiersCSS.push($(el).attr('href')));
 
       const fichiersJS = [];
-      $('script[src]').each((i, element) => {
-        let src = $(element).attr('src');
-        if (src) fichiersJS.push(src);
-      });
+      $('script[src]').each((i, el) => fichiersJS.push($(el).attr('src')));
 
-      await ovl.sendMessage(ms_org, { text: `**Contenu HTML**:\n\n${html}` }, { quoted: ms });
+      await ovl.sendMessage(ms_org, { text: `**HTML**:\n\n${html}` }, { quoted: ms });
 
-      if (fichiersCSS.length > 0) {
-        for (const fichierCSS of fichiersCSS) {
-          const cssResponse = await axios.get(new URL(fichierCSS, lien));
-          const cssContent = cssResponse.data;
-          await ovl.sendMessage(ms_org, { text: `**Contenu du fichier CSS**:\n\n${cssContent}` }, { quoted: ms });
+      if (fichiersCSS.length) {
+        for (const f of fichiersCSS) {
+          const res = await axios.get(new URL(f, lien));
+          await ovl.sendMessage(ms_org, { text: `**CSS**:\n\n${res.data}` }, { quoted: ms });
         }
       } else {
-        await ovl.sendMessage(ms_org, { text: "Aucun fichier CSS externe trouvé." }, { quoted: ms });
+        await ovl.sendMessage(ms_org, { text: t("fetchsc_no_css") }, { quoted: ms });
       }
 
-      if (fichiersJS.length > 0) {
-        for (const fichierJS of fichiersJS) {
-          const jsResponse = await axios.get(new URL(fichierJS, lien));
-          const jsContent = jsResponse.data;
-          await ovl.sendMessage(ms_org, { text: `**Contenu du fichier JavaScript**:\n\n${jsContent}` }, { quoted: ms });
+      if (fichiersJS.length) {
+        for (const f of fichiersJS) {
+          const res = await axios.get(new URL(f, lien));
+          await ovl.sendMessage(ms_org, { text: `**JS**:\n\n${res.data}` }, { quoted: ms });
         }
       } else {
-        await ovl.sendMessage(ms_org, { text: "Aucun fichier JavaScript externe trouvé." }, { quoted: ms });
+        await ovl.sendMessage(ms_org, { text: t("fetchsc_no_js") }, { quoted: ms });
       }
 
-      if (fichiersMedia.length > 0) {
-        await ovl.sendMessage(ms_org, { text: `**Fichiers médias trouvés**:\n${fichiersMedia.join('\n')}` }, { quoted: ms });
+      if (fichiersMedia.length) {
+        await ovl.sendMessage(ms_org, { text: `**Médias**:\n${fichiersMedia.join("\n")}` }, { quoted: ms });
       } else {
-        await ovl.sendMessage(ms_org, { text: "Aucun fichier média (images, vidéos, audios) trouvé." }, { quoted: ms });
+        await ovl.sendMessage(ms_org, { text: t("fetchsc_no_media") }, { quoted: ms });
       }
 
     } catch (error) {
       console.error(error);
-      return ovl.sendMessage(ms_org, { text: "Une erreur est survenue lors de l'extraction du contenu de la page web." }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: t("fetchsc_error") }, { quoted: ms });
     }
   }
 );
@@ -482,11 +481,11 @@ ovlcmd(
     desc: "Configure ou désactive l'Antidelete",
   },
   async (jid, ovl, cmd_options) => {
-    const { ms, repondre, arg, prenium_id } = cmd_options;
-    
+    const { ms, repondre, arg, prenium_id, t } = cmd_options;
+
     try {
       if (!prenium_id) {
-        return repondre("Seuls les utilisateurs premium peuvent utiliser cette commande.");
+        return repondre(t("ban_no_permission"));
       }
 
       const sousCommande = arg[0]?.toLowerCase();
@@ -502,16 +501,16 @@ ovlcmd(
 
       const [settings] = await WA_CONF.findOrCreate({
         where: { id: '1' },
-        defaults: { id: '1' , antidelete: 'non' },
+        defaults: { id: '1', antidelete: 'non' },
       });
 
       if (sousCommande === 'off') {
         if (settings.antidelete === 'non') {
-          return repondre("L'Antidelete est déjà désactivé.");
+          return repondre(t("antidelete_already_off"));
         }
         settings.antidelete = 'non';
         await settings.save();
-        return repondre("L'Antidelete désactivé avec succès !");
+        return repondre(t("antidelete_disabled"));
       }
 
       const typeSelection = parseInt(sousCommande);
@@ -519,28 +518,18 @@ ovlcmd(
         const selectedType = validTypes[typeSelection];
 
         if (settings.antidelete === selectedType) {
-          return repondre(`L'Antidelete est déjà configuré sur ${selectedType}.`);
+          return repondre(t("antidelete_already", { type: selectedType }));
         }
 
         settings.antidelete = selectedType;
         await settings.save();
-        return repondre(`L'Antidelete est maintenant configuré sur ${selectedType}.`);
+        return repondre(t("antidelete_set", { type: selectedType }));
       }
 
-      return repondre(
-        "Utilisation :\n" +
-        "antidelete off: Désactiver l'antidelete\n\n" +
-        "antidelete 1: Configurer l'action antidelete sur les messages privés (pm)\n" +
-        "antidelete 2: Configurer l'action antidelete sur les messages de groupe (gc)\n" +
-        "antidelete 3: Configurer l'action antidelete sur les statuts (status)\n" +
-        "antidelete 4: Configurer l'action antidelete sur tous les types (all)\n" +
-        "antidelete 5: Configurer l'action antidelete sur les messages privés et de groupe (pm/gc)\n" +
-        "antidelete 6: Configurer l'action antidelete sur les messages privés et les statuts (pm/status)\n" +
-        "antidelete 7: Configurer l'action antidelete sur les messages de groupe et les statuts (gc/status)"
-      );
+      return repondre(t("antidelete_help"));
     } catch (error) {
-      console.error("Erreur lors de la configuration d'antidelete :", error);
-      repondre("Une erreur s'est produite lors de l'exécution de la commande.");
+      console.error("Erreur antidelete :", error);
+      return repondre(t("global_error"));
     }
   }
 );
@@ -551,47 +540,40 @@ ovlcmd(
     classe: "Owner",
     react: "🆔",
     desc: "fournit le jid d'une personne ou d'un groupe",
-  },  
+  },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, auteur_Msg_Repondu, prenium_id, msg_Repondu } = cmd_options;
+    const { repondre, auteur_Msg_Repondu, prenium_id, msg_Repondu, t } = cmd_options;
 
     if (!prenium_id) {
-      return repondre("Seuls les utilisateurs prenium peuvent utiliser cette commande");
+      return repondre(t("ban_no_permission"));
     }
 
-    let jid;
-
-    if (!msg_Repondu) {
-      jid = ms_org;
-    } else {
-      jid = auteur_Msg_Repondu;
-    }
-
+    const jid = msg_Repondu ? auteur_Msg_Repondu : ms_org;
     repondre(jid);
   }
 );
 
 ovlcmd(
-    {
-        nom_cmd: "restart",
-        classe: "Owner",
-        desc: "Redémarre le bot via PM2"
-    },
-    async (ms_org, ovl, opt) => {
-        const { ms, prenium_id } = opt;
+  {
+    nom_cmd: "restart",
+    classe: "Owner",
+    desc: "Redémarre le bot via PM2"
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { ms, prenium_id, t } = cmd_options;
 
-        if (!prenium_id) {
-            return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission d'utiliser cette commande." }, { quoted: ms });
-        }
-
-        await ovl.sendMessage(ms_org, { text: "♻️ Redémarrage du bot en cours..." }, { quoted: ms });
-
-        exec('pm2 restart all', (err, stdout, stderr) => {
-            if (err) {
-                return ovl.sendMessage(ms_org, { text: `Erreur lors du redémarrage :\n${err.message}` }, { quoted: ms });
-            }
-        });
+    if (!prenium_id) {
+      return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
     }
+
+    await ovl.sendMessage(ms_org, { text: t("restart_msg") }, { quoted: ms });
+
+    exec('pm2 restart all', (err) => {
+      if (err) {
+        return ovl.sendMessage(ms_org, { text: t("restart_error", { err: err.message }) }, { quoted: ms });
+      }
+    });
+  }
 );
 
 ovlcmd(
@@ -602,29 +584,28 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     try {
-      const { arg, ms, prenium_id } = cmd_options;
+      const { arg, ms, prenium_id, t } = cmd_options;
 
       if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "🚫 Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+        return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
       }
 
       if (!arg || !arg[0]) {
-        return ovl.sendMessage(ms_org, { text: "Exemple : .connect SESSION_ID" }, { quoted: ms });
+        return ovl.sendMessage(ms_org, { text: t("connect_usage") }, { quoted: ms });
       }
 
       const session_id = arg[0].trim();
-
       await saveSecondSession(session_id);
 
       exec('pm2 restart all', (err) => {
         if (err) {
-          ovl.sendMessage(ms_org, { text: `⚠️ Erreur lors du redémarrage :\n${err.message}` }, { quoted: ms });
+          ovl.sendMessage(ms_org, { text: t("restart_error", { err: err.message }) }, { quoted: ms });
         }
       });
 
-      return ovl.sendMessage(ms_org, { text: `✅ Tentative de connexion enregistrée pour la session : ${session_id}` }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: t("connect_success", { session_id }) }, { quoted: ms });
     } catch (err) {
-      return ovl.sendMessage(ms_org, { text: `❌ Erreur : ${err.message}` });
+      return ovl.sendMessage(ms_org, { text: t("global_error", { err: err.message }) });
     }
   }
 );
@@ -637,11 +618,11 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     try {
-      const { ms, JidToLid, prenium_id } = cmd_options;
+      const { ms, prenium_id, t } = cmd_options;
 
       if (!prenium_id) {
         return ovl.sendMessage(ms_org, {
-          text: "Vous n'avez pas le droit d'exécuter cette commande.",
+          text: t("ban_no_permission"),
         }, { quoted: ms });
       }
 
@@ -649,7 +630,7 @@ ovlcmd(
 
       if (!sessions || sessions.length === 0) {
         return ovl.sendMessage(ms_org, {
-          text: "📭 Aucune session secondaire active pour le moment.",
+          text: t("connect_session_empty"),
         }, { quoted: ms });
       }
 
@@ -657,11 +638,11 @@ ovlcmd(
       const texte = jids.map(jid => `@${jid.split("@")[0]}`).join("\n");
 
       await ovl.sendMessage(ms_org, {
-        text: `📡 *Sessions secondaires connectées (${sessions.length})* :\n\n${texte}`,
+        text: t("connect_session_list", { total: sessions.length, liste: texte }),
         mentions: jids,
       }, { quoted: ms });
     } catch (err) {
-      return ovl.sendMessage(ms_org, { text: `❌ Erreur : ${err.message}` });
+      return ovl.sendMessage(ms_org, { text: t("global_error", { err: err.message }) });
     }
   }
 );
@@ -674,18 +655,14 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     try {
-      const { arg, ms, prenium_id } = cmd_options;
+      const { arg, ms, prenium_id, t } = cmd_options;
 
       if (!prenium_id) {
-        return ovl.sendMessage(ms_org, {
-          text: "Vous n'avez pas le droit d'exécuter cette commande.",
-        }, { quoted: ms });
+        return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
       }
 
       if (!arg || !arg[0]) {
-        return ovl.sendMessage(ms_org, {
-          text: "Usage : .disconnect SESSION_ID",
-        }, { quoted: ms });
+        return ovl.sendMessage(ms_org, { text: t("disconnect_usage") }, { quoted: ms });
       }
 
       const session_id = arg[0].trim();
@@ -693,21 +670,21 @@ ovlcmd(
 
       if (result === 0) {
         return ovl.sendMessage(ms_org, {
-          text: `Aucune session trouvée pour la session : ${session_id}`,
+          text: t("disconnect_not_found", { session_id }),
         }, { quoted: ms });
       }
 
       exec('pm2 restart all', (err) => {
         if (err) {
-          ovl.sendMessage(ms_org, { text: `⚠️ Erreur lors du redémarrage :\n${err.message}` }, { quoted: ms });
+          ovl.sendMessage(ms_org, { text: t("restart_error", { err: err.message }) }, { quoted: ms });
         }
       });
 
       await ovl.sendMessage(ms_org, {
-        text: `✅ Session ${session_id} supprimée avec succès.`,
+        text: t("disconnect_success", { session_id }),
       }, { quoted: ms });
     } catch (err) {
-      return ovl.sendMessage(ms_org, { text: `❌ Erreur : ${err.message}` });
+      return ovl.sendMessage(ms_org, { text: t("global_error", { err: err.message }) });
     }
   }
 );
@@ -720,29 +697,14 @@ ovlcmd(
     desc: "Configurer le message d'antimention global",
   },
   async (jid, ovl, cmd_options) => {
-    const { ms, repondre, arg, prenium_id } = cmd_options;
+    const { ms, repondre, arg, prenium_id, t } = cmd_options;
 
-    if (!prenium_id) return repondre("❌ Seuls les utilisateurs premium peuvent utiliser cette commande.");
+    if (!prenium_id) return repondre(t("ban_no_permission"));
 
     try {
       const joined = arg.join(" ");
       if (!joined) {
-        return repondre(
-          `🛠️ Utilisation de la commande *setmention* :
-
-1️⃣ Pour une image ou vidéo avec texte :
-> *setmention url=https://exemple.com/fichier.jpg & text=Votre message ici*
-
-2️⃣ Pour un audio (.opus uniquement) :
-> *setmention url=https://exemple.com/audio.opus*
-
-3️⃣ Pour un message texte seulement (pas de média) :
-> *setmention text=Votre message ici*
-
-📌 Extensions supportées : .jpg, .jpeg, .png, .mp4, .opus, .ogg, .mp3, .m4a, .aac, .wav
-⚠️ Le texte n’est pas autorisé avec l'audio.
-✅Veuillez utuliser la commande *url* pour obtenir l'URL.`
-        );
+        return repondre(t("setmention_help"));
       }
 
       const parts = joined.split("&").map(p => p.trim());
@@ -762,29 +724,29 @@ ovlcmd(
 
       if (url === "url" && text !== "text") {
         await setMention({ url: "", text, mode: "oui" });
-        return repondre("✅ Message texte configuré avec succès pour l'antimention.");
+        return repondre(t("setmention_text_ok"));
       }
 
       if (isAudio) {
-        if (text !== "text" && text !== "") return repondre("❌ Le texte n'est pas autorisé pour un message audio (.opus).");
+        if (text !== "text" && text !== "") return repondre(t("setmention_text_not_allowed_audio"));
         await setMention({ url, text: "", mode: "oui" });
-        return repondre("✅ Mention audio enregistrée.");
+        return repondre(t("setmention_audio_ok"));
       }
 
       if (isImage || isVideo) {
         await setMention({ url, text, mode: "oui" });
-        return repondre(`✅ Mention ${isImage ? "image" : "vidéo"} enregistrée avec succès.`);
+        return repondre(t("setmention_media_ok", { type: isImage ? "image" : "vidéo" }));
       }
 
-      return repondre("Format de fichier non supporté. Extensions valides : .jpg, .jpeg, .png, .mp4, .opus");
+      return repondre(t("setmention_invalid_format"));
     } catch (e) {
       console.error("Erreur dans setmention:", e);
-      repondre("Une erreur s'est produite lors de la configuration.");
+      repondre(t("global_error"));
     }
   }
 );
-
-ovlcmd(
+ 
+ ovlcmd(
   {
     nom_cmd: "delmention",
     classe: "Owner",
@@ -792,16 +754,16 @@ ovlcmd(
     desc: "Désactiver le système d'antimention",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, prenium_id } = cmd_options;
+    const { repondre, prenium_id, t } = cmd_options;
 
-    if (!prenium_id) return repondre("Seuls les utilisateurs premium peuvent utiliser cette commande.");
+    if (!prenium_id) return repondre(t("ban_no_permission"));
 
     try {
       await delMention();
-      return repondre("✅ mention désactivé.");
+      return repondre(t("delmention_success"));
     } catch (e) {
       console.error("Erreur dans delmention:", e);
-      repondre("Une erreur s'est produite.");
+      repondre(t("global_error"));
     }
   }
 );
@@ -814,22 +776,22 @@ ovlcmd(
     desc: "Afficher la configuration actuelle de l'antimention",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, prenium_id } = cmd_options;
+    const { repondre, prenium_id, t } = cmd_options;
+
+    if (!prenium_id) return repondre(t("ban_no_permission"));
 
     try {
-      if (!prenium_id) return repondre("Seuls les utilisateurs premium peuvent utiliser cette commande.");
-
       const data = await getMention();
 
       if (!data || data.mode === "non") {
-        return repondre("ℹ️ Antimention désactivé ou non configuré.");
+        return repondre(t("getmention_disabled"));
       }
 
       const { mode, url, text } = data;
 
       if (!url || url === "" || url === "url") {
         if (!text || text === "text") {
-          return repondre("ℹ️ Antimention activé mais aucun contenu défini.");
+          return repondre(t("getmention_enabled_no_content"));
         }
         return repondre(text);
       }
@@ -839,8 +801,6 @@ ovlcmd(
       const isImage = lowerUrl.endsWith(".jpg") || lowerUrl.endsWith(".jpeg") || lowerUrl.endsWith(".png");
       const isVideo = lowerUrl.endsWith(".mp4");
 
-      const type = isAudio ? "audio" : isImage ? "image" : isVideo ? "video" : "document";
- 
       if (isAudio) {
         return await ovl.sendMessage(jid, {
           audio: { url },
@@ -863,10 +823,10 @@ ovlcmd(
         }, { quoted: null });
       }
 
-      return repondre("Le type de média est inconnu ou non pris en charge.");
+      return repondre(t("getmention_unknown_media"));
     } catch (e) {
-      console.error("Erreur dans gmention:", e);
-      repondre("Impossible d'afficher la configuration.");
+      console.error("Erreur dans getmention:", e);
+      repondre(t("global_error"));
     }
   }
 );
@@ -876,23 +836,23 @@ ovlcmd({
   classe: "Owner",
   react: "✨",
   desc: "Associer une commande à un sticker (réponds à un sticker)",
-}, async (ms_org, ovl, { repondre, msg_Repondu, arg, prenium_id }) => {
-  if (!prenium_id) return repondre("Pas autorisé.");
+}, async (ms_org, ovl, { repondre, msg_Repondu, arg, prenium_id, t }) => {
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const name = arg[0];
-  if (!name) return repondre("Tu dois donner un nom à la commande.\nExemple : \`addstickcmd test\`");
+  if (!name) return repondre(t("addstickcmd_no_name"));
 
   if (!msg_Repondu || !msg_Repondu.stickerMessage || !msg_Repondu.stickerMessage.url)
-    return repondre("Tu dois répondre à un *sticker* pour l'enregistrer.");
+    return repondre(t("addstickcmd_no_reply_sticker"));
 
   const stick_url = msg_Repondu.stickerMessage.url;
 
   try {
     await set_stick_cmd(name.toLowerCase(), stick_url);
-    repondre(`✅ Le sticker a été associé à la commande *${name}*`);
+    repondre(t("addstickcmd_success", { name }));
   } catch (e) {
     console.error(e);
-    repondre("Erreur lors de l'enregistrement.");
+    repondre(t("global_error"));
   }
 });
 
@@ -901,14 +861,14 @@ ovlcmd({
   classe: "Owner",
   react: "🗑️",
   desc: "Supprimer une commande sticker",
-}, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
-  if (!prenium_id) return repondre("Pas autorisé.");
+}, async (ms_org, ovl, { repondre, arg, prenium_id, t }) => {
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const name = arg[0];
-  if (!name) return repondre("Exemple : \`delstickcmd test\`");
+  if (!name) return repondre(t("delstickcmd_usage"));
 
   const ok = await del_stick_cmd(name.toLowerCase());
-  repondre(ok ? `🗑️ La commande *${name}* a été supprimée.` : `Aucune commande nommée *${name}* trouvée.`);
+  repondre(ok ? t("delstickcmd_success", { name }) : t("delstickcmd_not_found", { name }));
 });
 
 ovlcmd({
@@ -916,14 +876,14 @@ ovlcmd({
   classe: "Owner",
   react: "📋",
   desc: "Liste des commandes stickers",
-}, async (ms_org, ovl, { repondre, prenium_id }) => {
-  if (!prenium_id) return repondre("Pas autorisé.");
+}, async (ms_org, ovl, { repondre, prenium_id, t }) => {
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const list = await get_stick_cmd();
-  if (!list.length) return repondre("Aucune commande sticker trouvée.");
+  if (!list.length) return repondre(t("getstickcmd_empty"));
 
-  let msg = "*📌 Liste des commandes stickers :*\n\n";
-  for (const { no_cmd, stick_url } of list) {
+  let msg = t("getstickcmd_list_header") + "\n\n";
+  for (const { no_cmd } of list) {
     msg += `• *${no_cmd}*\n`;
   }
 
@@ -931,306 +891,275 @@ ovlcmd({
 });
 
 ovlcmd({
-  nom_cmd: "setpublic_cmd",
-  classe: "Owner",
-  react: "✅",
-  desc: "Ajoute une commande publique utilisable par tout le monde quand le bot est en mode privé",
-}, async (ms_org, ovl, { arg, repondre, prenium_id }) => {
-  if (!prenium_id) return repondre("❌ Vous n'avez pas la permission d'exécuter cette commande.");
+  nom_cmd: "setpublic_cmd",
+  classe: "Owner",
+  react: "✅",
+  desc: "Ajoute une commande publique utilisable par tout le monde quand le bot est en mode privé",
+}, async (ms_org, ovl, { arg, repondre, prenium_id, t }) => {
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
-  const nom_cmd = arg[0];
-  if (!nom_cmd) return repondre("❌ Utilisation: setpublic_cmd nom_cmd");
+  const nom_cmd = arg[0];
+  if (!nom_cmd) return repondre(t("setpublic_usage"));
 
-  try {
-    await set_cmd(nom_cmd, "public");
-    repondre(`✅ Commande publique '${nom_cmd}' enregistrée.`);
-  } catch {
-    repondre("❌ Erreur lors de l'enregistrement.");
-  }
+  try {
+    await set_cmd(nom_cmd, "public");
+    repondre(t("setpublic_success", { nom_cmd }));
+  } catch {
+    repondre(t("global_error"));
+  }
 });
 
 ovlcmd({
-  nom_cmd: "delpublic_cmd",
-  classe: "Owner",
-  react: "🗑️",
-  desc: "Supprime une commande des commandes publiques.",
-}, async (ms_org, ovl, { arg, repondre, prenium_id }) => {
-  if (!prenium_id) return repondre("❌ Vous n'avez pas la permission d'exécuter cette commande.");
+  nom_cmd: "delpublic_cmd",
+  classe: "Owner",
+  react: "🗑️",
+  desc: "Supprime une commande des commandes publiques.",
+}, async (ms_org, ovl, { arg, repondre, prenium_id, t }) => {
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
-  const nom_cmd = arg[0];
-  if (!nom_cmd) return repondre("❌ Utilisation: delpublic_cmd nom_cmd");
+  const nom_cmd = arg[0];
+  if (!nom_cmd) return repondre(t("delpublic_usage"));
 
-  try {
-    const deleted = await del_cmd(nom_cmd, "public");
-    repondre(deleted ? `✅ Commande '${nom_cmd}' supprimée.` : `❌ Commande '${nom_cmd}' introuvable.`);
-  } catch {
-    repondre("❌ Erreur lors de la suppression.");
-  }
+  try {
+    const deleted = await del_cmd(nom_cmd, "public");
+    repondre(deleted ? t("delpublic_success", { nom_cmd }) : t("delpublic_not_found", { nom_cmd }));
+  } catch {
+    repondre(t("global_error"));
+  }
 });
 
 ovlcmd({
-  nom_cmd: "listpublic_cmd",
-  classe: "Owner",
-  react: "📜",
-  desc: "Liste les commandes publiques utilisablent quand le bot est en mode privé",
-}, async (ms_org, ovl, { repondre, prenium_id }) => {
-  if (!prenium_id) return repondre("❌ Vous n'avez pas la permission d'exécuter cette commande.");
+  nom_cmd: "listpublic_cmd",
+  classe: "Owner",
+  react: "📜",
+  desc: "Liste les commandes publiques utilisables quand le bot est en mode privé",
+}, async (ms_org, ovl, { repondre, prenium_id, t }) => {
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
-  const all = await list_cmd("public");
-  if (!all.length) return repondre("❌ Aucune commande publique enregistrée.");
+  const all = await list_cmd("public");
+  if (!all.length) return repondre(t("listpublic_empty"));
 
-  const msg = all.map((c, i) => `🔹 *${i + 1}.* ${c.nom_cmd}`).join("\n");
-  repondre(`📖 *Commandes publiques enregistrées :*\n\n${msg}`);
+  const msg = all.map((c, i) => `🔹 *${i + 1}.* ${c.nom_cmd}`).join("\n");
+  repondre(t("listpublic_header") + "\n\n" + msg);
 });
 
 ovlcmd({
-  nom_cmd: "setprivate_cmd",
-  classe: "Owner",
-  react: "🔒",
-  desc: "Ajoute une commande privée utilisable par les utilisateurs premiums quand le bot est en mode public",
-}, async (ms_org, ovl, { arg, repondre, prenium_id }) => {
-  if (!prenium_id) return repondre("❌ Vous n'avez pas la permission d'exécuter cette commande.");
+  nom_cmd: "setprivate_cmd",
+  classe: "Owner",
+  react: "🔒",
+  desc: "Ajoute une commande privée utilisable par les utilisateurs premiums quand le bot est en mode public",
+}, async (ms_org, ovl, { arg, repondre, prenium_id, t }) => {
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
-  const nom_cmd = arg[0];
-  if (!nom_cmd) return repondre("❌ Utilisation: setprivate_cmd nom_cmd");
+  const nom_cmd = arg[0];
+  if (!nom_cmd) return repondre(t("setprivate_usage"));
 
-  try {
-    await set_cmd(nom_cmd, "private");
-    repondre(`🔐 Commande privée '${nom_cmd}' enregistrée.`);
-  } catch {
-    repondre("❌ Erreur lors de l'enregistrement.");
-  }
+  try {
+    await set_cmd(nom_cmd, "private");
+    repondre(t("setprivate_success", { nom_cmd }));
+  } catch {
+    repondre(t("global_error"));
+  }
 });
 
 ovlcmd({
-  nom_cmd: "delprivate_cmd",
-  classe: "Owner",
-  react: "🗑️",
-  desc: "Supprime une commande des commandes privée"
-}, async (ms_org, ovl, { arg, repondre, prenium_id }) => {
-  if (!prenium_id) return repondre("❌ Vous n'avez pas la permission d'exécuter cette commande.");
+  nom_cmd: "delprivate_cmd",
+  classe: "Owner",
+  react: "🗑️",
+  desc: "Supprime une commande des commandes privées"
+}, async (ms_org, ovl, { arg, repondre, prenium_id, t }) => {
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
-  const nom_cmd = arg[0];
-  if (!nom_cmd) return repondre("❌ Utilisation: delprivate_cmd nom_cmd");
+  const nom_cmd = arg[0];
+  if (!nom_cmd) return repondre(t("delprivate_usage"));
 
-  try {
-    const deleted = await del_cmd(nom_cmd, "private");
-    repondre(deleted ? `✅ Commande '${nom_cmd}' supprimée.` : `❌ Commande '${nom_cmd}' introuvable.`);
-  } catch {
-    repondre("❌ Erreur lors de la suppression.");
-  }
+  try {
+    const deleted = await del_cmd(nom_cmd, "private");
+    repondre(deleted ? t("delprivate_success", { nom_cmd }) : t("delprivate_not_found", { nom_cmd }));
+  } catch {
+    repondre(t("global_error"));
+  }
 });
 
 ovlcmd({
-  nom_cmd: "listprivate_cmd",
-  classe: "Owner",
-  react: "📃",
-  desc: "Liste les commandes privées utilisablent par les utilisateurs premiums quand le bot est en mode public",
-}, async (ms_org, ovl, { repondre, prenium_id }) => {
-  if (!prenium_id) return repondre("❌ Vous n'avez pas la permission d'exécuter cette commande.");
+  nom_cmd: "listprivate_cmd",
+  classe: "Owner",
+  react: "📃",
+  desc: "Liste les commandes privées utilisables par les utilisateurs premiums quand le bot est en mode public",
+}, async (ms_org, ovl, { repondre, prenium_id, t }) => {
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
-  const all = await list_cmd("private");
-  if (!all.length) return repondre("❌ Aucune commande privée enregistrée.");
+  const all = await list_cmd("private");
+  if (!all.length) return repondre(t("listprivate_empty"));
 
-  const msg = all.map((c, i) => `🔹 *${i + 1}.* ${c.nom_cmd}`).join("\n");
-  repondre(`🔒 *Commandes privées enregistrées :*\n\n${msg}`);
+  const msg = all.map((c, i) => `🔹 *${i + 1}.* ${c.nom_cmd}`).join("\n");
+  repondre(t("listprivate_header") + "\n\n" + msg);
 });
 
+ovlcmd({
+  nom_cmd: "chatbot",
+  classe: "Owner",
+  react: "🤖",
+  desc: "Active ou désactive le chatbot ici ou globalement.",
+}, async (jid, ovl, { ms, repondre, arg, prenium_id, t }) => {
+  const sousCommande = arg[0]?.toLowerCase();
 
-ovlcmd(
-  {
-    nom_cmd: "chatbot",
-    classe: "Owner",
-    react: "🤖",
-    desc: "Active ou désactive le chatbot ici ou globalement.",
-  },
-  async (jid, ovl, cmd_options) => {
-    const { ms, repondre, arg, verif_Groupe, prenium_id } = cmd_options;
-    const sousCommande = arg[0]?.toLowerCase();
+  if (!prenium_id) return repondre(t("ban_no_permission"));
 
-    if (!prenium_id) {
-      repondre("❌ Pas autorisé.");
-      return;
-    }
+  try {
+    const [config] = await ChatbotConf.findOrCreate({
+      where: { id: '1' },
+      defaults: {
+        chatbot_pm: 'non',
+        chatbot_gc: 'non',
+        enabled_ids: JSON.stringify([]),
+      },
+    });
 
-    try {
-      const [config] = await ChatbotConf.findOrCreate({
-        where: { id: '1' },
-        defaults: {
-          chatbot_pm: 'non',
-          chatbot_gc: 'non',
-          enabled_ids: JSON.stringify([]),
-        },
-      });
+    let ids;
+    try {
+      ids = JSON.parse(config.enabled_ids || '[]');
+    } catch {
+      ids = [];
+    }
 
-      let ids = [];
-      try {
-        ids = JSON.parse(config.enabled_ids || '[]');
-      } catch {
-        ids = [];
-      }
+    if (sousCommande === 'on') {
+      if (ids.includes(jid)) {
+        repondre(t("chatbot.already_here"));
+      } else {
+        ids.push(jid);
+        config.enabled_ids = JSON.stringify([...new Set(ids)]);
+        config.chatbot_pm = 'non';
+        config.chatbot_gc = 'non';
+        await config.save();
+        repondre(t("chatbot.enabled_here"));
+      }
+    } else if (sousCommande === 'off') {
+      config.chatbot_pm = 'non';
+      config.chatbot_gc = 'non';
+      config.enabled_ids = JSON.stringify([]);
+      await config.save();
+      repondre(t("chatbot.disabled_global"));
+    } else if (['pm', 'gc', 'all'].includes(sousCommande)) {
+      config.chatbot_pm = sousCommande === 'pm' || sousCommande === 'all' ? 'oui' : 'non';
+      config.chatbot_gc = sousCommande === 'gc' || sousCommande === 'all' ? 'oui' : 'non';
+      config.enabled_ids = JSON.stringify([]);
+      await config.save();
 
-      if (sousCommande === 'on') {
-        if (ids.includes(jid)) {
-          repondre("🔁 Le chatbot est *déjà activé ici*.");
-        } else {
-          ids.push(jid);
-          config.enabled_ids = JSON.stringify([...new Set(ids)]);
-          config.chatbot_pm = 'non';
-          config.chatbot_gc = 'non';
-          await config.save();
-          repondre("✅ Le chatbot est maintenant activé *dans cette discussion*.");
-        }
+      const messages = {
+        pm: t("chatbot.enabled_pm"),
+        gc: t("chatbot.enabled_gc"),
+        all: t("chatbot.enabled_all"),
+      };
 
-      } else if (sousCommande === 'off') {
-        config.chatbot_pm = 'non';
-        config.chatbot_gc = 'non';
-        config.enabled_ids = JSON.stringify([]);
-        await config.save();
-        repondre("⛔️ Le chatbot est maintenant désactivé *partout*.");
-
-      } else if (['pm', 'gc', 'all'].includes(sousCommande)) {
-        config.chatbot_pm = sousCommande === 'pm' || sousCommande === 'all' ? 'oui' : 'non';
-        config.chatbot_gc = sousCommande === 'gc' || sousCommande === 'all' ? 'oui' : 'non';
-        config.enabled_ids = JSON.stringify([]);
-        await config.save();
-
-        const messages = {
-          pm: "✅ Le chatbot est maintenant activé *dans tous les chats privés*.",
-          gc: "✅ Le chatbot est maintenant activé *dans tous les groupes*.",
-          all: "✅ Le chatbot est maintenant activé *partout*.",
-        };
-
-        repondre(messages[sousCommande]);
-
-      } else {
-        repondre(
-          "🤖 *Gestion du Chatbot*\n\n" +
-          "`chatbot on` - Active ici uniquement\n" +
-          "`chatbot off` - Désactive *partout*\n" +
-          "`chatbot pm` - Active dans *tous les chats privés*\n" +
-          "`chatbot gc` - Active dans *tous les groupes*\n" +
-          "`chatbot all` - Active *partout*"
-        );
-      }
-
-    } catch (err) {
-      console.error("❌ Erreur dans la commande chatbot :", err);
-      repondre("Une erreur est survenue.");
-    }
-  }
-);
-
-ovlcmd(
-  {
-    nom_cmd: "list",
-    classe: "Système",
-    react: "📃",
-    desc: "Affiche la liste des plugins disponibles (✓ installé, ✗ non installé).",
-  },
-  async (ms, ovl, { repondre }) => {
-    try {
-      const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
-      const installs = await Plugin.findAll();
-      const installedNames = installs.map(p => p.name);
-
-      const lignes = data.map(p => {
-        const estInstalle = installedNames.includes(p.name);
-        return `${estInstalle ? '✓' : '✗'} ${p.name}`;
-      });
-
-      const message = lignes.length > 0
-        ? `📦 Liste des plugins disponibles :\n\n${lignes.join('\n')}`
-        : "Aucun plugin disponible.";
-
-      await repondre(message);
-    } catch (e) {
-      await repondre("❌ Erreur lors du chargement de la liste.");
-    }
-  }
-);
-
-ovlcmd(
-  {
-    nom_cmd: "remove",
-    classe: "Système",
-    react: "🗑️",
-    desc: "Supprime un plugin installé par nom ou tape `remove all` pour tous.",
-  },
-  async (ms, ovl, { arg, repondre }) => {
-    const input = arg[0];
-    if (!input) return repondre("❌ Utilise `remove nom_plugin` ou `remove all`.");
-
-    if (input === 'all') {
-      const plugins = await Plugin.findAll();
-      for (const p of plugins) {
-        const filePath = path.join(__dirname, '../cmd', `${p.name}.js`);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        await Plugin.destroy({ where: { name: p.name } });
-      }
-      repondre("🗑️ Tous les plugins ont été supprimés.");
-      return exec('pm2 restart all', (error, stdout, stderr) => {
+      repondre(messages[sousCommande]);
+    } else {
+      repondre(t("chatbot.usage"));
+    }
+  } catch (err) {
+    console.error("❌ Erreur dans la commande chatbot :", err);
+    repondre(t("global_error"));
+  }
 });
-    }
 
-    const plugin = await Plugin.findOne({ where: { name: input } });
-    if (!plugin) return repondre("❌ Plugin non trouvé dans la base.");
+ovlcmd({
+  nom_cmd: "list",
+  classe: "Système",
+  react: "📃",
+  desc: "Affiche la liste des plugins disponibles (✓ installé, ✗ non installé).",
+}, async (ms, ovl, { repondre, t }) => {
+  try {
+    const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
+    const installs = await Plugin.findAll();
+    const installedNames = installs.map(p => p.name);
 
-    const filePath = path.join(__dirname, '../cmd', `${plugin.name}.js`);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-    await Plugin.destroy({ where: { name: input } });
+    const lignes = data.map(p => {
+      const estInstalle = installedNames.includes(p.name);
+      return `${estInstalle ? '✓' : '✗'} ${p.name}`;
+    });
 
-    await repondre(`🗑️ Plugin *${input}* supprimé.`);
-   return exec('pm2 restart all', (error, stdout, stderr) => {
+    const message = lignes.length > 0
+      ? t("plugin.list_header") + "\n\n" + lignes.join('\n')
+      : t("plugin.none");
+
+    await repondre(message);
+  } catch (e) {
+    await repondre(t("plugin.error_loading"));
+  }
 });
-  }
-);
 
-ovlcmd(
-  {
-    nom_cmd: "install",
-    classe: "Système",
-    react: "📥",
-    desc: "Installe un plugin.",
-  },
-  async (ms, ovl, { arg, repondre }) => {
-    const input = arg[0];
-    if (!input) return repondre("❌ Donne un lien direct vers un plugin ou tape `install all` pour tout installer.");
+ovlcmd({
+  nom_cmd: "remove",
+  classe: "Système",
+  react: "🗑️",
+  desc: "Supprime un plugin installé par nom ou tape `remove all` pour tous.",
+}, async (ms, ovl, { arg, repondre, t }) => {
+  const input = arg[0];
+  if (!input) return repondre(t("plugin.remove.usage"));
 
-    const installOne = async (url, name) => {
-      try {
-        const res = await axios.get(url);
-        const code = res.data;
-        const filePath = path.join(__dirname, '../cmd', `${name}.js`);
-        fs.writeFileSync(filePath, code);
+  if (input === 'all') {
+    const plugins = await Plugin.findAll();
+    for (const p of plugins) {
+      const filePath = path.join(__dirname, '../cmd', `${p.name}.js`);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      await Plugin.destroy({ where: { name: p.name } });
+    }
+    repondre(t("plugin.remove.all_done"));
+    return exec('pm2 restart all', () => {});
+  }
 
-        const modules = extractNpmModules(code);
-        if (modules.length > 0) {
-          await repondre(`⚙️ Installation des dépendances npm : ${modules.join(', ')}`);
-          await installModules(modules);
-        }
+  const plugin = await Plugin.findOne({ where: { name: input } });
+  if (!plugin) return repondre(t("plugin.remove.not_found"));
 
-        await Plugin.findOrCreate({ where: { name }, defaults: { url } });
-        await repondre(`✅ Plugin *${name}* installé.`);
-       return exec('pm2 restart all', (error, stdout, stderr) => {
+  const filePath = path.join(__dirname, '../cmd', `${plugin.name}.js`);
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  await Plugin.destroy({ where: { name: input } });
+
+  await repondre(t("plugin.remove.success", { name: input }));
+  return exec('pm2 restart all', () => {});
 });
-      } catch (e) {
-        await repondre("❌ Erreur : " + e);
-      }
-    };
 
-    if (input === 'all') {
-      try {
-        const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
-        for (const p of data) {
-          await installOne(p.url, p.name);
-        }
-        await repondre('✅ Tous les plugins disponibles ont été installés.');
-      } catch (e) {
-        await repondre("❌ Erreur : " + e.message);
-      }
-    } else {
-      await installOne(input, path.basename(input).replace('.js', ''));
-    }
-  }
-);
+ovlcmd({
+  nom_cmd: "install",
+  classe: "Système",
+  react: "📥",
+  desc: "Installe un plugin.",
+}, async (ms, ovl, { arg, repondre, t }) => {
+  const input = arg[0];
+  if (!input) return repondre(t("plugin.install.usage"));
+
+  const installOne = async (url, name) => {
+    try {
+      const res = await axios.get(url);
+      const code = res.data;
+      const filePath = path.join(__dirname, '../cmd', `${name}.js`);
+      fs.writeFileSync(filePath, code);
+
+      const modules = extractNpmModules(code);
+      if (modules.length > 0) {
+        await repondre(t("plugin.install.modules", { modules: modules.join(", ") }));
+        await installModules(modules);
+      }
+
+      await Plugin.findOrCreate({ where: { name }, defaults: { url } });
+      await repondre(t("plugin.install.success", { name }));
+      return exec('pm2 restart all', () => {});
+    } catch (e) {
+      await repondre(t("plugin.install.error", { error: e.message }));
+    }
+  };
+
+  if (input === 'all') {
+    try {
+      const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
+      for (const p of data) {
+        await installOne(p.url, p.name);
+      }
+      await repondre(t("plugin.install.all_done"));
+    } catch (e) {
+      await repondre(t("plugin.install.error", { error: e.message }));
+    }
+  } else {
+    await installOne(input, path.basename(input).replace('.js', ''));
+  }
+});

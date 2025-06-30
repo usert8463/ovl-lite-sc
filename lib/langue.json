@@ -191,5 +191,78 @@
     "plugin.install.all_done": "✅ Tous les plugins disponibles ont été installés.",
     "plugin.install.error": "❌ Erreur : {error}",
     "global_error": "❌ Une erreur s'est produite."
+    "tagall_group_only": "❌ Cette commande ne fonctionne que dans les groupes.",
+"tagall_admin_only": "🔒 Seuls les administrateurs peuvent utiliser cette commande.",
+"tagall_header": "╭───〔  TAG ALL 〕───⬣",
+"tagall_author": "│👤 Auteur : *{author}*",
+"tagall_message": "│💬 Message : *{message}*",
+"tagall_footer": "╰═══════════════⬣",
+
+"tagadmin_group_only": "❌ Cette commande ne fonctionne que dans les groupes.",
+"tagadmin_admin_only": "🔒 Seuls les administrateurs peuvent utiliser cette commande.",
+"tagadmin_no_admin": "❌ Aucun administrateur trouvé dans ce groupe.",
+"tagadmin_header": "╭───〔  TAG ADMINS 〕───⬣",
+"tagadmin_author": "│👤 Auteur : *{author}*",
+"tagadmin_message": "│💬 Message : *{message}*",
+"tagadmin_footer": "╰═══════════════⬣",
+
+"tag_group_only": "❌ Cette commande ne fonctionne que dans les groupes.",
+"tag_admin_only": "🔒 Cette commande est réservée aux administrateurs du groupe.",
+"tag_no_arg_or_reply": "❗ Veuillez inclure ou mentionner un message à partager.",
+
+"poll_group_only": "❌ Cette commande ne fonctionne que dans les groupes.",
+"poll_no_options": "❗ Veuillez fournir une question suivie des options, séparées par des virgules. Exemple : question;option1,option2,option3",
+"poll_min_options": "❗ Le sondage doit contenir au moins deux options.",
+"poll_admin_only": "🔒 Seuls les administrateurs peuvent utiliser cette commande.",
+"poll_creation_error": "❌ Une erreur est survenue lors de la création du sondage.",
+
+"vcf_desc": "Enregistre les contacts de tous les membres du groupe dans un fichier VCF",
+"vcf_no_metadata": "Échec de la récupération des métadonnées du groupe ou de la liste des participants.",
+"vcf_caption": "*TOUS LES CONTACTS DES MEMBRES ENREGISTRÉS*\nGroupe : *{groupName}*\nContacts : *{count}*",
+"vcf_error": "Une erreur est survenue lors du traitement de la commande vcf.",
+
+"antilink_desc": "Active ou configure l'antilink pour les groupes",
+"antilink_already_mode": "L'Antilink est déjà {mode}.",
+"antilink_mode_changed": "L'Antilink a été {mode} avec succès !",
+"antilink_enable_first": "Veuillez activer l'antilink d'abord en utilisant `antilink on`.",
+"antilink_already_action": "L'action antilink est déjà définie sur {action}.",
+"antilink_action_changed": "L'action antilink est maintenant définie sur {action}.",
+"antilink_usage": "Utilisation :\nantilink on/off : Activer ou désactiver l'antilink\nantilink supp/warn/kick : Configurer l'action antilink",
+
+"antitag_desc": "Active ou configure l'antitag pour les groupes",
+"antitag_already_mode": "L'Antitag est déjà {mode}.",
+"antitag_mode_changed": "L'Antitag a été {mode} avec succès !",
+"antitag_enable_first": "Veuillez activer l'antitag d'abord en utilisant `antitag on`.",
+"antitag_already_action": "L'action antitag est déjà définie sur {action}.",
+"antitag_action_changed": "L'action antitag est maintenant définie sur {action}.",
+"antitag_usage": "Utilisation :\nantitag on/off : Activer ou désactiver l'antitag\nantitag supp/warn/kick : Configurer l'action antitag",
+
+"antibot_desc": "Active ou configure l'antibot pour les groupes",
+"antibot_already_mode": "L'Antibot est déjà {mode}.",
+"antibot_mode_changed": "L'Antibot a été {mode} avec succès !",
+"antibot_enable_first": "Veuillez activer l'antibot d'abord avec `antibot on`.",
+"antibot_already_action": "L'action antibot est déjà définie sur {action}.",
+"antibot_action_changed": "L'action antibot est maintenant définie sur {action}.",
+"antibot_usage": "Utilisation :\nantibot on/off : Activer ou désactiver l'antibot\nantibot supp/warn/kick : Configurer l'action antibot",
+
+"antimention_desc": "Active ou configure l'antimention pour les groupes",
+"antimention_already_mode": "L'antimention est déjà {mode}.",
+"antimention_mode_changed": "L'antimention a été {mode} avec succès.",
+"antimention_enable_first": "Veuillez d'abord activer l'antimention avec `antimention on`.",
+"antimention_already_action": "L'action antimention est déjà définie sur {action}.",
+"antimention_action_changed": "Action antimention définie sur {action} avec succès.",
+"antimention_usage": "Utilisation :\n- antimention on/off : Activer ou désactiver l'antimention\n- antimention supp/warn/kick : Définir l'action à appliquer",
+
+"welcome_desc": "Active ou désactive les messages de bienvenue",
+"goodbye_desc": "Active ou désactive les messages d'adieu",
+"antipromote_desc": "Active ou désactive l'antipromotion",
+"antidemote_desc": "Active ou désactive l'antidémotion",
+"group_only_command": "❌ Cette commande fonctionne uniquement dans les groupes.",
+"admin_only_command": "❌ Seuls les administrateurs peuvent utiliser cette commande.",
+"already_set": "{{cmd}} est déjà {{mode}}.",
+"set_success": "{{cmd}} {{mode}} avec succès !",
+"usage_simple": "Utilisation :\n{{cmd}} on/off : {{desc}}.",
+"generic_error": "❌ Une erreur s'est produite lors de l'exécution de la commande."
+
   }
 }

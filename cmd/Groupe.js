@@ -4,6 +4,7 @@ const { Antilink } = require("../DataBase/antilink");
 const { Antitag } = require("../DataBase/antitag");
 const { Antibot } = require("../DataBase/antibot");
 const { GroupSettings } = require("../DataBase/events");
+const { t } = require('../lib/funcLangue');
 const fs = require("fs");
 const { Antimention } = require('../DataBase/antimention');
 

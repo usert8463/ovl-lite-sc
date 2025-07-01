@@ -9,6 +9,7 @@ const cheerio = require('cheerio');
 const { WA_CONF } = require('../DataBase/wa_conf');
 const { ChatbotConf } = require('../DataBase/chatbot');
 const path = require('path');
+const fs = require("fs");
 const get_session = require('../DataBase/session');
 const { saveSecondSession, getSecondAllSessions, deleteSecondSession } = require("../DataBase/connect");
 const  { setMention, delMention, getMention } = require("../DataBase/mention");

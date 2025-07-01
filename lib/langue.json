@@ -190,7 +190,7 @@
     "plugin.install.success": "✅ Plugin *{name}* installé.",
     "plugin.install.all_done": "✅ Tous les plugins disponibles ont été installés.",
     "plugin.install.error": "❌ Erreur : {error}",
-    "global_error": "❌ Une erreur s'est produite."
+    "global_error": "❌ Une erreur s'est produite.",
     "tagall_group_only": "❌ Cette commande ne fonctionne que dans les groupes.",
 "tagall_admin_only": "🔒 Seuls les administrateurs peuvent utiliser cette commande.",
 "tagall_header": "╭───〔  TAG ALL 〕───⬣",

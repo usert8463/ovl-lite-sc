@@ -27,7 +27,7 @@ ovlcmd(
     desc: "Bloquer un utilisateur par son JID"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, verif_Groupe, prenium_id, t } = cmd_options;
+    const { repondre, verif_Groupe, prenium_id } = cmd_options;
 
     if (verif_Groupe) {
       return repondre(t("block_group_error"));
@@ -53,7 +53,7 @@ ovlcmd(
     desc: "Débloquer un utilisateur par son JID"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, repondre, prenium_id, t } = cmd_options;
+    const { verif_Groupe, repondre, prenium_id } = cmd_options;
 
     if (verif_Groupe) {
       return repondre(t("unblock_group_error"));
@@ -79,7 +79,7 @@ ovlcmd(
     desc: "Bannir un utilisateur des commandes du bot"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, ms, arg, auteur_Msg_Repondu, prenium_id, dev_num, t } = cmd_options;
+    const { repondre, ms, arg, auteur_Msg_Repondu, prenium_id, dev_num } = cmd_options;
 
     try {
       if (!prenium_id) {
@@ -123,7 +123,7 @@ ovlcmd(
     desc: "Débannir un utilisateur des commandes du bot",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms, t } = cmd_options;
+    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
 
     try {
       if (!prenium_id) {
@@ -158,7 +158,7 @@ ovlcmd(
     desc: "Bannir un groupe des commandes du bot",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, verif_Groupe, prenium_id, ms, t } = cmd_options;
+    const { repondre, verif_Groupe, prenium_id, ms } = cmd_options;
 
     try {
       if (!prenium_id) {
@@ -192,7 +192,7 @@ ovlcmd(
     desc: "Débannir un groupe des commandes du bot",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, verif_Groupe, prenium_id, ms, t } = cmd_options;
+    const { repondre, verif_Groupe, prenium_id, ms } = cmd_options;
 
     try {
       if (!prenium_id) {
@@ -222,7 +222,7 @@ ovlcmd(
     desc: "Ajoute un utilisateur dans la liste des utilisateurs premium.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms, t } = cmd_options;
+    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
 
     if (!prenium_id) {
       return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
@@ -265,7 +265,7 @@ ovlcmd(
     desc: "Affiche la liste des utilisateurs premium.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, prenium_id, ms, t } = cmd_options;
+    const { repondre, prenium_id, ms } = cmd_options;
 
     if (!prenium_id) {
       return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
@@ -303,7 +303,7 @@ ovlcmd(
     desc: "Supprime un utilisateur de la liste des utilisateurs premium.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms, t } = cmd_options;
+    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
 
     if (!prenium_id) {
       return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
@@ -343,7 +343,7 @@ ovlcmd(
     desc: "Importe des stickers Telegram sur WhatsApp",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, arg, prenium_id, ms, t } = cmd_options;
+    const { repondre, arg, prenium_id, ms } = cmd_options;
 
     if (!prenium_id) {
       return ovl.sendMessage(ms_org, { text: t("ban_no_permission") });
@@ -411,7 +411,7 @@ ovlcmd(
     desc: "Extrait les données d'une page web, y compris HTML, CSS, JavaScript et médias",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { arg, prenium_id, ms, t } = cmd_options;
+    const { arg, prenium_id, ms } = cmd_options;
     const lien = arg[0];
 
     if (!prenium_id) {
@@ -481,7 +481,7 @@ ovlcmd(
     desc: "Configure ou désactive l'Antidelete",
   },
   async (jid, ovl, cmd_options) => {
-    const { ms, repondre, arg, prenium_id, t } = cmd_options;
+    const { ms, repondre, arg, prenium_id } = cmd_options;
 
     try {
       if (!prenium_id) {
@@ -542,7 +542,7 @@ ovlcmd(
     desc: "fournit le jid d'une personne ou d'un groupe",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, auteur_Msg_Repondu, prenium_id, msg_Repondu, t } = cmd_options;
+    const { repondre, auteur_Msg_Repondu, prenium_id, msg_Repondu } = cmd_options;
 
     if (!prenium_id) {
       return repondre(t("ban_no_permission"));
@@ -584,7 +584,7 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     try {
-      const { arg, ms, prenium_id, t } = cmd_options;
+      const { arg, ms, prenium_id } = cmd_options;
 
       if (!prenium_id) {
         return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
@@ -618,7 +618,7 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     try {
-      const { ms, prenium_id, t } = cmd_options;
+      const { ms, prenium_id } = cmd_options;
 
       if (!prenium_id) {
         return ovl.sendMessage(ms_org, {
@@ -655,7 +655,7 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     try {
-      const { arg, ms, prenium_id, t } = cmd_options;
+      const { arg, ms, prenium_id } = cmd_options;
 
       if (!prenium_id) {
         return ovl.sendMessage(ms_org, { text: t("ban_no_permission") }, { quoted: ms });
@@ -697,7 +697,7 @@ ovlcmd(
     desc: "Configurer le message d'antimention global",
   },
   async (jid, ovl, cmd_options) => {
-    const { ms, repondre, arg, prenium_id, t } = cmd_options;
+    const { ms, repondre, arg, prenium_id } = cmd_options;
 
     if (!prenium_id) return repondre(t("ban_no_permission"));
 
@@ -754,7 +754,7 @@ ovlcmd(
     desc: "Désactiver le système d'antimention",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, prenium_id, t } = cmd_options;
+    const { repondre, prenium_id } = cmd_options;
 
     if (!prenium_id) return repondre(t("ban_no_permission"));
 
@@ -776,7 +776,7 @@ ovlcmd(
     desc: "Afficher la configuration actuelle de l'antimention",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, prenium_id, t } = cmd_options;
+    const { repondre, prenium_id } = cmd_options;
 
     if (!prenium_id) return repondre(t("ban_no_permission"));
 
@@ -836,7 +836,7 @@ ovlcmd({
   classe: "Owner",
   react: "✨",
   desc: "Associer une commande à un sticker (réponds à un sticker)",
-}, async (ms_org, ovl, { repondre, msg_Repondu, arg, prenium_id, t }) => {
+}, async (ms_org, ovl, { repondre, msg_Repondu, arg, permission }) => {
   if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const name = arg[0];
@@ -861,7 +861,7 @@ ovlcmd({
   classe: "Owner",
   react: "🗑️",
   desc: "Supprimer une commande sticker",
-}, async (ms_org, ovl, { repondre, arg, prenium_id, t }) => {
+}, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
   if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const name = arg[0];
@@ -895,7 +895,7 @@ ovlcmd({
   classe: "Owner",
   react: "✅",
   desc: "Ajoute une commande publique utilisable par tout le monde quand le bot est en mode privé",
-}, async (ms_org, ovl, { arg, repondre, prenium_id, t }) => {
+}, async (ms_org, ovl, { arg, repondre, prenium_id }) => {
   if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const nom_cmd = arg[0];
@@ -914,7 +914,7 @@ ovlcmd({
   classe: "Owner",
   react: "🗑️",
   desc: "Supprime une commande des commandes publiques.",
-}, async (ms_org, ovl, { arg, repondre, prenium_id, t }) => {
+}, async (ms_org, ovl, { arg, repondre, prenium_id }) => {
   if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const nom_cmd = arg[0];
@@ -933,7 +933,7 @@ ovlcmd({
   classe: "Owner",
   react: "📜",
   desc: "Liste les commandes publiques utilisables quand le bot est en mode privé",
-}, async (ms_org, ovl, { repondre, prenium_id, t }) => {
+}, async (ms_org, ovl, { repondre, prenium_id }) => {
   if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const all = await list_cmd("public");
@@ -948,7 +948,7 @@ ovlcmd({
   classe: "Owner",
   react: "🔒",
   desc: "Ajoute une commande privée utilisable par les utilisateurs premiums quand le bot est en mode public",
-}, async (ms_org, ovl, { arg, repondre, prenium_id, t }) => {
+}, async (ms_org, ovl, { arg, repondre, prenium_id }) => {
   if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const nom_cmd = arg[0];
@@ -967,7 +967,7 @@ ovlcmd({
   classe: "Owner",
   react: "🗑️",
   desc: "Supprime une commande des commandes privées"
-}, async (ms_org, ovl, { arg, repondre, prenium_id, t }) => {
+}, async (ms_org, ovl, { arg, repondre, prenium_id }) => {
   if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const nom_cmd = arg[0];
@@ -986,7 +986,7 @@ ovlcmd({
   classe: "Owner",
   react: "📃",
   desc: "Liste les commandes privées utilisables par les utilisateurs premiums quand le bot est en mode public",
-}, async (ms_org, ovl, { repondre, prenium_id, t }) => {
+}, async (ms_org, ovl, { repondre, prenium_id }) => {
   if (!prenium_id) return repondre(t("ban_no_permission"));
 
   const all = await list_cmd("private");
@@ -1001,7 +1001,7 @@ ovlcmd({
   classe: "Owner",
   react: "🤖",
   desc: "Active ou désactive le chatbot ici ou globalement.",
-}, async (jid, ovl, { ms, repondre, arg, prenium_id, t }) => {
+}, async (jid, ovl, { ms, repondre, arg, prenium_id }) => {
   const sousCommande = arg[0]?.toLowerCase();
 
   if (!prenium_id) return repondre(t("ban_no_permission"));
@@ -1067,7 +1067,7 @@ ovlcmd({
   classe: "Système",
   react: "📃",
   desc: "Affiche la liste des plugins disponibles (✓ installé, ✗ non installé).",
-}, async (ms, ovl, { repondre, t }) => {
+}, async (ms, ovl, { repondre }) => {
   try {
     const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
     const installs = await Plugin.findAll();
@@ -1093,7 +1093,7 @@ ovlcmd({
   classe: "Système",
   react: "🗑️",
   desc: "Supprime un plugin installé par nom ou tape `remove all` pour tous.",
-}, async (ms, ovl, { arg, repondre, t }) => {
+}, async (ms, ovl, { arg, repondre }) => {
   const input = arg[0];
   if (!input) return repondre(t("plugin.remove.usage"));
 
@@ -1124,7 +1124,7 @@ ovlcmd({
   classe: "Système",
   react: "📥",
   desc: "Installe un plugin.",
-}, async (ms, ovl, { arg, repondre, t }) => {
+}, async (ms, ovl, { arg, repondre }) => {
   const input = arg[0];
   if (!input) return repondre(t("plugin.install.usage"));
 

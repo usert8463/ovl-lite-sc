@@ -205,7 +205,7 @@ ovlcmd(
     desc: t("kick_desc") //"Supprime un membre du groupe."
   },
   async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, auteur_Msg_Repondu, arg, infos_Groupe, verif_Groupe, verif_Ovl_Admin, prenium_id, dev_num, ms } = cmd_options;
+    const { verif_Groupe, auteur_Msg_Repondu, arg, infos_Groupe, verif_Ovl_Admin, prenium_id, dev_num, ms } = cmd_options;
 
     if (!verif_Groupe)
       return ovl.sendMessage(ms_org, { text: t("kick_group_only") }, { quoted: ms });

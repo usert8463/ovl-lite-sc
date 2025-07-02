@@ -179,11 +179,11 @@ async function startSecondarySessions() {
         sessionsActives.add(numero);
         instancesSessions.set(numero, ovl);
         compteurLances++;
+        console.log(`✅ Démarrage terminé — Sessions actives : ${sessionsActives.size}/${MAX_SESSIONS}`);
       }
     }
   }
 
-  console.log(`✅ Démarrage terminé — Sessions actives : ${sessionsActives.size}/${MAX_SESSIONS}`);
 }
 
 function surveillerNouvellesSessions() {

@@ -29,6 +29,10 @@ const {
 
 const { getSecondAllSessions, getSecondSession } = require("./DataBase/connect");
 
+const MAX_SESSIONS = 100;
+const sessionsActives = new Set();
+const instancesSessions = new Map();
+
 async function startGenericSession({ numero, isPrincipale = false, sessionId = null }) {
   const nomDossier = isPrincipale ? "principale" : numero;
   const sessionDir = path.join(__dirname, "auth", nomDossier);
@@ -37,12 +41,12 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
   if (!fs.existsSync(credsPath)) {
     try {
       const creds = isPrincipale ? await get_session(sessionId) : await getSecondSession(numero);
-      if (!creds) return;
+      if (!creds) return null;
       fs.mkdirSync(sessionDir, { recursive: true });
       fs.writeFileSync(credsPath, creds, "utf8");
     } catch (err) {
       console.log(`❌ Erreur récupération creds pour ${nomDossier} :`, err.message);
-      return;
+      return null;
     }
   }
 
@@ -110,8 +114,25 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       recup_msg({ ovl, ...params });
 
     console.log(`✅ Session ${isPrincipale ? "principale" : "secondaire " + numero} démarrée`);
+    return ovl;
   } catch (err) {
     console.error(`❌ Erreur session ${nomDossier} :`, err.message);
+    return null;
+  }
+}
+
+async function stopSession(numero) {
+  if (instancesSessions.has(numero)) {
+    const ovl = instancesSessions.get(numero);
+    try {
+      await ovl.logout();
+      ovl.ev.removeAllListeners();
+      console.log(`🛑 Session ${numero} arrêtée.`);
+    } catch (err) {
+      console.error(`❌ Erreur lors de l'arrêt de la session ${numero} :`, err.message);
+    }
+    instancesSessions.delete(numero);
+    sessionsActives.delete(numero);
   }
 }
 
@@ -123,15 +144,56 @@ async function startPrincipalSession() {
     return;
   }
 
-  await startGenericSession({ numero: "principale", isPrincipale: true, sessionId: sess });
+  const ovlPrincipale = await startGenericSession({ numero: "principale", isPrincipale: true, sessionId: sess });
+  if (ovlPrincipale) {
+    instancesSessions.set("principale", ovlPrincipale);
+  }
+
+  await startSecondarySessions();
+  console.log(`🤖 Session principale + secondaires démarrées : ${sessionsActives.size}/${MAX_SESSIONS}`);
+  surveillerNouvellesSessions();
 }
 
 async function startSecondarySessions() {
   const sessions = await getSecondAllSessions();
-  for (const { numero } of sessions) {
-    await delay(5000);
-    await startGenericSession({ numero });
+  const numerosEnBase = new Set(sessions.map(s => s.numero));
+
+  for (const numero of sessionsActives) {
+    if (!numerosEnBase.has(numero)) {
+      console.log(`⚠️ Session supprimée détectée : ${numero} - arrêt en cours.`);
+      await stopSession(numero);
+    }
   }
+
+  let compteurLances = 0;
+
+  for (const { numero } of sessions) {
+    if (sessionsActives.size >= MAX_SESSIONS) {
+      console.log(`❌ Limite de sessions atteinte (${sessionsActives.size}/${MAX_SESSIONS}).`);
+      break;
+    }
+
+    if (!sessionsActives.has(numero)) {
+      const ovl = await startGenericSession({ numero });
+      if (ovl) {
+        sessionsActives.add(numero);
+        instancesSessions.set(numero, ovl);
+        compteurLances++;
+      }
+    }
+  }
+
+  console.log(`✅ Démarrage terminé — Sessions actives : ${sessionsActives.size}/${MAX_SESSIONS}`);
+}
+
+function surveillerNouvellesSessions() {
+  setInterval(async () => {
+    try {
+      await startSecondarySessions();
+    } catch (err) {
+      console.error("❌ Erreur lors de la vérification des sessions secondaires :", err.message);
+    }
+  }, 10000);
 }
 
 startPrincipalSession().catch((err) => {

@@ -115,9 +115,9 @@ ovlcmd(
 
     if (isNaN(id) || !text) {
       return await repondre(
-        `\nExemple : ${prefixe}fancy 10 OVL-MD\n` +
+        `\nExemple : ${prefixe}fancy 10 OVL-MD-V2\n` +
           String.fromCharCode(8206).repeat(4001) +
-          fancy.list("ovl-md", fancy)
+          fancy.list("OVL-MD-V2", fancy)
       );
     }
 
@@ -208,7 +208,7 @@ ovlcmd(
         try {
             pp = await ovl.profilePictureUrl(userId, 'image');
         } catch {
-            pp = 'https://wallpapercave.com/uwp/uwp4820694.jpeg';
+            pp = 'https://files.catbox.moe/ulwqtr.jpg';
         }
     
         const allUsers = await Ranks.findAll({

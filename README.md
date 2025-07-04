@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-    Un bot WhatsApp multi-appareil open source. N'oubliez pas de laisser une ⭐ (star) pour le projet.
+    Un bot WhatsApp multi-appareil. N'oubliez pas de laisser une ⭐ (star) pour le projet.
 </p>
 
 <p align="center">

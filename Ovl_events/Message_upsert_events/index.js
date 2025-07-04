@@ -8,7 +8,7 @@ module.exports = {
   antitag: require('./antitag'),
   antilink: require('./antilink'),
   antibot: require('./antibot'),
-  getLid: require('./cache'),
+  getJid: require('./cache_jid'),
   mention: require('./mention'),
   eval_exec: require('./eval_exec'),
   antimention: require('./antimention'),

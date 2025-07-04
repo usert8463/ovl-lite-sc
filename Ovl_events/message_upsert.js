@@ -90,7 +90,15 @@ console.log(ms);
     const mention_JID = await Promise.all(mentionnes.map(j => getJid(j, ms_org, ovl)));
 
     const nom_Auteur_Message = ms.pushName;
-    const arg = texte.trim().split(/ +/).slice(1);
+
+    let arg = texte.trim().split(/ +/).slice(1);
+    if (arg.length === 0 && msg_Repondu) {
+      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+      if (typeof repTexte === "string" && repTexte.startsWith("https")) {
+        arg = [repTexte];
+      }
+    }
+
     const isCmd = texte.startsWith(prefixe);
     const cmdName = isCmd ? texte.slice(prefixe.length).trim().split(/ +/)[0].toLowerCase() : "";
 
@@ -118,8 +126,13 @@ console.log(ms);
     const executerCommande = async (cd) => {
       const privateCmds = await list_cmd("private");
       const publicCmds = await list_cmd("public");
-      const isPrivateCmd = privateCmds.some(c => c.nom_cmd === cd.nom_cmd);
-      const isPublicCmd = publicCmds.some(c => c.nom_cmd === cd.nom_cmd);
+
+      const isPrivateCmd = privateCmds.some(c =>
+        c.nom_cmd === cd.nom_cmd || cd.alias?.includes(c.nom_cmd)
+      );
+      const isPublicCmd = publicCmds.some(c =>
+        c.nom_cmd === cd.nom_cmd || cd.alias?.includes(c.nom_cmd)
+      );
 
       if (config.MODE !== 'public' && !prenium_id && !isPublicCmd) return;
       if (config.MODE === 'public' && !prenium_id && isPrivateCmd) return;

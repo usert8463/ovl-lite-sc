@@ -27,7 +27,7 @@ async function group_participants_update (data, ovl) {
                 profilePic = await ovl.profilePictureUrl(participant, 'image');
             } catch (err) {
                 console.error(err);
-                profilePic = 'https://files.catbox.moe/54ip7g.jpg';
+                profilePic = 'https://wallpapercave.com/uwp/uwp4820694.jpeg';
             }
 
             const userMention = `@${participant.split("@")[0]}`;

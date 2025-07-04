@@ -26,7 +26,7 @@ async function sendMedia(ms_org, ovl, url, format, type, ms) {
       const message = {
         [type]: buff,
         mimetype: format === "mp3" ? "audio/mpeg" : "video/mp4",
-        caption: "```Powered By OVL-MD```"
+        caption: "```Powered By OVL-MD-V2```"
       };
 
       await ovl.sendMessage(ms_org, message, { quoted: ms });
@@ -210,7 +210,7 @@ ovlcmd(
       const response = await axios.get(videoDownloadLink.data.BK9.hd, { responseType: 'arraybuffer' });
       const videoBuffer = Buffer.from(response.data);
 
-      return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-MD\`\`\`` }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
 
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
@@ -247,7 +247,7 @@ ovlcmd(
         },
       });
 
-      return ovl.sendMessage(ms_org, { video: Buffer.from(video.data), caption: `\`\`\`Powered By OVL-MD\`\`\`` }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { video: Buffer.from(video.data), caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
 
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error}` }, { quoted: ms });
@@ -285,7 +285,7 @@ ovlcmd(
 	    
       return ovl.sendMessage(ms_org, {
         video: Buffer.from(video.data),
-        caption: `\`\`\`Powered By OVL-MD\`\`\``
+        caption: `\`\`\`Powered By OVL-MD-V2\`\`\``
       }, { quoted: ms });
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
@@ -325,7 +325,7 @@ ovlcmd(
 
       return ovl.sendMessage(ms_org, {
         video: Buffer.from(video.data),
-        caption: `\`\`\`Powered By OVL-MD\`\`\``
+        caption: `\`\`\`Powered By OVL-MD-V2\`\`\``
       }, { quoted: ms });
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
@@ -369,7 +369,7 @@ ovlcmd(
 
       const downloadLink = appData.dllink;
       const captionText =
-        "『 *ᴏᴠʟ-ᴍᴅ ᴀᴘᴋ-ᴅʟ* 』\n\n*📱ɴᴏᴍ :* " + appData.name +
+        "『 *ᴏᴠʟ-ᴍᴅ-ᴠ𝟸 ᴀᴘᴋ-ᴅʟ* 』\n\n*📱ɴᴏᴍ :* " + appData.name +
         "\n*🆔ɪᴅ :* " + appData["package"] +
         "\n*📅ᴍɪsᴇ ᴀ̀ ᴊᴏᴜʀ:* " + appData.lastup +
         "\n*📦ᴛᴀɪʟʟᴇ :* " + appData.size +

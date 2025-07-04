@@ -317,7 +317,7 @@ ovlcmd(
       const rawData = fs.readFileSync('./lib/mots.json', 'utf8');
       mots = JSON.parse(rawData);
     } catch (e) {
-      return repondre("❌ Impossible de récupérer les mots:");
+      return repondre("❌ Impossible de récupérer les mots.");
     }
 
     joueurs.set(auteur_Message, { id: auteur_Message, score: 0 });
@@ -352,7 +352,7 @@ ovlcmd(
         }
       }
     }, 1000);
-
+ 
     while (Date.now() - debutInscription < 60000 && !partieCommencee && !partieAnnulee) {
       try {
         const rep = await ovl.recup_msg({ ms_org, temps: 60000 - (Date.now() - debutInscription) });
@@ -382,8 +382,12 @@ ovlcmd(
     }
 
     if (partieAnnulee) return;
-    if (!partieCommencee) return repondre("❌ Temps écoulé. Partie annulée.");
-    if (joueurs.size < 2) return repondre("❌ Pas assez de joueurs (min 2).");
+
+    if (!partieCommencee) {
+      if (joueurs.size < 2) return repondre("❌ Pas assez de joueurs (min 2). Partie annulée.");
+      partieCommencee = true;
+      clearInterval(timerInterval);
+    }
 
     await ovl.sendMessage(ms_org, {
       text:
@@ -416,9 +420,10 @@ ovlcmd(
       }
       return melange;
     };
-
+ 
     while (joueursActifs.length > 1) {
       const joueursCeTour = [...joueursActifs];
+      let reussitesCeTour = 0;
 
       for (const joueur of joueursCeTour) {
         const motsDispo = motsParTour(tour);
@@ -444,6 +449,7 @@ ovlcmd(
           if (txt === mot.toLowerCase()) {
             joueur.score++;
             correct = true;
+            reussitesCeTour++;
             await ovl.sendMessage(ms_org, {
               text: `✅ Bravo @${joueur.id.split("@")[0]} ! Le mot était *${mot}*.`,
               mentions: [joueur.id],
@@ -466,6 +472,13 @@ ovlcmd(
 
       joueursActifs = joueursActifs.filter(j => !j.elimine);
 
+      if (reussitesCeTour === 0) {
+        await ovl.sendMessage(ms_org, {
+          text: `❌ Aucun joueur n'a trouvé au tour ${tour}. Fin de la partie.`,
+        });
+        break;
+      }
+
       if (joueursActifs.length > 1) {
         tour++;
         await ovl.sendMessage(ms_org, {
@@ -473,18 +486,20 @@ ovlcmd(
         });
       }
     }
+ 
+    let final = joueursActifs.length === 1
+      ? `🏆 Fin de Partie - Vainqueur : @${joueursActifs[0].id.split("@")[0]}\n\n`
+      : `🏁 Fin de Partie - Aucun survivant\n\n`;
 
-    if (joueursActifs.length === 1) {
-      const gagnant = joueursActifs[0];
-      let final = `🏆 Fin de Partie - Vainqueur : @${gagnant.id.split("@")[0]}\n\n`;
-      final += `📊 Scores :\n`;
-      const scoresTries = [...joueurs.values()].sort((a, b) => b.score - a.score);
-      for (let j of scoresTries) {
-        final += `• @${j.id.split("@")[0]} : ${j.score} point(s)\n`;
-      }
-      await ovl.sendMessage(ms_org, { text: final, mentions: [...joueurs.keys()] });
-    } else {
-      await repondre("⚠️ Partie arrêtée, aucun joueurs n'a remporté de point(s) ou plus de mots ou erreur inattendue.");
+    final += `📊 Scores :\n`;
+    const scoresTries = [...joueurs.values()].sort((a, b) => b.score - a.score);
+    for (let j of scoresTries) {
+      final += `• @${j.id.split("@")[0]} : ${j.score} point(s)\n`;
     }
+
+    await ovl.sendMessage(ms_org, {
+      text: final,
+      mentions: [...joueurs.keys()],
+    });
   }
 );

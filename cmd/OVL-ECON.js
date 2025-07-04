@@ -27,7 +27,7 @@ ovlcmd(
  
       if (!userId) return await repondre("❌ Impossible de trouver l'utilisateur.");
 
-      let pp = 'https://files.catbox.moe/ulwqtr.jpg';
+      let pp = 'https://wallpapercave.com/uwp/uwp4820694.jpeg';
       try {
         pp = await ovl.profilePictureUrl(userId, 'image');
       } catch {}

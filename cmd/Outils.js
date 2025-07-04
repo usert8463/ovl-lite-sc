@@ -119,9 +119,12 @@ ovlcmd(
     desc: "Gérer les thèmes disponibles"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, repondre } = cmd_options;
+    const { arg, ms, repondre, prenium_id } = cmd_options;
 
     try {
+        if (!prenium_id) {
+        return repondre("Vous n'avez pas le droit d'exécuter cette commande.");
+        }
       const themePath = './lib/theme.json';
       const rawData = fs.readFileSync(themePath, 'utf8');
       const themesData = JSON.parse(rawData);
@@ -151,7 +154,7 @@ ovlcmd(
           msg += `${i + 1}. ${theme.nom}\n`;
         });
         return ovl.sendMessage(ms_org, {
-          image: { url: 'https://files.catbox.moe/6xlk10.jpg' },
+          image: { url: 'https://wallpapercave.com/uwp/uwp4820694.jpeg' },
           caption: msg
         }, { quoted: ms });
       }

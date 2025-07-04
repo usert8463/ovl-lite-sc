@@ -208,7 +208,7 @@ ovlcmd(
         try {
             pp = await ovl.profilePictureUrl(userId, 'image');
         } catch {
-            pp = 'https://files.catbox.moe/ulwqtr.jpg';
+            pp = 'https://wallpapercave.com/uwp/uwp4820694.jpeg';
         }
     
         const allUsers = await Ranks.findAll({

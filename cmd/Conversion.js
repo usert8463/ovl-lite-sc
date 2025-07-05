@@ -484,6 +484,32 @@ ovlcmd(
   }
 );
 
+const remini = async (image, filterType) => {
+  const availableFilters = ['enhance', 'recolor', 'dehaze'];
+  const selectedFilter = availableFilters.includes(filterType) ? filterType : availableFilters[0];
+  const apiUrl = `https://inferenceengine.vyro.ai/${selectedFilter}`;
+
+  const form = new FormData();
+  form.append('model_version', 1);
+
+  const imageBuffer = Buffer.isBuffer(image) ? image : readFileSync(image);
+  form.append('image', imageBuffer, {
+    filename: 'enhance_image_body.jpg',
+    contentType: 'image/jpeg',
+  });
+
+  const response = await axios.post(apiUrl, form, {
+    headers: {
+      ...form.getHeaders(),
+      'User-Agent': 'okhttp/4.9.3',
+      Connection: 'Keep-Alive',
+      'Accept-Encoding': 'gzip',
+    },
+    responseType: 'arraybuffer',
+  });
+  return Buffer.from(response.data);
+};
+
 ovlcmd(
   {
     nom_cmd: "remini",
@@ -494,30 +520,48 @@ ovlcmd(
   async (ms_org, ovl, cmd_options) => {
     const { msg_Repondu, ms } = cmd_options;
 
-    if (msg_Repondu?.imageMessage) {
-      try {
-        const image = await ovl.dl_save_media_ms(msg_Repondu.imageMessage);
-        if (!image) {
-          return ovl.sendMessage(ms_org, { text: "Impossible de télécharger l'image. Réessayez." }, { quoted: ms });
-        }
-        const url = await uploadToCatbox(image);
-        const rmImage = await axios.get(`https://fastrestapis.fasturl.cloud/aiimage/upscale?resize=8&imageUrl=${url}`, {
-        responseType: 'arraybuffer',
-      }); 
-	      
-        await ovl.sendMessage(ms_org, {
-          image: rmImage.data,
-          caption: `\`\`\`Powered By OVL-MD-V2\`\`\``,
-        }, { quoted: ms });
-      } catch (err) {
-        console.error("Erreur :", err);
+    if (!msg_Repondu?.imageMessage) {
+      return ovl.sendMessage(ms_org, {
+        text: "Veuillez répondre à une image pour améliorer sa qualité.",
+      }, { quoted: ms });
+    }
+
+    try {
+      const image = await ovl.dl_save_media_ms(msg_Repondu.imageMessage);
+      if (!image) {
         return ovl.sendMessage(ms_org, {
-          text: "Une erreur est survenue pendant le traitement de l'image.",
+          text: "Impossible de télécharger l'image. Réessayez.",
         }, { quoted: ms });
       }
-    } else {
-      return ovl.sendMessage(ms_org, {             
-        text: "Veuillez répondre à une image pour améliorer sa qualité.",
+
+      try {
+        const url = await uploadToCatbox(image);
+        const rmImage = await axios.get(`https://fastrestapis.fasturl.cloud/aiimage/upscale?resize=8&imageUrl=${url}`, {
+          responseType: 'arraybuffer',
+        });
+
+        await ovl.sendMessage(ms_org, {
+          image: rmImage.data,
+          caption: "```Powered By OVL-MD-V2```",
+        }, { quoted: ms });
+        return;
+      } catch {
+      }
+
+      try {
+        const enhancedImageBuffer = await remini(image, 'enhance');
+        await ovl.sendMessage(ms_org, {
+          image: enhancedImageBuffer,
+          caption: "```Powered By OVL-MD-V2```",
+        }, { quoted: ms });
+      } catch {
+        await ovl.sendMessage(ms_org, {
+          text: "Une erreur est survenue pendant le traitement de l'image avec les deux services.",
+        }, { quoted: ms });
+      }
+    } catch {
+      return ovl.sendMessage(ms_org, {
+        text: "Une erreur est survenue pendant le traitement de l'image.",
       }, { quoted: ms });
     }
   }

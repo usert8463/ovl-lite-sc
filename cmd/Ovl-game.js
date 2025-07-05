@@ -24,7 +24,7 @@ ovlcmd(
         } else if (arg.length > 0 && arg[0].includes('@')) {
             joueur2Nom = arg[0].replace("@", "");
             joueur2lid = `${joueur2Nom}@lid`;
-            joueur2ID = getJid(joueur2lid, ms_org, ovl);
+            joueur2ID = await getJid(joueur2lid, ms_org, ovl);
         } else {
             return ovl.sendMessage(ms_org, {
                 text: '🙋‍♂️ Veuillez *mentionner* ou *répondre* au message du joueur pour lancer une partie.',
@@ -253,7 +253,7 @@ ovlcmd(
           const reponse = await ovl.recup_msg({ ms_org, temps: 15000 - (Date.now() - debut) });
           const txt = (reponse?.message?.conversation || reponse?.message?.extendedTextMessage?.text || "").trim().toLowerCase();
           const lid = reponse.key.participant || reponse.key.remoteJid;
-          const jid = getJid(lid, ms_org, ovl);
+          const jid = await getJid(lid, ms_org, ovl);
 
           if (txt === "stop" && jid === createur) {
             return ovl.sendMessage(ms_org, {
@@ -358,7 +358,7 @@ ovlcmd(
         const rep = await ovl.recup_msg({ ms_org, temps: 60000 - (Date.now() - debutInscription) });
         const msg = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim().toLowerCase();
         const auteurLid = rep?.key?.participant || rep?.message?.senderKey;
-        const auteur = getJid(auteurLid, ms_org, ovl);
+        const auteur = await getJid(auteurLid, ms_org, ovl);
         if (msg === "join" && auteur && !joueurs.has(auteur)) {
           joueurs.set(auteur, { id: auteur, score: 0 });
           await ovl.sendMessage(ms_org, {

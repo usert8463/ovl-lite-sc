@@ -88,7 +88,7 @@ ovlcmd(
         auteur_Msg_Repondu || 
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
 
-      const cible = getJid(cbl, ms_org, ovl);
+      const cible = await getJid(cbl, ms_org, ovl);
       if (!cible) return repondre("Mentionnez un utilisateur valide à bannir.");
 
       if (dev_num.includes(cible)) {
@@ -129,7 +129,7 @@ ovlcmd(
         auteur_Msg_Repondu || 
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
       
-       const cible = getJid(cbl, ms_org, ovl);
+       const cible = await getJid(cbl, ms_org, ovl);
       if (!cible) return repondre("Mentionnez un utilisateur valide à débannir.");
 
       const suppression = await Bans.destroy({ where: { id: cible, type: "user" } });
@@ -226,7 +226,7 @@ ovlcmd(
       auteur_Msg_Repondu ||
       (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
  
-    const cible = getJid(cbl, ms_org, ovl);
+    const cible = await getJid(cbl, ms_org, ovl);
     if (!cible) {
       return repondre("Veuillez mentionner un utilisateur valide pour l'ajouter en premium.");
     }
@@ -307,7 +307,7 @@ ovlcmd(
     const cbl =
       auteur_Msg_Repondu ||
       (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
-    const cible = getJid(cbl, ms_org, ovl);
+    const cible = await getJid(cbl, ms_org, ovl);
     if (!cible) {
       return repondre("Veuillez mentionner un utilisateur");
     }

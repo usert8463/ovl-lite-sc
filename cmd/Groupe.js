@@ -519,11 +519,11 @@ ovlcmd(
     desc: "Efface un message dans un groupe (uniquement premium)"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, ms, verif_Groupe, auteur_Message, premium_id, id_Bot } = cmd_options;
+    const { repondre, ms, verif_Groupe, auteur_Message, prenium_id, id_Bot } = cmd_options;
 
     if (!verif_Groupe) return repondre("Cette commande fonctionne uniquement en groupe.");
 
-    if (!premium_id) {
+    if (!prenium_id) {
       return repondre("Cette commande est réservée aux utilisateurs premium.");
     }
  

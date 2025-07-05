@@ -1133,7 +1133,7 @@ ovlcmd({
   classe: "Système",
   react: "📃",
   desc: "Affiche la liste des plugins disponibles (✓ installé, ✗ non installé).",
-  alias: ["pglist"]
+  alias: ["Owner"]
 }, async (ms, ovl, { repondre }) => {
   try {
     const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
@@ -1157,7 +1157,7 @@ ovlcmd({
 
 ovlcmd({
   nom_cmd: "pgremove",
-  classe: "Système",
+  classe: "Owner",
   react: "🗑️",
   desc: "Supprime un plugin installé par nom ou tape `remove all` pour tous.",
   alias: ["pgr"]
@@ -1189,7 +1189,7 @@ ovlcmd({
 
 ovlcmd({
   nom_cmd: "pginstall",
-  classe: "Système",
+  classe: "Owner",
   react: "📥",
   desc: "Installe un plugin.",
   alias: ["pgi"]

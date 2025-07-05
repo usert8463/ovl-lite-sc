@@ -18,13 +18,13 @@ ovlcmd(
     react: "💰",
     classe: "OVL-ECON--y"
   },
-  async (ms_org, ovl, { ms, arg, auteur_Message, auteur_Msg_Repondu, repondre }) => {
+  async (ms_org, ovl, { ms, getJid, arg, auteur_Message, auteur_Msg_Repondu, repondre }) => {
     try {
-      const userId =
+      const userIdl =
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) ||
         auteur_Msg_Repondu ||
         auteur_Message;
- 
+      const userId = getJid(userIdl, ms_org, ovl);
       if (!userId) return await repondre("❌ Impossible de trouver l'utilisateur.");
 
       let pp = 'https://wallpapercave.com/uwp/uwp4820694.jpeg';
@@ -69,14 +69,14 @@ ovlcmd(
     classe: "OVL-ECON--y"
   },
   async (ms_org, ovl, cmd) => {
-    const { ms, arg, auteur_Message, repondre } = cmd;
+    const { ms, arg, auteur_Message, repondre, getJid } = cmd;
 
     if (arg.length < 2) {
       return repondre("Usage : transfer @utilisateur montant");
     }
 
-    const destinataireId = arg[0].includes("@") ? `${arg[0].replace("@", "")}@lid` : null;
-    
+    const destinataireIdl = arg[0].includes("@") ? `${arg[0].replace("@", "")}@lid` : null;
+    const destinataireId = getJid(destinataireIdl, ms_org, ovl);
     if (!destinataireId) {
       return repondre("Merci de mentionner un utilisateur valide (@numéro).");
     }
@@ -137,13 +137,13 @@ ovlcmd(
     react: "♻️",
     desc: "Réinitialise le compte économie d'un utilisateur"
   },
-  async (ms_org, ovl, { arg, prenium_id, auteur_Msg_Repondu }) => {
+  async (ms_org, ovl, { arg, prenium_id, getJid, auteur_Msg_Repondu }) => {
     if (!prenium_id) {
       return repondre("Vous n'avez pas l'autorisation d'exécuter cette commande.");
     }
 
-    const cible = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Msg_Repondu;
-    
+    const cbl = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Msg_Repondu;
+    const cible = getJid(cbl, ms_org, ovl);
     if (!cible) {
       repondre("Veuillez mentionner un utilisateur ou répondre à son message.\nEx: resetaccount @user");
         
@@ -293,14 +293,15 @@ ovlcmd(
     react: "🕶️",
     classe: "OVL-ECON--y"
   },
-  async (ms_org, ovl, { repondre, auteur_Msg_Repondu, auteur_Message, arg, ms }) => {
+  async (ms_org, ovl, { repondre, auteur_Msg_Repondu, getJid, auteur_Message, arg, ms }) => {
      
     let victimeId = null;
 
     if (auteur_Msg_Repondu) {
       victimeId = auteur_Msg_Repondu;
     } else if (arg[0]?.includes("@")) {
-      victimeId = `${arg[0].replace("@", "")}@lid`;
+      victimeIdl = `${arg[0].replace("@", "")}@lid`;
+      victimeId = getJid(victimeIdl, ms_org, ovl)
     }
 
     if (!victimeId) return repondre("Mentionne un utilisateur valide ou réponds à son message.\nEx : *vol @user* ou *vol* en réponse à un message.");
@@ -487,7 +488,7 @@ ovlcmd(
     react: "🤝",
     desc: "Permet à un Premium de donner des pièces à un autre utilisateur"
   },
-  async (ms_org, ovl, { arg, auteur_Message, auteur_Msg_Repondu, ms, repondre, prenium_id, dev_id }) => {
+  async (ms_org, ovl, { arg, auteur_Message, getJid, auteur_Msg_Repondu, ms, repondre, prenium_id, dev_id }) => {
     const utilisateur = await getInfosUtilisateur(auteur_Message);
     if (!prenium_id) return repondre("Cette commande est réservée aux utilisateurs Premium.");
 
@@ -496,7 +497,8 @@ ovlcmd(
     if (auteur_Msg_Repondu) {
       destinataire = auteur_Msg_Repondu;
     } else if (arg[0]?.includes("@")) {
-      destinataire = `${arg[0].replace("@", "")}@lid`;
+      destinatairl = `${arg[0].replace("@", "")}@lid`;
+      destinataire = getJid(destinatairl, ms_org, ovl)
     }
 
     if (!destinataire) {

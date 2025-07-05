@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node Ovl.js",
     "stop": "pm2 stop all",
-    "Ovl": "pm2 start Ovl.js --attach --name ovl"
+    "Ovl": "pm2 start Ovl.js --attach --name ovl",
     "postinstall": "cd node_modules/@whiskeysockets/baileys && npm install && npm run build"
   },
   "keywords": ["Ainz", "OVL-MD-V2", "Whatsapp", "Baileys", "Muti-device"],
@@ -45,7 +45,7 @@
     "sharp": "^0.32.6",
     "sqlite3": "^5.1.7",
     "tempmail.lol": "^4.1.0",
-    "tmp":"^0.2.3",
+    "tmp": "^0.2.3",
     "sequelize": "^6.37.5",
     "wa-sticker-formatter": "^4.4.4",
     "wikipedia": "^2.1.1"

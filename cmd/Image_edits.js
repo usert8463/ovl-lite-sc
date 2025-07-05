@@ -22,14 +22,15 @@ function genererCommandeCanvacord(nomCommande, effet) {
       desc: "Applique un effet sur une image",
     },
     async (ms_org, ovl, options) => {
-      const { arg, ms, auteur_Msg_Repondu, msg_Repondu, auteur_Message } = options;
+      const { arg, ms, getJid, auteur_Msg_Repondu, msg_Repondu, auteur_Message } = options;
 
       try {
         let imageBuffer;
-        const cible =
+        const cbl =
           auteur_Msg_Repondu ||
           (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Message;
 
+        const cible = getJid(cbl, ms_org, ovl);
         if (msg_Repondu?.imageMessage) {
           const cheminFichier = await ovl.dl_save_media_ms(msg_Repondu.imageMessage);
           imageBuffer = fs.readFileSync(cheminFichier); // 🔥 Lire le fichier en Buffer

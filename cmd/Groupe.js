@@ -353,7 +353,7 @@ ovlcmd(
     desc: "Supprime tous les membres non administrateurs dont le JID commence par un indicatif spécifique.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, JidToLid, verif_Ovl_Admin, infos_Groupe, arg, dev_num, prenium_id, ms, auteur_Message } = cmd_options;
+    const { verif_Groupe, verif_Ovl_Admin, infos_Groupe, arg, dev_num, prenium_id, ms, auteur_Message } = cmd_options;
 
     if (!verif_Groupe)
       return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });

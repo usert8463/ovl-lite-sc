@@ -92,7 +92,7 @@ ovlcmd(
     react: "💬",
     desc: "partager un message à tous les membres d'un groupe"
   },
-  async (dest, ovl, cmd_options) => {
+  async (ms_org, ovl, cmd_options) => {
     const { repondre, mbre_membre, msg_Repondu, verif_Groupe, arg, verif_Admin, ms } = cmd_options;
 
     if (!verif_Groupe) {

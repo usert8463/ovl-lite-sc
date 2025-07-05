@@ -51,7 +51,7 @@ ovlcmd(
     },
     async (ms_org, ovl, cmd_options) => {
         try {
-            const { ms, repondre, mbre_membre, arg, verif_Groupe, mbre_membre, infos_Groupe, nom_Auteur_Message, verif_Admin } = cmd_options;
+            const { ms, repondre, arg, verif_Groupe, mbre_membre, infos_Groupe, nom_Auteur_Message, verif_Admin } = cmd_options;
 
             if (!verif_Groupe) {
                 return repondre("Cette commande ne fonctionne que dans les groupes");

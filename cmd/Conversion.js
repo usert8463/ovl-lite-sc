@@ -507,7 +507,7 @@ ovlcmd(
 	      
         await ovl.sendMessage(ms_org, {
           image: rmImage.data,
-          caption: `\`\`\`Powered By OVL-MD\`\`\``,
+          caption: `\`\`\`Powered By OVL-MD-V2\`\`\``,
         }, { quoted: ms });
       } catch (err) {
         console.error("Erreur :", err);
@@ -549,8 +549,8 @@ let [emoji1, emoji2] = arg[0].split(';');
         const imageBuffer = await axios.get(res.url, { responseType: 'arraybuffer' }).then(res => res.data);
 
         const sticker = new Sticker(imageBuffer, {
-          pack: 'Emoji Mix Pack',
-          author: 'Bot Author',
+          pack: config.STICKER_PACK_NAME,
+          author: config.STICKER_AUTHOR_NAME,
           type: StickerTypes.FULL,
           quality: 100,
         });

@@ -80,7 +80,7 @@ async function message_upsert(m, ovl) {
     const auteur_Message = verif_Groupe
       ? await getJid(decodeJid(ms.key.participant), ms_org, ovl)
       : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJid);
-
+console.log(auteur_Message);
     const msg_Repondu = ms.message.extendedTextMessage?.contextInfo?.quotedMessage;
     const auteur_Msg_Repondu = await getJid(
       decodeJid(ms.message.extendedTextMessage?.contextInfo?.participant),

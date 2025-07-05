@@ -15,6 +15,7 @@ const { saveSecondSession, getSecondAllSessions, deleteSecondSession } = require
 const  { setMention, delMention, getMention } = require("../DataBase/mention");
 const { set_stick_cmd, del_stick_cmd, get_stick_cmd } = require("../DataBase/stick_cmd");
 const { set_cmd, del_cmd, list_cmd } = require("../DataBase/public_private_cmd");
+const { Plugin } = require('../DataBase/plugin');
 const { extractNpmModules, installModules } = require("../lib/plugin");
 
 ovlcmd(

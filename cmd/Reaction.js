@@ -187,7 +187,7 @@ function addReactionCommand(nom_cmd, url) {
         async (ms_org, ovl, cmd_options) => {
             const { arg, auteur_Message, getJid, auteur_Msg_Repondu, repondre, ms } = cmd_options;
             const cbl = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
-            const cible = getJid(cbl, ms_org, ovl);
+            const cible = await getJid(cbl, ms_org, ovl);
             try {
                 const response = await axios.get(url);
                 const gifUrl = response.data.url;

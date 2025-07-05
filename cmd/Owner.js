@@ -78,16 +78,17 @@ ovlcmd(
     desc: "Bannir un utilisateur des commandes du bot",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, ms, arg, auteur_Msg_Repondu, prenium_id, dev_num } = cmd_options;
+    const { repondre, ms, arg, getJid, auteur_Msg_Repondu, prenium_id, dev_num } = cmd_options;
 
     try {
       if (!prenium_id) {
         return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
       }
-      const cible =
+      const cbl =
         auteur_Msg_Repondu || 
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
- 
+
+      const cible = getJid(cbl, ms_org, ovl);
       if (!cible) return repondre("Mentionnez un utilisateur valide à bannir.");
 
       if (dev_num.includes(cible)) {
@@ -118,16 +119,17 @@ ovlcmd(
     desc: "Débannir un utilisateur des commandes du bot",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
+    const { repondre, arg, getJid, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
 
     try {
       if (!prenium_id) {
         return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
       }
-      const cible =
+      const cbl =
         auteur_Msg_Repondu || 
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
- 
+      
+       const cible = getJid(cbl, ms_org, ovl);
       if (!cible) return repondre("Mentionnez un utilisateur valide à débannir.");
 
       const suppression = await Bans.destroy({ where: { id: cible, type: "user" } });
@@ -215,15 +217,16 @@ ovlcmd(
     desc: "Ajoute un utilisateur dans la liste des utilisateurs premium.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
+    const { repondre, arg, getJid, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
 
     if (!prenium_id) {
       return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
     }
-    const cible =
+    const cbl =
       auteur_Msg_Repondu ||
       (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
  
+    const cible = getJid(cbl, ms_org, ovl);
     if (!cible) {
       return repondre("Veuillez mentionner un utilisateur valide pour l'ajouter en premium.");
     }
@@ -295,15 +298,16 @@ ovlcmd(
     desc: "Supprime un utilisateur de la liste des utilisateurs premium.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
+    const { repondre, getJid, arg, auteur_Msg_Repondu, prenium_id, ms } = cmd_options;
     
     if (!prenium_id) {
       return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
     }
-    const cible =
+
+    const cbl =
       auteur_Msg_Repondu ||
       (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
-     
+    const cible = getJid(cbl, ms_org, ovl);
     if (!cible) {
       return repondre("Veuillez mentionner un utilisateur");
     }
@@ -602,7 +606,7 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     try {
-      const { arg, ms, prenium_id } = cmd_options;
+      const { arg, ms, prenium_id, repondre } = cmd_options;
 
       if (!prenium_id) {
         return ovl.sendMessage(ms_org, { text: "🚫 Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
@@ -614,7 +618,10 @@ ovlcmd(
 
       const session_id = arg[0].trim();
 
-      await saveSecondSession(session_id);
+     const result = await saveSecondSession(session_id);
+      if(!result) {
+     return repondre('SESSION-ID invalide');
+      }
 
       exec('pm2 restart all', (err) => {
         if (err) {

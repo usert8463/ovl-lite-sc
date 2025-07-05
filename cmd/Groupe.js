@@ -96,81 +96,84 @@ ovlcmd(
     const { repondre, mbre_membre, msg_Repondu, verif_Groupe, arg, verif_Admin, ms } = cmd_options;
 
     if (!verif_Groupe) {
-      repondre("Cette commande ne fonctionne que dans les groupes");
-      return;
+      return repondre("❌ Cette commande ne fonctionne que dans les groupes.");
     }
 
     if (!verif_Admin) {
-      repondre("Cette commande est réservée aux administrateurs du groupe");
-      return;
+      return repondre("❌ Cette commande est réservée aux administrateurs du groupe.");
     }
 
-    let contenu_msg;
+    try {
+      let contenu_msg;
 
-    if (msg_Repondu) {
-      if (msg_Repondu.imageMessage) {
-        let media_image = await ovl.dl_save_media_ms(msg_Repondu.imageMessage);
-        contenu_msg = {
-          image: { url: media_image },
-          caption: msg_Repondu.imageMessage.caption,
-          mentions: mbre_membre
-        };
-      } else if (msg_Repondu.videoMessage) {
-        let media_video = await ovl.dl_save_media_ms(msg_Repondu.videoMessage);
-        contenu_msg = {
-          video: { url: media_video },
-          caption: msg_Repondu.videoMessage.caption,
-          mentions: mbre_membre
-        };
-      } else if (msg_Repondu.audioMessage) {
-        let media_audio = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
-        contenu_msg = {
-          audio: { url: media_audio },
-          mimetype: 'audio/mp4',
-          mentions: mbre_membre
-        };
-      } else if (msg_Repondu.stickerMessage) {
-        let media_sticker = await ovl.dl_save_media_ms(msg_Repondu.stickerMessage);
-        let sticker_msg = new Sticker(media_sticker, {
-          pack: 'OVL-MD Hidtag',
-          type: StickerTypes.FULL,
-          quality: 80,
-          background: "transparent",
-        });
-        const sticker_buffer = await sticker_msg.toBuffer();
-        contenu_msg = { sticker: sticker_buffer, mentions: mbre_membre };
-      } else if (msg_Repondu.pollCreationMessageV3) {
-        const poll = msg_Repondu.pollCreationMessageV3;
-        const options = poll.options.map(opt => opt.text);
-        const titre = poll.name || "Sondage";
+      if (msg_Repondu) {
+        if (msg_Repondu.imageMessage) {
+          let media_image = await ovl.dl_save_media_ms(msg_Repondu.imageMessage);
+          contenu_msg = {
+            image: { url: media_image },
+            caption: msg_Repondu.imageMessage.caption,
+            mentions: mbre_membre
+          };
+        } else if (msg_Repondu.videoMessage) {
+          let media_video = await ovl.dl_save_media_ms(msg_Repondu.videoMessage);
+          contenu_msg = {
+            video: { url: media_video },
+            caption: msg_Repondu.videoMessage.caption,
+            mentions: mbre_membre
+          };
+        } else if (msg_Repondu.audioMessage) {
+          let media_audio = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
+          contenu_msg = {
+            audio: { url: media_audio },
+            mimetype: 'audio/mp4',
+            mentions: mbre_membre
+          };
+        } else if (msg_Repondu.stickerMessage) {
+          let media_sticker = await ovl.dl_save_media_ms(msg_Repondu.stickerMessage);
+          let sticker_msg = new Sticker(media_sticker, {
+            pack: 'OVL-MD Hidtag',
+            type: StickerTypes.FULL,
+            quality: 80,
+            background: "transparent",
+          });
+          const sticker_buffer = await sticker_msg.toBuffer();
+          contenu_msg = { sticker: sticker_buffer, mentions: mbre_membre };
+        } else if (msg_Repondu.pollCreationMessageV3) {
+          const poll = msg_Repondu.pollCreationMessageV3;
+          const options = poll.options.map(opt => opt.text);
+          const titre = poll.name || "Sondage";
 
-        contenu_msg = {
-          poll: {
-            name: titre,
-            values: options,
-            selectableCount: poll.selectableOptionsCount || 1,
-          },
-          mentions: mbre_membre,
-        };
+          contenu_msg = {
+            poll: {
+              name: titre,
+              values: options,
+              selectableCount: poll.selectableOptionsCount || 1,
+            },
+            mentions: mbre_membre,
+          };
+        } else {
+          contenu_msg = {
+            text: msg_Repondu.conversation || "*[message vide]*",
+            mentions: mbre_membre
+          };
+        }
+
+        await ovl.sendMessage(ms_org, contenu_msg, { quoted: ms });
+
       } else {
-        contenu_msg = {
-          text: msg_Repondu.conversation,
+        if (!arg || !arg[0]) {
+          return repondre("❗ Veuillez inclure un message à partager ou répondre à un message.");
+        }
+
+        await ovl.sendMessage(ms_org, {
+          text: arg.join(' '),
           mentions: mbre_membre
-        };
+        }, { quoted: ms });
       }
 
-      await ovl.sendMessage(ms_org, contenu_msg, { quoted: ms });
-
-    } else {
-      if (!arg || !arg[0]) {
-        repondre("Veuillez inclure ou mentionner un message à partager.");
-        return;
-      }
-
-      await ovl.sendMessage(ms_org, {
-        text: arg.join(' '),
-        mentions: mbre_membre
-      }, { quoted: ms });
+    } catch (err) {
+      console.error("❌ Erreur dans la commande tag :", err);
+      repondre("❌ Une erreur est survenue lors de l'envoi du message.");
     }
   }
 );

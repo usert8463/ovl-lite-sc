@@ -48,9 +48,9 @@ ovlcmd(
         alias: ["match"],
     },
     async (ms_org, ovl, cmd_options) => {
-        const { auteur_Msg_Repondu, auteur_Message, arg, ms, JidToLid } = cmd_options;
-        const tags = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
-     
+        const { auteur_Msg_Repondu, auteur_Message, arg, ms,  getJid } = cmd_options;
+        const tag = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+     const tags = getJid(tag, ms_org, ovl);
        if (tags.length === 0) {
             return await ovl.sendMessage(ms_org, { text: "Mentionne une personne" }, { quoted: ms });
          }
@@ -200,10 +200,10 @@ ovlcmd(
         desc: "Affiche le rang d'un utilisateur selon ses messages envoyés et gère l'activation/désactivation globale du level up."
     },
     async (ms_org, ovl, cmd_options) => {
-        const { arg, auteur_Message, auteur_Msg_Repondu, ms, JidToLid } = cmd_options;
+        const { arg, auteur_Message, getJid, auteur_Msg_Repondu, ms } = cmd_options;
          
-        const userId = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Msg_Repondu || auteur_Message;
-
+        const userIdl = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Msg_Repondu || auteur_Message;
+        const userId = getJid(userIdl, ms_org, ovl);
         let pp;
         try {
             pp = await ovl.profilePictureUrl(userId, 'image');

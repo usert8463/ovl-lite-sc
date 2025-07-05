@@ -25,17 +25,10 @@ const decodeJid = (jid) => {
   return jid;
 };
 
-const toJID = (entry) => {
-  if (typeof entry !== 'string') return '';
-  return entry.endsWith('@s.whatsapp.net')
-    ? entry
-    : `${entry.replace(/[^0-9]/g, '')}@s.whatsapp.net`;
-};
-
 async function getSudoUsers() {
   try {
     const sudos = await Sudo.findAll({ attributes: ['id'] });
-    return sudos.map(e => e.id.replace(/[^0-9]/g, ""));
+    return sudos.map(e => e.id.replace(/@s\.whatsapp\.net$/, ""));
   } catch {
     return [];
   }
@@ -107,7 +100,8 @@ async function message_upsert(m, ovl) {
     const devNumbers = [Ainz, Ainzbot];
     const sudoUsers = await getSudoUsers();
 
-    const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers].map(toJID);
+    const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers]
+  .map(n => `${n}@s.whatsapp.net`);
     const prenium_id = premiumUsers.includes(auteur_Message);
     const dev_num = devNumbers.map(n => `${n}@s.whatsapp.net`);
     const dev_id = dev_num.includes(auteur_Message);

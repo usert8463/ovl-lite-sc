@@ -14,7 +14,7 @@ ovlcmd(
         alias: ["ttt"],
     },
     async (ms_org, ovl, cmd_options) => {
-        const { arg, ms, msg_Repondu, auteur_Msg_Repondu, auteur_Message } = cmd_options;
+        const { arg, ms, msg_Repondu, auteur_Msg_Repondu, auteur_Message, getJid } = cmd_options;
         let joueur1Nom = auteur_Message.split('@')[0];
         let joueur2Nom, joueur2ID;
 
@@ -23,7 +23,8 @@ ovlcmd(
             joueur2ID = auteur_Msg_Repondu;
         } else if (arg.length > 0 && arg[0].includes('@')) {
             joueur2Nom = arg[0].replace("@", "");
-            joueur2ID = `${joueur2Nom}@lid`;
+            joueur2lid = `${joueur2Nom}@lid`;
+            joueur2ID = getJid(joueur2lid, ms_org, ovl);
         } else {
             return ovl.sendMessage(ms_org, {
                 text: '🙋‍♂️ Veuillez *mentionner* ou *répondre* au message du joueur pour lancer une partie.',
@@ -185,11 +186,11 @@ ovlcmd(
     desc: "Lance un quiz anime.",
     alias: ["a-quizz"]
   },
-  async (ms_org, ovl, { repondre, auteur_Message, verif_Groupe }) => {
+  async (ms_org, ovl, { repondre, auteur_Message, verif_Groupe, prenium_id, getJid }) => {
      
     if (!verif_Groupe) return repondre("❌ Cette commande fonctionne uniquement dans les groupes.");
 
-    const createur = auteur_Message;
+    const createur = auteur_Message || prenium_id;
 
     const choixMsg =
       "🎯 *Anime Quiz*\n\n" +
@@ -251,7 +252,8 @@ ovlcmd(
         try {
           const reponse = await ovl.recup_msg({ ms_org, temps: 15000 - (Date.now() - debut) });
           const txt = (reponse?.message?.conversation || reponse?.message?.extendedTextMessage?.text || "").trim().toLowerCase();
-          const jid = reponse.key.participant || reponse.key.remoteJid;
+          const lid = reponse.key.participant || reponse.key.remoteJid;
+          const jid = getJid(lid, ms_org, ovl);
 
           if (txt === "stop" && jid === createur) {
             return ovl.sendMessage(ms_org, {
@@ -304,11 +306,10 @@ ovlcmd(
   {
     nom_cmd: "dmots",
     classe: "OVL-GAMES",
-    react: "🧹",
+    react: "🪹",
     desc: "Jouez à plusieurs au jeu du Mot Mélangé",
   },
-  async (ms_org, ovl, { repondre, auteur_Message }) => {
-    const fs = require('fs');
+  async (ms_org, ovl, { repondre, auteur_Message, prenium_id, getJid }) => {
     const joueurs = new Map();
     const debutInscription = Date.now();
     let mots = [];
@@ -321,14 +322,14 @@ ovlcmd(
     }
 
     joueurs.set(auteur_Message, { id: auteur_Message, score: 0 });
-    const createur = auteur_Message;
+    const createur = auteur_Message || prenium_id;
 
     await ovl.sendMessage(ms_org, {
       text:
         "🎮 *Jeu du Mot Mélangé - MULTIJOUEURS* 🎮\n\n" +
         "Tapez 'join' pour participer !\n" +
-        "🆕 Tapez 'start' pour commencer immédiatement (réservé au créateur)\n" +
-        "⛔ Tapez 'stop' pour annuler (réservé au créateur)\n" +
+        "🆕 Tapez 'start' pour commencer immédiatement (créateur)\n" +
+        "❌ Tapez 'stop' pour annuler (créateur)\n" +
         "⏳ Temps max : 60s\n" +
         "🎯 Dernier survivant gagne !",
     });
@@ -341,7 +342,6 @@ ovlcmd(
     const timerInterval = setInterval(async () => {
       const restant = 60000 - (Date.now() - debutInscription);
       if (restant <= 0 || partieCommencee || partieAnnulee) return clearInterval(timerInterval);
-
       const secondesRestantes = Math.floor(restant / 1000);
       for (let t of rappelTemps) {
         if (secondesRestantes === t / 1000 && !rappelEnvoyes.has(t)) {
@@ -352,13 +352,13 @@ ovlcmd(
         }
       }
     }, 1000);
- 
+
     while (Date.now() - debutInscription < 60000 && !partieCommencee && !partieAnnulee) {
       try {
         const rep = await ovl.recup_msg({ ms_org, temps: 60000 - (Date.now() - debutInscription) });
         const msg = (rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "").trim().toLowerCase();
-        const auteur = rep?.key?.participant || rep?.message?.senderKey;
-
+        const auteurLid = rep?.key?.participant || rep?.message?.senderKey;
+        const auteur = getJid(auteurLid, ms_org, ovl);
         if (msg === "join" && auteur && !joueurs.has(auteur)) {
           joueurs.set(auteur, { id: auteur, score: 0 });
           await ovl.sendMessage(ms_org, {
@@ -366,14 +366,21 @@ ovlcmd(
             mentions: [auteur],
           });
         } else if (msg === "start" && auteur === createur) {
-          partieCommencee = true;
-          clearInterval(timerInterval);
-          break;
+          if (joueurs.size < 2) {
+            await ovl.sendMessage(ms_org, {
+              text: `❌ Il faut au moins 2 joueurs pour démarrer.`,
+              mentions: [auteur],
+            });
+          } else {
+            partieCommencee = true;
+            clearInterval(timerInterval);
+            break;
+          }
         } else if (msg === "stop" && auteur === createur) {
           partieAnnulee = true;
           clearInterval(timerInterval);
           await ovl.sendMessage(ms_org, {
-            text: `❌ Partie annulée par le créateur @${auteur.split("@")[0]}`,
+            text: `🛑 Partie annulée par @${auteur.split("@")[0]}`,
             mentions: [auteur],
           });
           return;
@@ -384,7 +391,10 @@ ovlcmd(
     if (partieAnnulee) return;
 
     if (!partieCommencee) {
-      if (joueurs.size < 2) return repondre("❌ Pas assez de joueurs (min 2). Partie annulée.");
+      if (joueurs.size < 2) {
+        await repondre("❌ Pas assez de joueurs (minimum 2). Partie annulée.");
+        return;
+      }
       partieCommencee = true;
       clearInterval(timerInterval);
     }
@@ -420,8 +430,8 @@ ovlcmd(
       }
       return melange;
     };
- 
-    while (joueursActifs.length > 1) {
+
+    while (joueursActifs.length > 1 && !partieAnnulee) {
       const joueursCeTour = [...joueursActifs];
       let reussitesCeTour = 0;
 
@@ -445,6 +455,15 @@ ovlcmd(
         try {
           const rep = await ovl.recup_msg({ ms_org, auteur: joueur.id, temps: 15000 });
           const txt = rep?.message?.conversation?.toLowerCase().trim() || "";
+
+          if (txt === "stop" && (rep?.key?.participant || rep?.message?.senderKey) === createur) {
+            partieAnnulee = true;
+            await ovl.sendMessage(ms_org, {
+              text: `🛑 Partie arrêtée par @${createur.split("@")[0]}`,
+              mentions: [createur],
+            });
+            return;
+          }
 
           if (txt === mot.toLowerCase()) {
             joueur.score++;
@@ -472,6 +491,8 @@ ovlcmd(
 
       joueursActifs = joueursActifs.filter(j => !j.elimine);
 
+      if (partieAnnulee) return;
+
       if (reussitesCeTour === 0) {
         await ovl.sendMessage(ms_org, {
           text: `❌ Aucun joueur n'a trouvé au tour ${tour}. Fin de la partie.`,
@@ -486,10 +507,10 @@ ovlcmd(
         });
       }
     }
- 
+
     let final = joueursActifs.length === 1
       ? `🏆 Fin de Partie - Vainqueur : @${joueursActifs[0].id.split("@")[0]}\n\n`
-      : `🏁 Fin de Partie - Aucun survivant\n\n`;
+      : `🏑 Fin de Partie - Aucun survivant\n\n`;
 
     final += `📊 Scores :\n`;
     const scoresTries = [...joueurs.values()].sort((a, b) => b.score - a.score);

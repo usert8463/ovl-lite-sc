@@ -33,7 +33,7 @@ ovlcmd(
             tagMessage += `╰═══════════════⬣\n`;
 
             if (verif_Admin) {
-                await ovl.sendMessage(dest, { text: tagMessage, mentions: mbre_membre.map(m => m.id) }, { quoted: ms });
+                await ovl.sendMessage(ms_org, { text: tagMessage, mentions: mbre_membre.map(m => m.id) }, { quoted: ms });
             } else {
                 repondre('Seuls les administrateurs peuvent utiliser cette commande');
             }

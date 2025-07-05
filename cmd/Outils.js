@@ -154,7 +154,7 @@ ovlcmd(
           msg += `${i + 1}. ${theme.nom}\n`;
         });
         return ovl.sendMessage(ms_org, {
-          image: { url: 'https://wallpapercave.com/uwp/uwp4820694.jpeg' },
+          image: { url: 'https://files.catbox.moe/6xlk10.jpg' },
           caption: msg
         }, { quoted: ms });
       }
@@ -717,7 +717,7 @@ ovlcmd(
             `💾 *Mémoire Totale*: ${totalMemory} GB\n` +
             `🆓 *Mémoire Libre*: ${freeMemory} GB\n` +
             `🌐 *Nom de l'Hôte*: ${hostname}\n` +
-            `🎉 *Version*: OVL-MD 1.0.0`
+            `🎉 *Version*: OVL-MD 2.0.0`
     }, { quoted: cmd_options.ms });
   }
 );
@@ -978,11 +978,16 @@ ovlcmd(
     desc: "Lien vers le groupe de support du bot",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, repondre, auteur_msg, ms } = cmd_options;
+    const { verif_Groupe, repondre, auteur_Message, ms } = cmd_options;
 
     const inviteLink = 'https://chat.whatsapp.com/HzhikAmOuYhFXGLmcyMo62';
-    const message = `📩 *OVL-MD-V2 SUPPORT*\nVoici le lien pour rejoindre le groupe:\n${inviteLink}`;
+    const message = `📩 *OVL-MD SUPPORT*\nVoici le lien pour rejoindre le groupe:\n${inviteLink}`;
 
-    await ovl.sendMessage(ms_org, { text: message }, { quoted: ms });
+    if (verif_Groupe) {
+      await repondre("📩 Le lien d'invitation a été envoyé en message privé.");
+      await ovl.sendMessage(auteur_Message, { text: message }, { quoted: ms });
+     } else {
+      await ovl.sendMessage(ms_org, { text: message }, { quoted: ms });
+    }
   }
 );

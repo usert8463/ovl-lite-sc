@@ -6,6 +6,11 @@ const { execSync } = require("child_process");
 const RENDER_API_KEY = config.RENDER_API_KEY;
 const host = os.hostname();
 const SERVICE_ID = host.split("-hibernate")[0]; 
+const simpleGit = require("simple-git");
+const { exec } = require("child_process");
+
+const git = simpleGit();
+
 
 const headers = {
   Authorization: `Bearer ${RENDER_API_KEY}`,
@@ -91,53 +96,6 @@ async function restartRenderService() {
   } catch (error) {
     console.error(error);
     return `*Erreur :* ${error.response?.data?.message || error.message}`;
-  }
-}
-
-async function getRenderCommit() {
-  try {
-    const response = await axios.get(
-      `https://api.render.com/v1/services/${SERVICE_ID}/deploys`,
-      { headers }
-    );
-    
-    if (!response.data || response.data.length === 0) {
-      throw new Error("Aucun déploiement trouvé sur Render.");
-    }
-    
-    const lastDeploy = response.data[0];
-    const lastCommit = lastDeploy.deploy.commit;
-    
-    return lastCommit ? lastCommit.id : null;
-  } catch (error) {
-    console.error(error);
-    throw new Error("Impossible de récupérer le dernier commit déployé sur Render.");
-  }
-}
-
-function getGitCommit() {
-  try {
-    return execSync("git log -1 --pretty=format:%H", {
-      cwd: ".",
-      encoding: "utf-8",
-    }).trim();
-  } catch (error) {
-    console.error("Erreur lors de la récupération du commit:", error.message);
-    return null;
-  }
-}
-
-async function deployRender() {
-  try {
-    await axios.post(
-      `https://api.render.com/v1/services/${SERVICE_ID}/deploys`,
-      {},
-      { headers }
-    );
-    return "✅ Déploiement lancé avec succès....";
-  } catch (error) {
-    console.error(error);
-    throw new Error("Échec du lancement du déploiement sur Render.");
   }
 }
 
@@ -249,46 +207,101 @@ ovlcmd(
   }
 );
 
+function formatDateGMTFr(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleString("fr-FR", {
+    timeZone: "UTC",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }) + " GMT";
+}
+
+ovlcmd(
+  {
+    nom_cmd: "checkupdate",
+    classe: "Système",
+    react: "🔍",
+    desc: "Vérifie les mises à jour disponibles du bot.",
+  },
+  async (ms_org, ovl, { repondre }) => {
+    try {
+      await git.init();
+      const remotes = await git.getRemotes();
+      if (!remotes.some(r => r.name === "origin")) {
+        await git.addRemote("origin", "https://github.com/Ainz-devs/Ovl-dbf");
+      }
+
+      await git.fetch();
+      const remoteBranch = "origin/main";
+      const branches = await git.branch(["-r"]);
+      if (!branches.all.includes(remoteBranch)) return repondre("❌ Branche distante introuvable.");
+
+      const logs = await git.log({ from: "main", to: remoteBranch });
+      if (logs.total > 0) {
+        const changelog = logs.all.map(log =>
+          `• ${log.message} (${formatDateGMTFr(log.date)})`
+        ).join("\n");
+
+        return repondre(`🚨 *Mise à jour disponible !*\n\n${changelog}\n\nUtilise *update* pour lancer la mise à jour.`);
+      } else {
+        return repondre("✅ Le bot est déjà à jour.");
+      }
+    } catch (e) {
+      console.error(e);
+      return repondre("❌ Erreur lors de la vérification des mises à jour.");
+    }
+  }
+);
+
 ovlcmd(
   {
     nom_cmd: "update",
-    classe: "Render_config",
-    desc: "Vérifie et déploie la dernière version de l'application sur Render.",
+    classe: "Système",
+    react: "♻️",
+    desc: "Met à jour le bot automatiquement.",
+    alias: ["maj"],
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, prenium_id } = cmd_options;
-
-    if (!prenium_id) {
-      return ovl.sendMessage(ms_org, {
-        text: "Cette commande est réservée aux utilisateurs premium"
-      }, { quoted: ms });
-    }
-
-    if (!RENDER_API_KEY || !SERVICE_ID) {
-      return ovl.sendMessage(ms_org, {
-        text: "Erreur : Les informations de configuration pour Render (API Key et Service ID) ne sont pas définies. Merci de les ajouter."
-      }, { quoted: ms });
-    }
-
+  async (ms_org, ovl, { repondre }) => {
     try {
-      const renderCommit = await getRenderCommit();
-      const gitCommit = await getGitCommit();
-    console.log(renderCommit, gitCommit);
-   /*   if (renderCommit == gitCommit) {
-        return ovl.sendMessage(ms_org, {
-          text: "Le bot est déjà à jour",
-        }, { quoted: ms });
-      } else {*/
-        const deployResult = await deployRender();
-        return ovl.sendMessage(ms_org, {
-          text: deployResult
-        }, { quoted: ms });
-  //    }
-    } catch (error) {
-      console.error(error);
-      return ovl.sendMessage(ms_org, {
-        text: `*Erreur* : ${error.message}`
-      }, { quoted: ms });
+      await git.init();
+      const remotes = await git.getRemotes();
+      if (!remotes.some(r => r.name === "origin")) {
+        await git.addRemote("origin", "https://github.com/Ainz-devs/Ovl-dbf");
+      }
+
+      await git.fetch();
+      const remoteBranch = "origin/main";
+      const branches = await git.branch(["-r"]);
+      if (!branches.all.includes(remoteBranch)) {
+        return repondre("❌ Branche distante introuvable.");
+      }
+
+      const logs = await git.log({ from: "main", to: remoteBranch });
+      if (!(logs.total > 0)) {
+        return repondre("✅ Le bot est déjà à jour.");
+      }
+
+      await repondre("⏳ Téléchargement des dernières modifications...");
+      await git.checkout("main");
+      await git.pull("origin", "main");
+
+      await repondre("✅ Mise à jour réussie ! Redémarrage...");
+      exec("pm2 restart all", (err) => {
+        if (err) {
+          console.error("❌ Erreur PM2 :", err);
+        } else {
+          console.log("La Mise à jour est terminée.");
+        }
+      });
+    } catch (err) {
+      console.error("❌ Erreur de mise à jour :", err);
+      await repondre("❌ Mise à jour échouée.");
     }
   }
 );

@@ -16,26 +16,24 @@ ovlcmd(
     },
     async (dest, ovl, cmd_options) => {
         try {
-            const { ms, repondre, arg, verif_Groupe, infos_Groupe, nom_Auteur_Message, verif_Admin } = cmd_options;
+            const { ms, repondre, arg, mbre_membre, verif_Groupe, infos_Groupe, nom_Auteur_Message, verif_Admin } = cmd_options;
 
             if (!verif_Groupe) {
                 return repondre("Cette commande ne fonctionne que dans les groupes");
             }
 
             const messageTexte = arg && arg.length > 0 ? arg.join(' ') : '';
-            const membresGroupe = verif_Groupe ? await infos_Groupe.participants : [];
-            
             let tagMessage = `╭───〔  TAG ALL 〕───⬣\n`;
             tagMessage += `│👤 Auteur : *${nom_Auteur_Message}*\n`;
             tagMessage += `│💬 Message : *${messageTexte}*\n│\n`;
 
-            membresGroupe.forEach(membre => {
+            mbre_membre.forEach(membre => {
                 tagMessage += `│◦❒ @${membre.id.split("@")[0]}\n`;
             });
             tagMessage += `╰═══════════════⬣\n`;
 
             if (verif_Admin) {
-                await ovl.sendMessage(dest, { text: tagMessage, mentions: membresGroupe.map(m => m.id) }, { quoted: ms });
+                await ovl.sendMessage(dest, { text: tagMessage, mentions: mbre_membre.map(m => m.id) }, { quoted: ms });
             } else {
                 repondre('Seuls les administrateurs peuvent utiliser cette commande');
             }
@@ -53,15 +51,14 @@ ovlcmd(
     },
     async (dest, ovl, cmd_options) => {
         try {
-            const { ms, repondre, arg, verif_Groupe, infos_Groupe, nom_Auteur_Message, verif_Admin } = cmd_options;
+            const { ms, repondre, mbre_membre, arg, verif_Groupe, mbre_membre, infos_Groupe, nom_Auteur_Message, verif_Admin } = cmd_options;
 
             if (!verif_Groupe) {
                 return repondre("Cette commande ne fonctionne que dans les groupes");
             }
 
             const messageTexte = arg && arg.length > 0 ? arg.join(' ') : '';
-            const membresGroupe = verif_Groupe ? await infos_Groupe.participants : [];
-            const adminsGroupe = membresGroupe.filter(membre => membre.admin).map(membre => membre.id);
+            const adminsGroupe = mbre_membre.filter(membre => membre.admin).map(membre => membre.id);
 
             if (adminsGroupe.length === 0) {
                 return repondre("Aucun administrateur trouvé dans ce groupe.");
@@ -97,7 +94,7 @@ ovlcmd(
 
     },
     async (dest, ovl, cmd_options) => {
-        const { repondre, msg_Repondu, verif_Groupe, arg, verif_Admin, ms } = cmd_options;
+        const { repondre, mbre_membre, msg_Repondu, verif_Groupe, arg, verif_Admin, ms } = cmd_options;
 
         if (!verif_Groupe) {
             repondre("Cette commande ne fonctionne que dans les groupes");
@@ -106,7 +103,6 @@ ovlcmd(
 
         if (verif_Admin) {
             let metadata_groupe = await ovl.groupMetadata(dest);
-            let membres_Groupe = metadata_groupe.participants.map(participant => participant.id);
             let contenu_msg;
 
             if (msg_Repondu) {
@@ -115,21 +111,21 @@ ovlcmd(
                     contenu_msg = {
                         image: { url: media_image },
                         caption: msg_Repondu.imageMessage.caption,
-                        mentions: membres_Groupe
+                        mentions: mbre_membre
                     };
                 } else if (msg_Repondu.videoMessage) {
                     let media_video = await ovl.dl_save_media_ms(msg_Repondu.videoMessage);
                     contenu_msg = {
                         video: { url: media_video },
                         caption: msg_Repondu.videoMessage.caption,
-                        mentions: membres_Groupe
+                        mentions: mbre_membre
                     };
                 } else if (msg_Repondu.audioMessage) {
                     let media_audio = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
                     contenu_msg = {
                         audio: { url: media_audio },
                         mimetype: 'audio/mp4',
-                        mentions: membres_Groupe
+                        mentions: mbre_membre
                     };
                 } else if (msg_Repondu.stickerMessage) {
                     let media_sticker = await ovl.dl_save_media_ms(msg_Repondu.stickerMessage);
@@ -140,11 +136,11 @@ ovlcmd(
                         background: "transparent",
                     });
                     const sticker_buffer = await sticker_msg.toBuffer();
-                    contenu_msg = { sticker: sticker_buffer, mentions: membres_Groupe };
+                    contenu_msg = { sticker: sticker_buffer, mentions: mbre_membre };
                 } else {
                     contenu_msg = {
                         text: msg_Repondu.conversation,
-                        mentions: membres_Groupe
+                        mentions: mbre_membre
                     };
                 }
 
@@ -157,7 +153,7 @@ ovlcmd(
 
                 ovl.sendMessage(dest, {
                     text: arg.join(' '),
-                    mentions: membres_Groupe
+                    mentions: mbre_membre
                 }, { quoted: ms });
             }
         } else {
@@ -326,7 +322,7 @@ ovlcmd(
     for (const membre of nonAdmins) {
       try {
         await ovl.groupParticipantsUpdate(ms_org, [membre], "remove");
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (err) {
         console.error(`Erreur exclusion ${membre} :`, err);
       }
@@ -336,7 +332,7 @@ ovlcmd(
   }
 );
 
-/*ovlcmd(
+ovlcmd(
   {
     nom_cmd: "ckick",
     classe: "Groupe",
@@ -350,7 +346,7 @@ ovlcmd(
       return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
 
     const membres = infos_Groupe.participants;
-    const createur = membres[0]?.id;
+    const createur = membres[0]?.jid;
 
     if (!(prenium_id || auteur_Message === createur))
       return ovl.sendMessage(ms_org, { text: "Seuls le créateur du groupe ou un utilisateur premium peuvent utiliser cette commande." }, { quoted: ms });
@@ -367,8 +363,8 @@ ovlcmd(
 
     const indicatif = arg[0];
     const membresToKick = membres
-      .filter(m => m.id.startsWith(indicatif) && !m.admin && !dev_num.includes(m.id))
-      .map(m => m.id);
+      .filter(m => m.jid.startsWith(indicatif) && !m.admin && !dev_num.includes(m.jid))
+      .map(m => m.jid);
 
     if (membresToKick.length === 0)
       return ovl.sendMessage(ms_org, { text: `Aucun membre non admin avec l'indicatif ${indicatif}.` }, { quoted: ms });
@@ -384,7 +380,7 @@ ovlcmd(
 
     ovl.sendMessage(ms_org, { text: `✅ ${membresToKick.length} membre(s) avec l'indicatif ${indicatif} ont été exclus.` }, { quoted: ms });
   }
-);*/
+);
 
 ovlcmd(
   {
@@ -905,7 +901,7 @@ ovlcmd(
 );
 
 
-/*ovlcmd(
+ovlcmd(
   {
     nom_cmd: "vcf",
     classe: "Groupe",
@@ -928,7 +924,7 @@ ovlcmd(
       const vcfData = [];
 
       for (const participant of participants) {
-        const number = participant.id.split('@')[0];
+        const number = participant.jid.split('@')[0];
         vcfData.push(`BEGIN:VCARD\nVERSION:3.0\nFN:${number}\nTEL;TYPE=CELL:${number}\nEND:VCARD`);
       }
 
@@ -950,7 +946,7 @@ ovlcmd(
     }
   }
 );
-*/
+
 ovlcmd(
   {
     nom_cmd: "antilink",

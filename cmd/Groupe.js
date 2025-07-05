@@ -534,7 +534,7 @@ ovlcmd(
             messages: [
               {
                 id: ms.key.id,
-                fromMe: auteur_Message === id_Bot,
+                fromMe: true,
                 timestamp: ms.messageTimestamp.low
               }
             ]

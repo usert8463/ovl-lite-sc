@@ -24,7 +24,7 @@ ovlcmd(
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) ||
         auteur_Msg_Repondu ||
         auteur_Message;
-      const userId = getJid(userIdl, ms_org, ovl);
+      const userId = await getJid(userIdl, ms_org, ovl);
       if (!userId) return await repondre("❌ Impossible de trouver l'utilisateur.");
 
       let pp = 'https://wallpapercave.com/uwp/uwp4820694.jpeg';
@@ -76,7 +76,7 @@ ovlcmd(
     }
 
     const destinataireIdl = arg[0].includes("@") ? `${arg[0].replace("@", "")}@lid` : null;
-    const destinataireId = getJid(destinataireIdl, ms_org, ovl);
+    const destinataireId = await getJid(destinataireIdl, ms_org, ovl);
     if (!destinataireId) {
       return repondre("Merci de mentionner un utilisateur valide (@numéro).");
     }
@@ -143,7 +143,7 @@ ovlcmd(
     }
 
     const cbl = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Msg_Repondu;
-    const cible = getJid(cbl, ms_org, ovl);
+    const cible = await getJid(cbl, ms_org, ovl);
     if (!cible) {
       repondre("Veuillez mentionner un utilisateur ou répondre à son message.\nEx: resetaccount @user");
         
@@ -301,7 +301,7 @@ ovlcmd(
       victimeId = auteur_Msg_Repondu;
     } else if (arg[0]?.includes("@")) {
       victimeIdl = `${arg[0].replace("@", "")}@lid`;
-      victimeId = getJid(victimeIdl, ms_org, ovl)
+      victimeId = await getJid(victimeIdl, ms_org, ovl)
     }
 
     if (!victimeId) return repondre("Mentionne un utilisateur valide ou réponds à son message.\nEx : *vol @user* ou *vol* en réponse à un message.");
@@ -498,7 +498,7 @@ ovlcmd(
       destinataire = auteur_Msg_Repondu;
     } else if (arg[0]?.includes("@")) {
       destinatairl = `${arg[0].replace("@", "")}@lid`;
-      destinataire = getJid(destinatairl, ms_org, ovl)
+      destinataire = await getJid(destinatairl, ms_org, ovl)
     }
 
     if (!destinataire) {

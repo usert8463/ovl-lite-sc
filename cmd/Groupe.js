@@ -68,7 +68,7 @@ ovlcmd(
             tagMessage += `│👤 Auteur : *${nom_Auteur_Message}*\n`;
             tagMessage += `│💬 Message : *${messageTexte}*\n│\n`;
 
-            membresGroupe.forEach(membre => {
+            mbre_membre.forEach(membre => {
                 if (membre.admin) {
                     tagMessage += `│◦❒ @${membre.id.split("@")[0]}\n`;
                 }

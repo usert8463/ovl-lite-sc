@@ -67,7 +67,7 @@ const WA_CONF = sequelize.define(
 
 (async () => {
   await WA_CONF.sync();
-  console.log("Table 'WA_CONF' synchronisée avec succès.");
+  console.log("WA_CONF synchronisée.");
 })();
 
 module.exports = { WA_CONF };

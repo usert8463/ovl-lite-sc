@@ -40,7 +40,6 @@
     "sqlite3": "^5.1.7",
     "tempmail.lol": "^4.1.0",
     "sequelize": "^6.37.5",
-    "simple-git": "^3.28.0",
     "wa-sticker-formatter": "^4.4.4",
     "wikipedia": "^2.1.1"
   }

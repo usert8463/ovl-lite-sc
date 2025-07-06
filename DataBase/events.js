@@ -4,17 +4,17 @@ const db = config.DATABASE;
 
 let sequelize;
 
-if (!db) { 
+if (!db) {
   sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: './database.db',
+    dialect: "sqlite",
+    storage: "./database.db",
     logging: false,
   });
 } else {
   sequelize = new Sequelize(db, {
-    dialect: 'postgres',
+    dialect: "postgres",
     ssl: true,
-    protocol: 'postgres',
+    protocol: "postgres",
     dialectOptions: {
       native: true,
       ssl: { require: true, rejectUnauthorized: false },
@@ -53,9 +53,43 @@ const GroupSettings = sequelize.define(
   }
 );
 
+const Events2 = sequelize.define(
+  "Events2",
+  {
+    id: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+    },
+    welcome_msg: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    goodbye_msg: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    promoteAlert: {
+      type: DataTypes.TEXT,
+      defaultValue: "non",
+    },
+    demoteAlert: {
+      type: DataTypes.TEXT,
+      defaultValue: "non",
+    },
+  },
+  {
+    tableName: "events2",
+    timestamps: false,
+  }
+);
+
 (async () => {
   await GroupSettings.sync();
-  console.log("GroupSettings synchronisée.");
+  await Events2.sync();
+  console.log("✅ Events ynchronisées.");
 })();
 
-module.exports = { GroupSettings };
+module.exports = {
+  GroupSettings,
+  Events2,
+};

@@ -70,10 +70,10 @@ const AntibotWarnings = sequelize.define(
 
 (async () => {
   await Antibot.sync();
-  console.log("Table 'Antibot' synchronisée avec succès.");
+  console.log("Antibot synchronisée.");
 
   await AntibotWarnings.sync();
-  console.log("Table 'Antibot_warnings' synchronisée avec succès.");
+  console.log("Antibot_warnings synchronisée.");
 })();
 
 module.exports = { Antibot, AntibotWarnings };

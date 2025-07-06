@@ -245,10 +245,10 @@ ovlcmd(
       const logs = await git.log({ from: "main", to: remoteBranch });
       if (logs.total > 0) {
         const changelog = logs.all.map(log =>
-          `• ${log.message} (${formatDateGMTFr(log.date)})`
+          `• ${log.message} - ${formatDateGMTFr(log.date)})`
         ).join("\n");
 
-        return repondre(`🚨 *Mise à jour disponible !*\n\n${changelog}\n\nUtilise *update* pour lancer la mise à jour.`);
+        return repondre(`🚨 *Mise à jour disponible !*\n\n${changelog}\n\nUtilise *${config.PREFIXE]update* pour lancer la mise à jour.`);
       } else {
         return repondre("✅ Le bot est déjà à jour.");
       }

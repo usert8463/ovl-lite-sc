@@ -1117,18 +1117,20 @@ ovlcmd(
 );
 
 ovlcmd({
-  nom_cmd: "pluginlist",
+  nom_cmd: "pglist",
   classe: "Owner",
   react: "🧩",
   desc: "Affiche la liste des plugins disponibles avec statut d'installation.",
-  alias: ["pgl"]
+  alias: ["pgl", "plist"]
 }, async (ms, ovl, { repondre }) => {
   try {
     const { data } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
+    const plugins = JSON.parse(data);
+
     const installs = await Plugin.findAll();
     const installedNames = installs.map(p => p.name.toLowerCase());
 
-    const lignes = data.map((plugin, index) => {
+    const lignes = plugins.map((plugin, index) => {
       const estInstalle = installedNames.includes(plugin.name.toLowerCase());
       const icone = estInstalle ? "✅" : "❌";
 
@@ -1185,47 +1187,67 @@ ovlcmd({
 });
 
 ovlcmd({
-  nom_cmd: "pginstall",
-  classe: "Owner",
-  react: "📥",
-  desc: "Installe un plugin.",
+  nom_cmd: "pginstall",
+  classe: "Owner",
+  react: "📥",
+  desc: "Installe un plugin.",
   alias: ["pgi"]
 }, async (ms, ovl, { arg, repondre }) => {
-  const input = arg[0];
-  if (!input) return repondre("❌ Donne un lien direct vers un plugin ou tape `install all` pour tout installer.");
+  const input = arg[0];
+  if (!input) return repondre("❌ Donne un lien direct vers un plugin ou tape `pginstall all` pour tout installer.");
 
-  const installOne = async (url, name) => {
-    try {
-      const res = await axios.get(url);
-      const code = res.data;
-      const filePath = path.join(__dirname, '../cmd', `${name}.js`);
-      fs.writeFileSync(filePath, code);
+  const installOne = async (url, name) => {
+    try {
+      const exist = await Plugin.findOne({ where: { name } });
+      if (exist) {
+        await repondre(`⚠️ Plugin *${name}* déjà installé. Ignoré.`);
+        return;
+      }
 
-      const modules = extractNpmModules(code);
-      if (modules.length > 0) {
-        await repondre(`⚙️ Installation des dépendances npm : ${modules.join(", ")}`);
-        await installModules(modules);
-      }
+      const res = await axios.get(url);
+      const code = res.data;
+      const filePath = path.join(__dirname, "../cmd", `${name}.js`);
+      fs.writeFileSync(filePath, code);
 
-      await Plugin.findOrCreate({ where: { name }, defaults: { url } });
-      await repondre(`✅ Plugin *${name}* installé.`);
-      return exec('pm2 restart all', () => {});
-    } catch (e) {
-      await repondre(`❌ Erreur : ${e.message}`);
-    }
-  };
+      const modules = extractNpmModules(code);
+      if (modules.length > 0) {
+        await repondre(`⚙️ Installation des dépendances npm : ${modules.join(", ")}`);
+        await installModules(modules);
+      }
 
-  if (input === 'all') {
-    try {
-      const { data } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
-      for (const p of data) {
-        await installOne(p.url, p.name);
-      }
-      await repondre("✅ Tous les plugins disponibles ont été installés.");
-    } catch (e) {
-      await repondre(`❌ Erreur : ${e.message}`);
-    }
-  } else {
-    await installOne(input, path.basename(input).replace('.js', ''));
-  }
+      await Plugin.findOrCreate({ where: { name }, defaults: { url } });
+      await repondre(`✅ Plugin *${name}* installé avec succès.`);
+      exec('pm2 restart all', () => {});
+    } catch (e) {
+      await repondre(`❌ Erreur installation *${name}* : ${e.message}`);
+    }
+  };
+
+  if (input === "all") {
+    try {
+      const { data } = await axios.get("https://pastebin.com/raw/5UA0CYYR");
+      const plugins = JSON.parse(data);
+
+      const installed = await Plugin.findAll();
+      const installedNames = installed.map(p => p.name.toLowerCase());
+
+      const pluginsToInstall = plugins.filter(p => !installedNames.includes(p.name.toLowerCase()));
+
+      if (pluginsToInstall.length === 0) {
+        return await repondre("✅ Tous les plugins sont déjà installés.");
+      }
+
+      for (const p of pluginsToInstall) {
+        await installOne(p.url, p.name);
+      }
+
+      await repondre("✅ Installation terminée pour tous les plugins disponibles.");
+    } catch (e) {
+      await repondre(`❌ Erreur de récupération des plugins : ${e.message}`);
+    }
+  } else {
+    const url = input;
+    const name = path.basename(url).replace(".js", "");
+    await installOne(url, name);
+  }
 });

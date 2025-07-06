@@ -1250,16 +1250,18 @@ ovlcmd(
 );
 
 const welcomeGoodbyeCmd = (type) => {
-  const nom_cmd = type;
   const isWelcome = type === "welcome";
-  const desc = isWelcome ? "Configurer ou activer les messages de bienvenue" : "Configurer ou activer les messages d’adieu";
 
-  return {
-    nom_cmd,
-    classe: "Groupe",
-    react: "👋",
-    desc,
-    async execute(jid, ovl, { repondre, arg, verif_Admin, verif_Groupe, auteurMessage }) {
+  ovlcmd(
+    {
+      nom_cmd: type,
+      classe: "Groupe",
+      react: "👋",
+      desc: isWelcome
+        ? "Configurer ou activer les messages de bienvenue"
+        : "Configurer ou activer les messages d’adieu",
+    },
+    async (ms_org, ovl, { repondre, arg, verif_Admin, verif_Groupe, auteur_Message }) => {
       try {
         if (!verif_Groupe) return repondre("❌ Commande utilisable uniquement dans les groupes.");
         if (!verif_Admin) return repondre("❌ Seuls les administrateurs peuvent utiliser cette commande.");
@@ -1267,13 +1269,13 @@ const welcomeGoodbyeCmd = (type) => {
         const sub = arg[0]?.toLowerCase();
 
         const [settings] = await GroupSettings.findOrCreate({
-          where: { id: jid },
-          defaults: { id: jid, [type]: "non" },
+          where: { id: ms_org },
+          defaults: { id: ms_org, [type]: "non" },
         });
 
         const [eventData] = await Events2.findOrCreate({
-          where: { id: jid },
-          defaults: { id: jid },
+          where: { id: ms_org },
+          defaults: { id: ms_org },
         });
 
         const fieldName = isWelcome ? "welcome_msg" : "goodbye_msg";
@@ -1311,11 +1313,11 @@ const welcomeGoodbyeCmd = (type) => {
             return repondre(`⚠️ Aucun message ${isWelcome ? "de bienvenue" : "d’adieu"} personnalisé configuré.`);
           }
 
-          const groupInfo = await ovl.groupMetadata(jid);
+          const groupInfo = await ovl.groupMetadata(ms_org);
           const groupName = groupInfo.subject || "Groupe";
           const totalMembers = groupInfo.participants.length;
           const groupDesc = groupInfo.desc || "Aucune description";
-          const userMention = `@${auteurMessage.split("@")[0]}`;
+          const userMention = `@${auteur_Message.split("@")[0]}`;
 
           let msg = msgValue;
 
@@ -1339,27 +1341,27 @@ const welcomeGoodbyeCmd = (type) => {
             const url = mediaMatch[1];
             const ext = url.split(".").pop().toLowerCase();
             if (["mp4", "mov", "webm"].includes(ext)) {
-              media = { video: { url }, caption: msg.trim(), mentions: [auteurMessage] };
+              media = { video: { url }, caption: msg.trim(), mentions: [auteur_Message] };
             } else if (["jpg", "jpeg", "png", "webp"].includes(ext)) {
-              media = { image: { url }, caption: msg.trim(), mentions: [auteurMessage] };
+              media = { image: { url }, caption: msg.trim(), mentions: [auteur_Message] };
             }
           } else if (usePP) {
-            const profileUrl = await ovl.profilePictureUrl(auteurMessage, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg");
-            media = { image: { url: profileUrl }, caption: msg.trim(), mentions: [auteurMessage] };
+            const profileUrl = await ovl.profilePictureUrl(auteur_Message, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg");
+            media = { image: { url: profileUrl }, caption: msg.trim(), mentions: [auteur_Message] };
           } else if (useGPP) {
             let gpp = null;
             try {
-              gpp = await ovl.profilePictureUrl(jid, "image");
+              gpp = await ovl.profilePictureUrl(ms_org, "image");
             } catch {
-              gpp = await ovl.profilePictureUrl(auteurMessage, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg");
+              gpp = await ovl.profilePictureUrl(auteur_Message, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg");
             }
-            media = { image: { url: gpp }, caption: msg.trim(), mentions: [auteurMessage] };
+            media = { image: { url: gpp }, caption: msg.trim(), mentions: [auteur_Message] };
           }
 
           if (media) {
-            await ovl.sendMessage(jid, media);
+            await ovl.sendMessage(ms_org, media);
           } else {
-            await ovl.sendMessage(jid, { text: msg.trim(), mentions: [auteurMessage] });
+            await ovl.sendMessage(ms_org, { text: msg.trim(), mentions: [auteur_Message] });
           }
 
           return;
@@ -1393,12 +1395,13 @@ const welcomeGoodbyeCmd = (type) => {
         console.error(`❌ Erreur ${type} :`, e);
         repondre("❌ Une erreur s’est produite.");
       }
-    },
-  };
+    }
+  );
 };
 
 welcomeGoodbyeCmd("welcome");
 welcomeGoodbyeCmd("goodbye");
+
 
 const commands = [
   {

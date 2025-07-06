@@ -623,12 +623,6 @@ ovlcmd(
      return repondre('SESSION-ID invalide');
       }
 
-      exec('pm2 restart all', (err) => {
-        if (err) {
-          ovl.sendMessage(ms_org, { text: `⚠️ Erreur lors du redémarrage :\n${err.message}` }, { quoted: ms });
-        }
-      });
-
       return ovl.sendMessage(ms_org, { text: `✅ Tentative de connexion enregistrée pour la session : ${session_id}` }, { quoted: ms });
     } catch (err) {
       return ovl.sendMessage(ms_org, { text: `❌ Erreur : ${err.message}` });
@@ -703,12 +697,6 @@ ovlcmd(
           text: `Aucune session trouvée pour la session : ${session_id}`,
         }, { quoted: ms });
       }
-
-      exec('pm2 restart all', (err) => {
-        if (err) {
-          ovl.sendMessage(ms_org, { text: `⚠️ Erreur lors du redémarrage :\n${err.message}` }, { quoted: ms });
-        }
-      });
 
       await ovl.sendMessage(ms_org, {
         text: `✅ Session ${session_id} supprimée avec succès.`,
@@ -1133,21 +1121,22 @@ ovlcmd({
   classe: "Système",
   react: "📃",
   desc: "Affiche la liste des plugins disponibles (✓ installé, ✗ non installé).",
-  alias: ["Owner"]
+  alias: ["Owner"]
 }, async (ms, ovl, { repondre }) => {
   try {
-    const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
+    const { data } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
     const installs = await Plugin.findAll();
     const installedNames = installs.map(p => p.name);
 
     const lignes = data.map(p => {
       const estInstalle = installedNames.includes(p.name);
-      return `${estInstalle ? '✓' : '✗'} ${p.name}`;
+      const statut = estInstalle ? "✓" : "✗";
+      return `${statut} *${p.name}* — ${p.desc} (👤 ${p.author})`;
     });
 
     const message = lignes.length > 0
-      ? "📦 Liste des plugins disponibles :\n\n" + lignes.join('\n')
-      : "Aucun plugin disponible.";
+      ? "📦 *Liste des plugins disponibles* :\n\n" + lignes.join('\n')
+      : "❌ Aucun plugin disponible.";
 
     await repondre(message);
   } catch (e) {
@@ -1220,7 +1209,7 @@ ovlcmd({
 
   if (input === 'all') {
     try {
-      const { data } = await axios.get('https://premier-armadillo-ovl-02d9d108.koyeb.app/pglist');
+      const { data } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
       for (const p of data) {
         await installOne(p.url, p.name);
       }

@@ -9,7 +9,6 @@ const ytsr = require('@distube/ytsr');
 const LyricsFinder = require('@faouzkk/lyrics-finder');
 const { search, download } = require("aptoide_scrapper_fixed");
 const FormData = require('form-data');
-const shazam = require("../lib/shazam");
 
 ovlcmd(
     {
@@ -77,46 +76,6 @@ ovlcmd(
         }
     }
 );
-
-/*ovlcmd(
-  {
-    nom_cmd: "shazam",
-    desc: "Identifie une chanson via un message audio.",
-    react: "🎶"
-  },
-  async (ms_org, ovl, { repondre, ms, msg_Repondu }) => {
-    if (!msg_Repondu || !msg_Repondu.audioMessage) {
-      return repondre("🎧 Réponds à un *message audio* pour identifier la musique.");
-    }
-
-    const aud = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
-    const resultat = await shazam(aud);
-
-    if (resultat.erreur) {
-      return repondre(`❌ ${resultat.erreur}`);
-    }
-
-    // Format décoré avec liens inclus
-    let msg = `╭──🎵 *Musique Identifiée* ──╮\n`;
-    msg += `│ 🏷️ *Titre* : ${resultat.titre}\n`;
-    msg += `│ 👤 *Artiste* : ${resultat.artiste}\n`;
-    if (resultat.album) msg += `│ 💽 *Album* : ${resultat.album}\n`;
-    if (resultat.genres) msg += `│ 🎧 *Genre* : ${resultat.genres}\n`;
-    if (resultat.duree) msg += `│ ⏱️ *Durée* : ${resultat.duree}\n`;
-    if (resultat.date) msg += `│ 📅 *Sortie* : ${resultat.date}\n`;
-    if (resultat.label) msg += `│ 🏢 *Label* : ${resultat.label}\n`;
-    msg += `│ 🎯 *Score* : ${resultat.score}%\n`;
-    
-    if (resultat.spotify) msg += `│ 🟢 Spotify : ${resultat.spotify}\n`;
-    if (resultat.youtube) msg += `│ 🔴 YouTube : https://youtu.be/${resultat.youtube}\n`;
-    if (resultat.deezer) msg += `│ 🔵 Deezer : ${resultat.deezer}\n`;
-    if (resultat.apple) msg += `│ 🍎 Apple Music : ${resultat.apple}\n`;
-
-    msg += `╰──────────────────────────╯`;
-
-    return repondre(msg);
-  }
-);*/
 
 ovlcmd(
     {

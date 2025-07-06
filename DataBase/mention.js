@@ -48,7 +48,7 @@ const Mention = sequelize.define('Mention', {
 
 (async () => {
   await Mention.sync();
-  console.log("Table 'Mention' synchronisée avec succès.");
+  console.log("Mention synchronisée.");
 })();
 
 async function setMention({ url = "url", text = "text", mode = "non" }) {

@@ -39,7 +39,7 @@ const OvlCmd = sequelize.define('OvlCmd', {
 
 (async () => {
   await OvlCmd.sync();
-  console.log("✅ Table 'public_private_cmds' synchronisée.");
+  console.log("public_private_cmds synchronisée.");
 })();
 
 async function set_cmd(nom_cmd, type = "public") {

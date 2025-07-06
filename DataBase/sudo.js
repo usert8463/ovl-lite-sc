@@ -35,7 +35,7 @@ const Sudo = sequelize.define('Sudo', {
 
 (async () => {
   await Sudo.sync();
-  console.log("Table 'Sudo' synchronisée avec succès.");
+  console.log("Sudo synchronisée.");
 })();
 
 module.exports = { Sudo };

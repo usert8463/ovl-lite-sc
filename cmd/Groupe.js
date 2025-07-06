@@ -1249,8 +1249,6 @@ ovlcmd(
   }
 );
 
-const { GroupSettings, Events2 } = require("../DataBase/events");
-
 const welcomeGoodbyeCmd = (type) => {
   const nom_cmd = type;
   const isWelcome = type === "welcome";
@@ -1402,4 +1400,69 @@ const welcomeGoodbyeCmd = (type) => {
 welcomeGoodbyeCmd("welcome");
 welcomeGoodbyeCmd("goodbye");
 
+const commands = [
+  {
+    nom_cmd: "antipromote",
+    react: "🛑",
+    desc: "Active ou désactive l'antipromotion",
+    table: GroupSettings,
+  },
+  {
+    nom_cmd: "antidemote",
+    react: "🛑",
+    desc: "Active ou désactive l'antidémotion",
+    table: GroupSettings,
+  },
+  {
+    nom_cmd: "promotealert",
+    react: "⚠️",
+    desc: "Active ou désactive l'alerte de promotion",
+    table: Events2,
+  },
+  {
+    nom_cmd: "demotealert",
+    react: "⚠️",
+    desc: "Active ou désactive l'alerte de rétrogradation",
+    table: Events2,
+  },
+];
 
+commands.forEach(({ nom_cmd, react, desc, table }) => {
+  ovlcmd(
+    {
+      nom_cmd,
+      classe: "Groupe",
+      react,
+      desc,
+    },
+    async (jid, ovl, { repondre, arg, verif_Groupe, verif_Admin }) => {
+      try {
+        if (!verif_Groupe) return repondre("❌ Cette commande fonctionne uniquement dans les groupes.");
+        if (!verif_Admin) return repondre("❌ Seuls les administrateurs peuvent utiliser cette commande.");
+
+        const sousCommande = arg[0]?.toLowerCase();
+        const validModes = ["on", "off"];
+
+        const [settings] = await table.findOrCreate({
+          where: { id: jid },
+          defaults: { id: jid, [nom_cmd]: "non" },
+        });
+
+        if (validModes.includes(sousCommande)) {
+          const newMode = sousCommande === "on" ? "oui" : "non";
+          if (settings[nom_cmd] === newMode) {
+            return repondre(`ℹ️ ${nom_cmd} est déjà ${sousCommande}.`);
+          }
+          settings[nom_cmd] = newMode;
+          await settings.save();
+          return repondre(`✅ ${nom_cmd} ${sousCommande === "on" ? "activé" : "désactivé"} avec succès.`);
+        }
+
+        return repondre(`🛠️ Utilisation :\n> ${nom_cmd} on/off – ${desc.toLowerCase()}`);
+      } catch (error) {
+        console.error(`Erreur lors de la configuration de ${nom_cmd} :`, error);
+        return repondre("❌ Une erreur s'est produite lors de l'exécution de la commande.");
+      }
+    }
+  );
+});

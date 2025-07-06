@@ -39,7 +39,7 @@ const Bans = sequelize.define('Bans', {
 
 (async () => {
   await Bans.sync();
-  console.log("Table 'Bans' synchronisée avec succès.");
+  console.log("Bans synchronisée.");
 })();
 
 module.exports = { Bans };

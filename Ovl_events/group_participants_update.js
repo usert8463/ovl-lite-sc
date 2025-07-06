@@ -84,7 +84,7 @@ async function group_participants_update(data, ovl) {
     const eventSettings = await Events2.findOne({ where: { id: data.id } });
     if (!settings) return;
 
-    const { welcome, goodbye, antipromote, antidemote, promoteAlert, demoteAlert } = settings;
+    const { welcome, goodbye, antipromote, antidemote } = settings;
     const { promoteAlert, demoteAlert } = eventSettings;
     
     for (const participant of data.participants) {

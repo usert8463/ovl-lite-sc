@@ -55,7 +55,7 @@ const GroupSettings = sequelize.define(
 
 (async () => {
   await GroupSettings.sync();
-  console.log("Table 'GroupSettings' synchronisée avec succès.");
+  console.log("GroupSettings synchronisée.");
 })();
 
 module.exports = { GroupSettings };

@@ -85,7 +85,8 @@ async function group_participants_update(data, ovl) {
     if (!settings) return;
 
     const { welcome, goodbye, antipromote, antidemote, promoteAlert, demoteAlert } = settings;
-
+    const { promoteAlert, demoteAlert } = eventSettings;
+    
     for (const participant of data.participants) {
       const actor = data.actor;
       const actorMention = actor ? `@${actor.split("@")[0]}` : "quelqu’un";

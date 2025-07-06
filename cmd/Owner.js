@@ -1117,31 +1117,39 @@ ovlcmd(
 );
 
 ovlcmd({
-  nom_cmd: "pluginlist",
-  classe: "Système",
-  react: "📃",
-  desc: "Affiche la liste des plugins disponibles (✓ installé, ✗ non installé).",
-  alias: ["Owner"]
+  nom_cmd: "pluginlist",
+  classe: "Owner",
+  react: "🧩",
+  desc: "Affiche la liste des plugins disponibles avec statut d'installation.",
+  alias: ["pgl"]
 }, async (ms, ovl, { repondre }) => {
-  try {
-    const { data } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
-    const installs = await Plugin.findAll();
-    const installedNames = installs.map(p => p.name);
+  try {
+    const { data } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
+    const installs = await Plugin.findAll();
+    const installedNames = installs.map(p => p.name.toLowerCase());
 
-    const lignes = data.map(p => {
-      const estInstalle = installedNames.includes(p.name);
-      const statut = estInstalle ? "✓" : "✗";
-      return `${statut} *${p.name}* — ${p.desc} (👤 ${p.author})`;
-    });
+    const lignes = data.map((plugin, index) => {
+      const estInstalle = installedNames.includes(plugin.name.toLowerCase());
+      const icone = estInstalle ? "✅" : "❌";
 
-    const message = lignes.length > 0
-      ? "📦 *Liste des plugins disponibles* :\n\n" + lignes.join('\n')
-      : "❌ Aucun plugin disponible.";
+      return (
+`*${icone} Plugin #${index + 1}*
+🧩 *Nom:* ${plugin.name}
+👤 *Auteur:* ${plugin.author}
+📦 *Installé:* ${estInstalle ? "Oui ✅" : "Non ❌"}
+🔗 *Lien:* ${plugin.url}`
+      );
+    });
 
-    await repondre(message);
-  } catch (e) {
-    await repondre("❌ Erreur lors du chargement de la liste.");
-  }
+    const message = lignes.length > 0
+      ? "📦 *Plugins disponibles :*\n\n" + lignes.join("\n\n")
+      : "❌ Aucun plugin disponible.";
+
+    await repondre(message);
+  } catch (e) {
+    console.error("Erreur pluginlist :", e);
+    await repondre("❌ Une erreur est survenue lors du chargement des plugins.");
+  }
 });
 
 ovlcmd({

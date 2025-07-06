@@ -3,7 +3,7 @@ const { Sticker, StickerTypes } = require('wa-sticker-formatter');
 const { Antilink } = require("../DataBase/antilink");
 const { Antitag } = require("../DataBase/antitag");
 const { Antibot } = require("../DataBase/antibot");
-const { GroupSettings } = require("../DataBase/events");
+const { GroupSettings, Events2 } = require("../DataBase/events");
 const fs = require("fs");
 const { Antimention } = require('../DataBase/antimention');
 
@@ -1249,72 +1249,157 @@ ovlcmd(
   }
 );
 
-const commands = [
-  {
-    nom_cmd: "welcome",
-    react: "👋",
-    desc: "Active ou désactive les messages de bienvenue",
-  },
-  {
-    nom_cmd: "goodbye",
-    react: "👋",
-    desc: "Active ou désactive les messages d'adieu",
-  },
-  {
-    nom_cmd: "antipromote",
-    react: "🛑",
-    desc: "Active ou désactive l'antipromotion",
-  },
-  {
-    nom_cmd: "antidemote",
-    react: "🛑",
-    desc: "Active ou désactive l'antidémotion",
-  },
-];
+const { GroupSettings, Events2 } = require("../DataBase/events");
 
-commands.forEach(({ nom_cmd, react, desc }) => {
-  ovlcmd(
-    {
-      nom_cmd,
-      classe: "Groupe",
-      react,
-      desc,
-    },
-    async (jid, ovl, cmd_options) => {
-      const { repondre, arg, verif_Groupe, verif_Admin } = cmd_options;
+const welcomeGoodbyeCmd = (type) => {
+  const nom_cmd = type;
+  const isWelcome = type === "welcome";
+  const desc = isWelcome ? "Configurer ou activer les messages de bienvenue" : "Configurer ou activer les messages d’adieu";
 
+  return {
+    nom_cmd,
+    classe: "Groupe",
+    react: "👋",
+    desc,
+    async execute(jid, ovl, { repondre, arg, verif_Admin, verif_Groupe, auteurMessage }) {
       try {
-        if (!verif_Groupe) {
-          return repondre("❌ Cette commande fonctionne uniquement dans les groupes.");
-        }
+        if (!verif_Groupe) return repondre("❌ Commande utilisable uniquement dans les groupes.");
+        if (!verif_Admin) return repondre("❌ Seuls les administrateurs peuvent utiliser cette commande.");
 
-        if (!verif_Admin) {
-          return repondre("❌ Seuls les administrateurs peuvent utiliser cette commande.");
-        }
-
-        const sousCommande = arg[0]?.toLowerCase();
-        const validModes = ["on", "off"];
+        const sub = arg[0]?.toLowerCase();
 
         const [settings] = await GroupSettings.findOrCreate({
           where: { id: jid },
-          defaults: { id: jid, [nom_cmd]: "non" },
+          defaults: { id: jid, [type]: "non" },
         });
 
-        if (validModes.includes(sousCommande)) {
-          const newMode = sousCommande === "on" ? "oui" : "non";
-          if (settings[nom_cmd] === newMode) {
-            return repondre(`${nom_cmd} est déjà ${sousCommande}.`);
-          }
-          settings[nom_cmd] = newMode;
-          await settings.save();
-          return repondre(`${nom_cmd} ${sousCommande === "on" ? "activé" : "désactivé"} avec succès !`);
+        const [eventData] = await Events2.findOrCreate({
+          where: { id: jid },
+          defaults: { id: jid },
+        });
+
+        const fieldName = isWelcome ? "welcome_msg" : "goodbye_msg";
+        const msgValue = eventData[fieldName];
+
+        if (!arg.length) {
+          return repondre(`🛠️ *Utilisation de la commande ${type}* :
+
+1️⃣ *${type} on/off* – Active ou désactive les messages de ${isWelcome ? "bienvenue" : "d’adieu"}.
+2️⃣ *${type} get* – Affiche le message ${isWelcome ? "de bienvenue" : "d’adieu"} personnalisé.
+3️⃣ *${type} Votre message...* – Définir un message personnalisé.
+
+📌 Variables disponibles :
+@user → Mention du membre
+#groupe → Nom du groupe
+#membre → Nombre de membres
+#desc → Description du groupe
+#url=lien → Utilise un média (image, vidéo)
+#pp → Utilise la photo de profil du membre
+#gpp → Utilise la photo de profil du groupe`);
         }
 
-        return repondre(`Utilisation :\n${nom_cmd} on/off : ${desc.toLowerCase()}.`);
-      } catch (error) {
-        console.error(`Erreur lors de la configuration de ${nom_cmd} :`, error);
-        return repondre("❌ Une erreur s'est produite lors de l'exécution de la commande.");
+        if (["on", "off"].includes(sub)) {
+          const mode = sub === "on" ? "oui" : "non";
+          if (settings[type] === mode) {
+            return repondre(`ℹ️ Le message ${isWelcome ? "de bienvenue" : "d’adieu"} est déjà ${sub === "on" ? "activé" : "désactivé"}.`);
+          }
+          settings[type] = mode;
+          await settings.save();
+          return repondre(`✅ Message ${isWelcome ? "de bienvenue" : "d’adieu"} ${sub === "on" ? "activé" : "désactivé"} avec succès.`);
+        }
+
+        if (sub === "get") {
+          if (!msgValue || !msgValue.trim()) {
+            return repondre(`⚠️ Aucun message ${isWelcome ? "de bienvenue" : "d’adieu"} personnalisé configuré.`);
+          }
+
+          const groupInfo = await ovl.groupMetadata(jid);
+          const groupName = groupInfo.subject || "Groupe";
+          const totalMembers = groupInfo.participants.length;
+          const groupDesc = groupInfo.desc || "Aucune description";
+          const userMention = `@${auteurMessage.split("@")[0]}`;
+
+          let msg = msgValue;
+
+          const mediaMatch = msg.match(/#url=(\S+)/i);
+          const usePP = msg.includes("#pp");
+          const useGPP = msg.includes("#gpp");
+
+          msg = msg
+            .replace(/#url=\S+/i, "")
+            .replace(/#pp/gi, "")
+            .replace(/#gpp/gi, "")
+            .replace(/@user/gi, userMention)
+            .replace(/#groupe/gi, groupName)
+            .replace(/#membre/gi, totalMembers)
+            .replace(/#desc/gi, groupDesc)
+            .replace(/#url/gi, "");
+
+          let media = null;
+
+          if (mediaMatch) {
+            const url = mediaMatch[1];
+            const ext = url.split(".").pop().toLowerCase();
+            if (["mp4", "mov", "webm"].includes(ext)) {
+              media = { video: { url }, caption: msg.trim(), mentions: [auteurMessage] };
+            } else if (["jpg", "jpeg", "png", "webp"].includes(ext)) {
+              media = { image: { url }, caption: msg.trim(), mentions: [auteurMessage] };
+            }
+          } else if (usePP) {
+            const profileUrl = await ovl.profilePictureUrl(auteurMessage, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg");
+            media = { image: { url: profileUrl }, caption: msg.trim(), mentions: [auteurMessage] };
+          } else if (useGPP) {
+            let gpp = null;
+            try {
+              gpp = await ovl.profilePictureUrl(jid, "image");
+            } catch {
+              gpp = await ovl.profilePictureUrl(auteurMessage, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg");
+            }
+            media = { image: { url: gpp }, caption: msg.trim(), mentions: [auteurMessage] };
+          }
+
+          if (media) {
+            await ovl.sendMessage(jid, media);
+          } else {
+            await ovl.sendMessage(jid, { text: msg.trim(), mentions: [auteurMessage] });
+          }
+
+          return;
+        }
+
+        let newMsg = arg.join(" ").trim();
+        if (!newMsg) return repondre("❌ Le message ne peut pas être vide.");
+
+        const hasUrl = /#url=/i.test(newMsg);
+        const hasPP = /#pp/i.test(newMsg);
+        const hasGPP = /#gpp/i.test(newMsg);
+
+        if (hasUrl) {
+          newMsg = newMsg.replace(/#pp/gi, "").replace(/#gpp/gi, "").trim();
+        } else if (hasPP && hasGPP) {
+          const ppIndex = newMsg.search(/#pp/i);
+          const gppIndex = newMsg.search(/#gpp/i);
+          if (ppIndex < gppIndex) {
+            newMsg = newMsg.replace(/#gpp/gi, "").trim();
+          } else {
+            newMsg = newMsg.replace(/#pp/gi, "").trim();
+          }
+        }
+
+        if (!newMsg) return repondre("❌ Le message ne peut pas être vide après nettoyage des variables.");
+
+        eventData[fieldName] = newMsg;
+        await eventData.save();
+        return repondre(`✅ Nouveau message ${isWelcome ? "de bienvenue" : "d’adieu"} enregistré avec succès !`);
+      } catch (e) {
+        console.error(`❌ Erreur ${type} :`, e);
+        repondre("❌ Une erreur s’est produite.");
       }
-    }
-  );
-});
+    },
+  };
+};
+
+welcomeGoodbyeCmd("welcome");
+welcomeGoodbyeCmd("goodbye");
+
+

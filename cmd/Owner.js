@@ -1124,9 +1124,11 @@ ovlcmd({
   alias: ["pgl", "plist"]
 }, async (ms, ovl, { repondre }) => {
   try {
-    const { data } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
-    console.log(data);
-    const plugins = JSON.parse(data);
+    const { data: plugins } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
+
+    if (!Array.isArray(plugins)) {
+      return repondre("❌ Les données reçues ne sont pas valides.");
+    }
 
     const installs = await Plugin.findAll();
     const installedNames = installs.map(p => p.name.toLowerCase());
@@ -1226,9 +1228,8 @@ ovlcmd({
 
   if (input === "all") {
     try {
-      const { data } = await axios.get("https://pastebin.com/raw/5UA0CYYR");
-      const plugins = JSON.parse(data);
-
+      const { data: plugins } = await axios.get("https://pastebin.com/raw/5UA0CYYR");
+       
       const installed = await Plugin.findAll();
       const installedNames = installed.map(p => p.name.toLowerCase());
 

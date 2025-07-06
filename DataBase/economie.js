@@ -58,7 +58,7 @@ const ECONOMIE = sequelize.define(
 
 (async () => {
   await ECONOMIE.sync();
-  console.log("Table 'ECONOMIE' synchronisée avec succès.");
+  console.log("ECONOMIE synchronisée.");
 })();
 
 async function ajouterUtilisateur(jid, pseudo = "Utilisateur") {

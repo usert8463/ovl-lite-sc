@@ -64,7 +64,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       keepAliveIntervalMs: 10000,
       browser: Browsers.ubuntu("Chrome"),
       msgRetryCounterCache,
-      syncFullHistory: true,
+      syncFullHistory: false,
       markOnlineOnConnect: true,
       cachedGroupMetadata: async (jid) => {
         let metadata = groupCache.get(jid);

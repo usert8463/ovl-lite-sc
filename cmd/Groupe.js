@@ -516,35 +516,31 @@ ovlcmd(
     nom_cmd: "clear",
     classe: "Groupe",
     react: "🧹",
-    desc: "Efface un message dans un groupe (uniquement premium)"
+    desc: "Supprime un message envoyé par le bot (en répondant au message)"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, ms, verif_Groupe, auteur_Message, prenium_id, id_Bot } = cmd_options;
+    const { repondre, ms, auteur_Message, id_Bot } = cmd_options;
 
-    if (!verif_Groupe) return repondre("Cette commande fonctionne uniquement en groupe.");
-
-    if (!prenium_id) {
-      return repondre("Cette commande est réservée aux utilisateurs premium.");
-    }
- 
     try {
+      if (auteur_Message !== id_Bot) {
+        return repondre("❌ Je ne peux supprimer que mes propres messages.");
+      }
+
       await ovl.chatModify(
         {
-          clear: {
-            messages: [
-              {
-                id: ms.key.id,
-                fromMe: true,
-                timestamp: ms.messageTimestamp.low
-              }
-            ]
-          }
+          delete: true,
+          lastMessages: [
+            {
+              key: ms.key,
+              messageTimestamp: ms.messageTimestamp,
+            }
+          ]
         },
         ms_org
       );
-      repondre("✅ Tous les Messages ont été effacés avec succès.");
-    } catch {
-      repondre("❌ Erreur lors de la suppression des messages.");
+    } catch (e) {
+      console.error("Erreur lors de la suppression :", e);
+      repondre("❌ Erreur lors de la suppression du message.");
     }
   }
 );

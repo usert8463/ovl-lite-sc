@@ -1125,6 +1125,7 @@ ovlcmd({
 }, async (ms, ovl, { repondre }) => {
   try {
     const { data } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
+    console.log(data);
     const plugins = JSON.parse(data);
 
     const installs = await Plugin.findAll();

@@ -39,7 +39,7 @@ const Plugin = sequelize.define('Plugin', {
 
 (async () => {
   await Plugin.sync();
-  console.log("✅ Table Plugin synchronisée.");
+  console.log("Plugin synchronisée.");
 })();
 
 module.exports = { Plugin };

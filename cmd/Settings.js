@@ -232,23 +232,39 @@ ovlcmd(
   async (ms_org, ovl, { repondre }) => {
     try {
       await git.init();
+
       const remotes = await git.getRemotes();
       if (!remotes.some(r => r.name === "origin")) {
         await git.addRemote("origin", "https://github.com/Ainz-devs/Ovl-dbf");
       }
 
       await git.fetch();
+
       const remoteBranch = "origin/main";
       const branches = await git.branch(["-r"]);
-      if (!branches.all.includes(remoteBranch)) return repondre("❌ Branche distante introuvable.");
+
+      if (!branches.all.includes(remoteBranch)) {
+        return repondre("❌ Branche distante introuvable.");
+      }
 
       const logs = await git.log({ from: "main", to: remoteBranch });
-      if (logs.total > 0) {
-        const changelog = logs.all.map(log =>
-          `• ${log.message} - ${formatDateGMTFr(log.date)}`
-        ).join("\n");
 
-        return repondre(`🚨 *Mise à jour disponible !*\n\n${changelog}\n\nUtilise *${config.PREFIXE]update* pour lancer la mise à jour.`);
+      if (logs.total > 0) {
+        const changelog = logs.all
+          .map(log => `🔹 ${log.message} — _${formatDateGMTFr(log.date)}_`)
+          .join("\n");
+
+        const message = 
+`✨🚀 *MISE À JOUR DISPONIBLE !* 🚀✨
+
+📣 *Détails des modifs :*
+
+${changelog}
+
+🔧 Pour appliquer la mise à jour, tape la commande :  
+➡️ *${config.PREFIXE}update*`;
+
+        return repondre(message);
       } else {
         return repondre("✅ Le bot est déjà à jour.");
       }

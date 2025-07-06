@@ -1,6 +1,7 @@
 const { GroupSettings, Events2 } = require("../DataBase/events");
-const { jidDecode } = require("@whiskeysockets/baileys");
+const { jidDecode, decodeJid } = require("@whiskeysockets/baileys");
 const groupCache = require('../lib/cache_metadata');
+const { getJid } = require('./Message_upsert_events');
 
 const parseID = (jid) => {
   if (!jid) return jid;
@@ -79,6 +80,7 @@ async function group_participants_update(data, ovl) {
   try {
     const groupInfo = await ovl.groupMetadata(data.id);
     groupCache.set(data.id, groupInfo);
+    const metadata = groupInfo;
 
     const settings = await GroupSettings.findOne({ where: { id: data.id } });
     const eventSettings = await Events2.findOne({ where: { id: data.id } });
@@ -86,7 +88,7 @@ async function group_participants_update(data, ovl) {
 
     const { welcome, goodbye, antipromote, antidemote } = settings;
     const { promoteAlert, demoteAlert } = eventSettings;
-    
+
     for (const participant of data.participants) {
       const actor = data.author;
       const actorMention = actor ? `@${actor.split("@")[0]}` : "quelqu’un";
@@ -106,6 +108,13 @@ async function group_participants_update(data, ovl) {
       }
 
       if (data.action === 'promote') {
+        if (
+          data.author === metadata.owner ||
+          data.author === conf.NUMERO_OWNER + '@s.whatsapp.net' ||
+          data.author === decodeJid(ovl.user.id) ||
+          data.author === participant
+        ) return;
+
         if (antipromote === 'oui') {
           await ovl.groupParticipantsUpdate(data.id, [participant], "demote");
           await ovl.sendMessage(data.id, {
@@ -126,6 +135,13 @@ async function group_participants_update(data, ovl) {
       }
 
       if (data.action === 'demote') {
+        if (
+          data.author === metadata.owner ||
+          data.author === conf.NUMERO_OWNER + '@s.whatsapp.net' ||
+          data.author === decodeJid(ovl.user.id) ||
+          data.author === participant
+        ) return;
+
         if (antidemote === 'oui') {
           await ovl.groupParticipantsUpdate(data.id, [participant], "promote");
           await ovl.sendMessage(data.id, {

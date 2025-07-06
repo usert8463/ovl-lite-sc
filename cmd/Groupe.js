@@ -519,11 +519,11 @@ ovlcmd(
     desc: "Supprime un message envoyé par le bot (en répondant au message)"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, ms, auteur_Message, id_Bot } = cmd_options;
+    const { repondre, ms, prenium_id } = cmd_options;
 
     try {
-      if (auteur_Message !== id_Bot) {
-        return repondre("❌ Je ne peux supprimer que mes propres messages.");
+      if (!prenium_id) {
+        return repondre("Vous n'avez pas le droit d'exécuter cette commande.");
       }
 
       await ovl.chatModify(

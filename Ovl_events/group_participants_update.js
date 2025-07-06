@@ -18,8 +18,8 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
   const userMention = `@${participant.split("@")[0]}`;
 
   const raw = {
-    welcome: eventSettings.welcome_msg || `🎉Bienvenue @user\n👥Groupe: #groupe\n🔆Membres: #membre\n📃Description: ${groupInfo.desc || "Aucune description"}`,
-    goodbye: eventSettings.goodbye_msg || `👋Au revoir @user`,
+    welcome: eventSettings.welcome_msg || `🎉Bienvenue @user\n👥Groupe: #groupe\n🔆Membres: #membre\n📃Description: ${groupInfo.desc || "Aucune description"} #pp`,
+    goodbye: eventSettings.goodbye_msg || `👋Au revoir @user #pp`,
   }[type];
 
   let msg = raw;

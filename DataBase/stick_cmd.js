@@ -39,7 +39,7 @@ const StickCmd = sequelize.define('StickCmd', {
 
 (async () => {
   await StickCmd.sync();
-  console.log("Table 'StickCmd' synchronisée avec succès.");
+  console.log("StickCmd synchronisée.");
 })();
 
 async function set_stick_cmd(no_cmd, stick_url) {

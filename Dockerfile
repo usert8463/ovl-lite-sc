@@ -9,7 +9,7 @@ RUN git clone https://github.com/Ainz-devs/Ovl-dbf /ovl_bot
 
 WORKDIR /ovl_bot
 
-RUN npm install --legacy-peer-deps
+RUN npm install
 
 EXPOSE 8000
 

@@ -1283,6 +1283,7 @@ const welcomeGoodbyeCmd = (type) => {
 1️⃣ *${type} on/off* – Active ou désactive les messages de ${isWelcome ? "bienvenue" : "d’adieu"}.
 2️⃣ *${type} get* – Affiche le message ${isWelcome ? "de bienvenue" : "d’adieu"} personnalisé.
 3️⃣ *${type} Votre message...* – Définir un message personnalisé.
+4️⃣ *${type} défaut* – Réinitialise le message ${isWelcome ? "de bienvenue" : "d’adieu"}.
 
 📌 Variables disponibles :
 @user → Mention du membre
@@ -1361,6 +1362,15 @@ const welcomeGoodbyeCmd = (type) => {
           }
 
           return;
+        }
+
+        if (sub === "défaut" || sub === "default") {
+          if (!msgValue) {
+            return repondre(`ℹ️ Aucun message ${isWelcome ? "de bienvenue" : "d’adieu"} n’est actuellement défini.`);
+          }
+          eventData[fieldName] = null;
+          await eventData.save();
+          return repondre(`✅ Message ${isWelcome ? "de bienvenue" : "d’adieu"} réinitialisé aux paramètres par défaut.`);
         }
 
         let newMsg = arg.join(" ").trim();

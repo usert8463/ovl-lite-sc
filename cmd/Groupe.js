@@ -1398,35 +1398,38 @@ const welcomeGoodbyeCmd = (type) => {
 welcomeGoodbyeCmd("welcome");
 welcomeGoodbyeCmd("goodbye");
 
-
 const commands = [
   {
     nom_cmd: "antipromote",
+    colonne: "antipromote",
     react: "🛑",
     desc: "Active ou désactive l'antipromotion",
     table: GroupSettings,
   },
   {
     nom_cmd: "antidemote",
+    colonne: "antidemote",
     react: "🛑",
     desc: "Active ou désactive l'antidémotion",
     table: GroupSettings,
   },
   {
     nom_cmd: "promotealert",
+    colonne: "promoteAlert",
     react: "⚠️",
     desc: "Active ou désactive l'alerte de promotion",
     table: Events2,
   },
   {
     nom_cmd: "demotealert",
+    colonne: "demoteAlert",
     react: "⚠️",
     desc: "Active ou désactive l'alerte de rétrogradation",
     table: Events2,
   },
 ];
 
-commands.forEach(({ nom_cmd, react, desc, table }) => {
+commands.forEach(({ nom_cmd, colonne, react, desc, table }) => {
   ovlcmd(
     {
       nom_cmd,
@@ -1444,15 +1447,15 @@ commands.forEach(({ nom_cmd, react, desc, table }) => {
 
         const [settings] = await table.findOrCreate({
           where: { id: jid },
-          defaults: { id: jid, [nom_cmd]: "non" },
+          defaults: { id: jid, [colonne]: "non" },
         });
 
         if (validModes.includes(sousCommande)) {
           const newMode = sousCommande === "on" ? "oui" : "non";
-          if (settings[nom_cmd] === newMode) {
+          if (settings[colonne] === newMode) {
             return repondre(`ℹ️ ${nom_cmd} est déjà ${sousCommande}.`);
           }
-          settings[nom_cmd] = newMode;
+          settings[colonne] = newMode;
           await settings.save();
           return repondre(`✅ ${nom_cmd} ${sousCommande === "on" ? "activé" : "désactivé"} avec succès.`);
         }

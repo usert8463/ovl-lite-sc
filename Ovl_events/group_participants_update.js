@@ -110,7 +110,7 @@ async function group_participants_update(data, ovl) {
       if (data.action === 'promote') {
         if (
           getJid(data.author, data.id, ovl) === getJid(metadata.owner, data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(conf.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl) ||
+          getJid(data.author, data.id, ovl) === getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl) ||
           getJid(data.author, data.id, ovl) === getJid(decodeJid(ovl.user.id), data.id, ovl) ||
           getJid(data.author, data.id, ovl) === getJid(participant, data.id, ovl)
         ) return;
@@ -137,7 +137,7 @@ async function group_participants_update(data, ovl) {
       if (data.action === 'demote') {
         if (
           getJid(data.author, data.id, ovl) === getJid(metadata.owner, data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(conf.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl) ||
+          getJid(data.author, data.id, ovl) === getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl) ||
           getJid(data.author, data.id, ovl) === getJid(decodeJid(ovl.user.id), data.id, ovl) ||
           getJid(data.author, data.id, ovl) === getJid(participant, data.id, ovl)
         ) return;

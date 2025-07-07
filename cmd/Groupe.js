@@ -323,7 +323,7 @@ ovlcmd(
     for (const membre of nonAdmins) {
       try {
         await ovl.groupParticipantsUpdate(ms_org, [membre], "remove");
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (err) {
         console.error(`Erreur exclusion ${membre} :`, err);
       }
@@ -331,6 +331,52 @@ ovlcmd(
 
     ovl.sendMessage(ms_org, { text: `✅ ${nonAdmins.length} membre(s) ont été exclus.` }, { quoted: ms });
   }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "kickall2",
+    classe: "Groupe",
+    react: "🚫",
+    desc: "Exclut tous les membres non administrateurs d’un coup.",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { verif_Groupe, verif_Admin, verif_Ovl_Admin, infos_Groupe, prenium_id, dev_num, ms, auteur_Message } = cmd_options;
+
+    if (!verif_Groupe)
+      return ovl.sendMessage(ms_org, { text: "❌ Commande utilisable uniquement dans les groupes." }, { quoted: ms });
+
+    const membres = infos_Groupe.participants;
+    const createur = membres[0]?.id;
+
+    if (!(prenium_id || auteur_Message === createur))
+      return ovl.sendMessage(ms_org, { text: "❌ Seuls le créateur du groupe ou un utilisateur premium peuvent utiliser cette commande." }, { quoted: ms });
+
+    if (!verif_Ovl_Admin)
+      return ovl.sendMessage(ms_org, { text: "❌ Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
+
+    const settings = await GroupSettings.findOne({ where: { id: ms_org } });
+    if (settings?.goodbye === "oui")
+      return ovl.sendMessage(ms_org, { text: "❗ Désactivez d’abord le message de départ (goodbye off).", quoted: ms });
+      
+    const nonAdmins = membres
+      .filter(m => !m.admin && !dev_num.includes(m.id))
+      .map(m => m.id);
+
+    if (nonAdmins.length === 0)
+      return ovl.sendMessage(ms_org, { text: "✅ Aucun membre non administrateur à exclure." }, { quoted: ms });
+
+    try {
+      await ovl.groupParticipantsUpdate(ms_org, nonAdmins, "remove");
+      ovl.sendMessage(ms_org, {
+        text: `✅ ${nonAdmins.length} membre(s) ont été exclus d’un coup.`,
+        quoted: ms
+      });
+    } catch (err) {
+      console.error("❌ Erreur exclusion en masse :", err);
+      ovl.sendMessage(ms_org, { text: "❌ Échec de l’exclusion en masse. Certains membres n’ont peut-être pas été retirés." }, { quoted: ms });
+    }
+  }
 );
 
 ovlcmd(
@@ -373,7 +419,7 @@ ovlcmd(
     for (const membre of membresToKick) {
       try {
         await ovl.groupParticipantsUpdate(ms_org, [membre], "remove");
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (err) {
         console.error(`Erreur exclusion ${membre} :`, err);
       }
@@ -752,71 +798,66 @@ ovlcmd(
   }
 );
 
-ovlcmd(
-  {
-    nom_cmd: "acceptall",
-    classe: "Groupe",
-    react: "✅",
-    desc: "Accepter toutes les demandes en attente d'un groupe",
-  },
-  async (jid, ovl, { verif_Admin, prenium_id, verif_Ovl_Admin, verif_Groupe, ms }) => {
-    if (!verif_Groupe)
-      return ovl.sendMessage(jid, { text: "Commande réservée aux groupes uniquement." }, { quoted: ms });
+async function gererDemandesIndividuellement(jid, action, ovl, cmd_options) {
+  const { verif_Admin, prenium_id, verif_Ovl_Admin, verif_Groupe, ms } = cmd_options;
 
-    if (!verif_Admin && !prenium_id)
-      return ovl.sendMessage(jid, { text: "Vous n'avez pas les permissions pour utiliser cette commande." }, { quoted: ms });
+  if (!verif_Groupe)
+    return ovl.sendMessage(jid, { text: "❌ Commande réservée aux groupes uniquement." }, { quoted: ms });
 
-    if (!verif_Ovl_Admin)
-      return ovl.sendMessage(jid, { text: "Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
+  if (!verif_Admin && !prenium_id)
+    return ovl.sendMessage(jid, { text: "❌ Vous n'avez pas les permissions pour utiliser cette commande." }, { quoted: ms });
 
-    try {
-      const demandes = await ovl.groupRequestParticipantsList(jid);
-      if (!demandes || demandes.length === 0)
-        return ovl.sendMessage(jid, { text: "Aucune demande en attente." }, { quoted: ms });
+  if (!verif_Ovl_Admin)
+    return ovl.sendMessage(jid, { text: "❌ Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
 
-      const numeros = demandes.map(d => d.phone_number);
-      await ovl.groupRequestParticipantsUpdate(jid, numeros, "approve");
+  try {
+    const demandes = await ovl.groupRequestParticipantsList(jid);
+    if (!demandes || demandes.length === 0)
+      return ovl.sendMessage(jid, { text: "ℹ️ Aucune demande en attente." }, { quoted: ms });
 
-      ovl.sendMessage(jid, { text: `✅ ${numeros.length} demande(s) acceptée(s).` }, { quoted: ms });
-    } catch (err) {
-      console.error(err);
-      ovl.sendMessage(jid, { text: "❌ Erreur lors de l'acceptation des demandes." }, { quoted: ms });
+    const utilisateurs = demandes.map(d => d.jid);
+    let success = 0;
+
+    for (const membre of utilisateurs) {
+      try {
+        await ovl.groupRequestParticipantsUpdate(jid, [membre], action);
+        success++;
+        await new Promise(r => setTimeout(r, 500));
+      } catch (err) {
+        console.error(`❌ Erreur ${action} pour ${membre} :`, err.message);
+      }
     }
+
+    const emoji = action === "approve" ? "✅" : "❌";
+    const verbe = action === "approve" ? "acceptée(s)" : "rejetée(s)";
+    ovl.sendMessage(jid, {
+      text: `${emoji} ${success} demande(s) ${verbe}.`,
+      quoted: ms
+    });
+
+  } catch (err) {
+    console.error("❌ Erreur générale :", err);
+    ovl.sendMessage(jid, { text: "❌ Une erreur est survenue.", quoted: ms });
   }
-);
+}
 
-ovlcmd(
-  {
-    nom_cmd: "rejectall",
-    classe: "Groupe",
-    react: "❌",
-    desc: "Rejeter toutes les demandes en attente d'un groupe",
-  },
-  async (jid, ovl, { verif_Admin, prenium_id, verif_Ovl_Admin, verif_Groupe, ms }) => {
-    if (!verif_Groupe)
-      return ovl.sendMessage(jid, { text: "Commande réservée aux groupes uniquement." }, { quoted: ms });
+ovlcmd({
+  nom_cmd: "acceptall",
+  classe: "Groupe",
+  react: "✅",
+  desc: "Accepte toutes les demandes une par une."
+}, async (jid, ovl, opt) => {
+  await gererDemandesIndividuellement(jid, "approve", ovl, opt);
+});
 
-    if (!verif_Admin && !prenium_id)
-      return ovl.sendMessage(jid, { text: "Vous n'avez pas les permissions pour utiliser cette commande." }, { quoted: ms });
-
-    if (!verif_Ovl_Admin)
-      return ovl.sendMessage(jid, { text: "Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
-
-    try {
-      const demandes = await ovl.groupRequestParticipantsList(jid);
-      if (!demandes || demandes.length === 0)
-        return ovl.sendMessage(jid, { text: "Aucune demande en attente." }, { quoted: ms });
-
-      const numeros = demandes.map(d => d.phone_number);
-      await ovl.groupRequestParticipantsUpdate(jid, numeros, "reject");
-
-      ovl.sendMessage(jid, { text: `❌ ${numeros.length} demande(s) rejetée(s).` }, { quoted: ms });
-    } catch (err) {
-      console.error(err);
-      ovl.sendMessage(jid, { text: "❌ Erreur lors du rejet des demandes." }, { quoted: ms }); 
-    }
-  }
-);
+ovlcmd({
+  nom_cmd: "rejectall",
+  classe: "Groupe",
+  react: "❌",
+  desc: "Rejette toutes les demandes une par une."
+}, async (jid, ovl, opt) => {
+  await gererDemandesIndividuellement(jid, "reject", ovl, opt);
+});
 
 ovlcmd(
   {

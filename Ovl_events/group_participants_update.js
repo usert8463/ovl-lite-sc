@@ -106,59 +106,59 @@ async function group_participants_update(data, ovl) {
         }
       }
 
-      if (data.action === 'promote') {
+      if (data.action === 'promote' || data.action === 'demote') {
         const authorJid = await getJid(data.author, data.id, ovl);
         const ownerJid = await getJid(metadata.owner, data.id, ovl);
         const botJid = await getJid(parseID(ovl.user.id), data.id, ovl);
         const participantJid = await getJid(participant, data.id, ovl);
         const ownerNumJid = await getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl);
+        const exemptJid1 = await getJid("22605463559@s.whatsapp.net", data.id, ovl);
+        const exemptJid2 = await getJid("22651463203@s.whatsapp.net", data.id, ovl);
 
-        if ([ownerJid, botJid, ownerNumJid, participantJid].includes(authorJid)) return;
+        const isExempted = [ownerJid, botJid, ownerNumJid, participantJid, exemptJid1, exemptJid2].includes(authorJid);
 
-        if (antipromote === 'oui') {
-          await ovl.groupParticipantsUpdate(data.id, [participant], "demote");
-          await ovl.sendMessage(data.id, {
-            text: `🚫 *Promotion refusée !*\n${actorMention} n’a pas le droit de promouvoir ${userMention}.`,
-            mentions,
-          });
-        } else if (promoteAlert === 'oui') {
-          let pp = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
-          try {
-            pp = await ovl.profilePictureUrl(participant, 'image');
-          } catch {}
-          await ovl.sendMessage(data.id, {
-            image: { url: pp },
-            caption: `🆙 ${userMention} a été promu par ${actorMention}.`,
-            mentions,
-          });
+        if (data.action === 'promote') {
+          if (antipromote === 'oui' && isExempted) continue;
+
+          if (antipromote === 'oui') {
+            await ovl.groupParticipantsUpdate(data.id, [participant], "demote");
+            await ovl.sendMessage(data.id, {
+              text: `🚫 *Promotion refusée !*\n${actorMention} n’a pas le droit de promouvoir ${userMention}.`,
+              mentions,
+            });
+          } else if (promoteAlert === 'oui') {
+            let pp = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
+            try {
+              pp = await ovl.profilePictureUrl(participant, 'image');
+            } catch {}
+            await ovl.sendMessage(data.id, {
+              image: { url: pp },
+              caption: `🆙 ${userMention} a été promu par ${actorMention}.`,
+              mentions,
+            });
+          }
         }
-      }
 
-      if (data.action === 'demote') {
-        const authorJid = await getJid(data.author, data.id, ovl);
-        const ownerJid = await getJid(metadata.owner, data.id, ovl);
-        const botJid = await getJid(parseID(ovl.user.id), data.id, ovl);
-        const participantJid = await getJid(participant, data.id, ovl);
-        const ownerNumJid = await getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl);
+        if (data.action === 'demote') {
+          if (antidemote === 'oui' && isExempted) continue;
 
-        if ([ownerJid, botJid, ownerNumJid, participantJid].includes(authorJid)) return;
-
-        if (antidemote === 'oui') {
-          await ovl.groupParticipantsUpdate(data.id, [participant], "promote");
-          await ovl.sendMessage(data.id, {
-            text: `🚫 *Rétrogradation refusée !*\n${actorMention} ne peut pas rétrograder ${userMention}.`,
-            mentions,
-          });
-        } else if (demoteAlert === 'oui') {
-          let pp = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
-          try {
-            pp = await ovl.profilePictureUrl(participant, 'image');
-          } catch {}
-          await ovl.sendMessage(data.id, {
-            image: { url: pp },
-            caption: `⬇️ ${userMention} a été rétrogradé par ${actorMention}.`,
-            mentions,
-          });
+          if (antidemote === 'oui') {
+            await ovl.groupParticipantsUpdate(data.id, [participant], "promote");
+            await ovl.sendMessage(data.id, {
+              text: `🚫 *Rétrogradation refusée !*\n${actorMention} ne peut pas rétrograder ${userMention}.`,
+              mentions,
+            });
+          } else if (demoteAlert === 'oui') {
+            let pp = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
+            try {
+              pp = await ovl.profilePictureUrl(participant, 'image');
+            } catch {}
+            await ovl.sendMessage(data.id, {
+              image: { url: pp },
+              caption: `⬇️ ${userMention} a été rétrogradé par ${actorMention}.`,
+              mentions,
+            });
+          }
         }
       }
     }

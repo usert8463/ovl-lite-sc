@@ -609,7 +609,7 @@ ovlcmd(
     try {
       const { arg, ms, prenium_id, repondre } = cmd_options;
 
-      if (!prenium_id || typeof prenium_id !== 'string') {
+      if (!prenium_id) {
         return ovl.sendMessage(ms_org, { text: "🚫 Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
       }
 

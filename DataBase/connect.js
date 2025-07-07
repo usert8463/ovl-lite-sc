@@ -45,35 +45,36 @@ const Connect = sequelize.define("Connect", {
 })();
 
 async function saveSecondSession(session_id) {
-  let credsRaw = await get_session(session_id);
+  let credsRaw = await get_session(session_id);
 
-  if (!credsRaw) {
-    console.error(`❌ Session invalide pour l’ID : ${session_id}`);
-    return;
-  }
+  if (!credsRaw) {
+    console.error(`❌ Session invalide pour l’ID : ${session_id}`);
+    return false;
+  }
 
-  let creds;
+  let creds;
+  try {
+    creds = typeof credsRaw === "string" ? JSON.parse(credsRaw) : credsRaw;
+  } catch (e) {
+    console.error("❌ Erreur de parsing JSON :", e.message);
+    return false;
+  }
 
-  try {
-    creds = typeof credsRaw === "string" ? JSON.parse(credsRaw) : credsRaw;
-  } catch (e) {
-    console.error("❌ Erreur de parsing JSON :", e.message);
-    return;
-  }
+  if (!creds?.me?.id) {
+    console.error("❌ Numéro introuvable dans les creds");
+    return false;
+  }
 
-  if (!creds?.me?.id) {
-    console.error("❌ Numéro introuvable dans les creds");
-    return;
-  }
+  const numero = creds.me.id.split(":")[0];
 
-  const numero = creds.me.id.split(":")[0];
-
-  try {
-    await Connect.upsert({ numero, session_id });
-    console.log(`✅ Session enregistrée : ${numero} ➜ ${session_id}`);
-  } catch (err) {
-    console.error("❌ Erreur lors de l'enregistrement :", err.message);
-  }
+  try {
+    await Connect.upsert({ numero, session_id });
+    console.log(`✅ Session enregistrée : ${numero} ➜ ${session_id}`);
+    return true;
+  } catch (err) {
+    console.error("❌ Erreur lors de l'enregistrement :", err.message);
+    return false;
+  }
 }
 
 async function getSecondSession(numero) {

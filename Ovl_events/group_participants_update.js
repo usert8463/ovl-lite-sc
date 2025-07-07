@@ -43,25 +43,25 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
   if (urlMatch) {
     mediaUrl = urlMatch[1];
     const ext = mediaUrl.split(".").pop().toLowerCase();
-    if (["mp4", "mov", "webm"].includes(ext)) mediaType = "video";
-    else if (["jpg", "jpeg", "png", "webp"].includes(ext)) mediaType = "image";
-    else mediaType = "document";
+    mediaType = ["mp4", "mov", "webm"].includes(ext)
+      ? "video"
+      : ["jpg", "jpeg", "png", "webp"].includes(ext)
+      ? "image"
+      : "document";
   } else if (hasPP) {
     try {
       mediaUrl = await ovl.profilePictureUrl(participant, 'image');
-      mediaType = "image";
     } catch {
       mediaUrl = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
-      mediaType = "image";
     }
+    mediaType = "image";
   } else if (hasGPP) {
     try {
       mediaUrl = await ovl.profilePictureUrl(jid, 'image');
-      mediaType = "image";
     } catch {
       mediaUrl = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
-      mediaType = "image";
     }
+    mediaType = "image";
   }
 
   if (mediaUrl && mediaType) {
@@ -85,7 +85,8 @@ async function group_participants_update(data, ovl) {
     if (!settings) return;
 
     const { welcome, goodbye, antipromote, antidemote } = settings;
-    const { promoteAlert, demoteAlert } = eventSettings;
+    const promoteAlert = eventSettings?.promoteAlert || 'non';
+    const demoteAlert = eventSettings?.demoteAlert || 'non';
 
     for (const participant of data.participants) {
       const actor = data.author;
@@ -106,12 +107,13 @@ async function group_participants_update(data, ovl) {
       }
 
       if (data.action === 'promote') {
-        if (
-          getJid(data.author, data.id, ovl) === getJid(metadata.owner, data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(parseID(ovl.user.id), data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(participant, data.id, ovl)
-        ) return;
+        const authorJid = await getJid(data.author, data.id, ovl);
+        const ownerJid = await getJid(metadata.owner, data.id, ovl);
+        const botJid = await getJid(parseID(ovl.user.id), data.id, ovl);
+        const participantJid = await getJid(participant, data.id, ovl);
+        const ownerNumJid = await getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl);
+
+        if ([ownerJid, botJid, ownerNumJid, participantJid].includes(authorJid)) return;
 
         if (antipromote === 'oui') {
           await ovl.groupParticipantsUpdate(data.id, [participant], "demote");
@@ -133,12 +135,13 @@ async function group_participants_update(data, ovl) {
       }
 
       if (data.action === 'demote') {
-        if (
-          getJid(data.author, data.id, ovl) === getJid(metadata.owner, data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(parseID(ovl.user.id), data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(participant, data.id, ovl)
-        ) return;
+        const authorJid = await getJid(data.author, data.id, ovl);
+        const ownerJid = await getJid(metadata.owner, data.id, ovl);
+        const botJid = await getJid(parseID(ovl.user.id), data.id, ovl);
+        const participantJid = await getJid(participant, data.id, ovl);
+        const ownerNumJid = await getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl);
+
+        if ([ownerJid, botJid, ownerNumJid, participantJid].includes(authorJid)) return;
 
         if (antidemote === 'oui') {
           await ovl.groupParticipantsUpdate(data.id, [participant], "promote");

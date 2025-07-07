@@ -90,8 +90,8 @@ async function getSecondAllSessions() {
   return sessions.map(s => ({ numero: s.numero, session_id: s.session_id }));
 }
 
-async function deleteSecondSession(session_id) {
-  return await Connect.destroy({ where: { session_id } });
+async function deleteSecondSession(numero) {
+  return await Connect.destroy({ where: { numero } });
 }
 
 module.exports = {

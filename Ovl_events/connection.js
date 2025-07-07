@@ -3,6 +3,7 @@ const path = require('path');
 const { delay, DisconnectReason } = require("@whiskeysockets/baileys");
 let evt = require("../lib/ovlcmd");
 const config = require("../set");
+const { installpg } = require("../lib/plugin");
 
 async function connection_update(con, ovl, main, startNextSession = null) {
   const { connection, lastDisconnect } = con;
@@ -33,6 +34,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
           console.log(`  ✗ ${fichier} — erreur : ${e.message}`);
         }
       }
+      installpg();
 
       const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅

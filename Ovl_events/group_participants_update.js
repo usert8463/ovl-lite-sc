@@ -1,5 +1,5 @@
 const { GroupSettings, Events2 } = require("../DataBase/events");
-const { jidDecode, decodeJid } = require("@whiskeysockets/baileys");
+const { jidDecode } = require("@whiskeysockets/baileys");
 const { getJid } = require('./Message_upsert_events');
 
 const parseID = (jid) => {
@@ -109,7 +109,7 @@ async function group_participants_update(data, ovl) {
         if (
           getJid(data.author, data.id, ovl) === getJid(metadata.owner, data.id, ovl) ||
           getJid(data.author, data.id, ovl) === getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(decodeJid(ovl.user.id), data.id, ovl) ||
+          getJid(data.author, data.id, ovl) === getJid(parseID(ovl.user.id), data.id, ovl) ||
           getJid(data.author, data.id, ovl) === getJid(participant, data.id, ovl)
         ) return;
 
@@ -136,7 +136,7 @@ async function group_participants_update(data, ovl) {
         if (
           getJid(data.author, data.id, ovl) === getJid(metadata.owner, data.id, ovl) ||
           getJid(data.author, data.id, ovl) === getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl) ||
-          getJid(data.author, data.id, ovl) === getJid(decodeJid(ovl.user.id), data.id, ovl) ||
+          getJid(data.author, data.id, ovl) === getJid(parseID(ovl.user.id), data.id, ovl) ||
           getJid(data.author, data.id, ovl) === getJid(participant, data.id, ovl)
         ) return;
 

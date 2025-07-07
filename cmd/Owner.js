@@ -384,6 +384,7 @@ ovlcmd(
                     pack: config.STICKER_PACK_NAME,
                     author: config.STICKER_AUTHOR_NAME,
                     type: StickerTypes.FULL,
+                    quality: 40
                 });
 
                 await ovl.sendMessage(ms_org, {
@@ -687,21 +688,21 @@ ovlcmd(
 
       if (!arg || !arg[0]) {
         return ovl.sendMessage(ms_org, {
-          text: "Usage : .disconnect SESSION_ID",
+          text: "Usage : .disconnect numero(sans le + et collé)",
         }, { quoted: ms });
       }
 
-      const session_id = arg[0].trim();
-      const result = await deleteSecondSession(session_id);
+      const numero = arg[0].trim();
+      const result = await deleteSecondSession(numero);
 
       if (result === 0) {
         return ovl.sendMessage(ms_org, {
-          text: `Aucune session trouvée pour la session : ${session_id}`,
+          text: `Aucune session trouvée pour le numéro : ${numero}`,
         }, { quoted: ms });
       }
 
       await ovl.sendMessage(ms_org, {
-        text: `✅ Session ${session_id} supprimée avec succès.`,
+        text: `✅ Session pour le numéro: ${numero} supprimée avec succès.`,
       }, { quoted: ms });
     } catch (err) {
       return ovl.sendMessage(ms_org, { text: `❌ Erreur : ${err.message}` });

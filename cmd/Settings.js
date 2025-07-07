@@ -235,7 +235,7 @@ ovlcmd(
 
       const remotes = await git.getRemotes();
       if (!remotes.some(r => r.name === "origin")) {
-        await git.addRemote("origin", "https://github.com/Ainz-devs/Ovl-dbf");
+        await git.addRemote("origin", "https://github.com/Ainz-devs/OVL-MD-V2");
       }
 
       await git.fetch();
@@ -288,7 +288,7 @@ ovlcmd(
       await git.init();
       const remotes = await git.getRemotes();
       if (!remotes.some(r => r.name === "origin")) {
-        await git.addRemote("origin", "https://github.com/Ainz-devs/Ovl-dbf");
+        await git.addRemote("origin", "https://github.com/Ainz-devs/OVL-MD-V2");
       }
 
       await git.fetch();

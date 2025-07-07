@@ -608,22 +608,24 @@ ovlcmd(
     try {
       const { arg, ms, prenium_id, repondre } = cmd_options;
 
-      if (!prenium_id) {
+      if (!prenium_id || typeof prenium_id !== 'string') {
         return ovl.sendMessage(ms_org, { text: "🚫 Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
       }
 
       if (!arg || !arg[0]) {
-        return ovl.sendMessage(ms_org, { text: "Exemple : .connect SESSION_ID" }, { quoted: ms });
+        return ovl.sendMessage(ms_org, { text: "❗ Exemple : .connect SESSION_ID" }, { quoted: ms });
       }
 
       const session_id = arg[0].trim();
+      console.log(`🌀 Tentative de connexion par ${ms.sender} pour session_id: ${session_id}`);
 
-     const result = await saveSecondSession(session_id);
-      if(!result) {
-     return repondre('SESSION-ID invalide');
+      const result = await saveSecondSession(session_id);
+      if (!result) {
+        return repondre("❌ La session est invalide ou n’a pas pu être enregistrée.");
       }
 
       return ovl.sendMessage(ms_org, { text: `✅ Tentative de connexion enregistrée pour la session : ${session_id}` }, { quoted: ms });
+
     } catch (err) {
       return ovl.sendMessage(ms_org, { text: `❌ Erreur : ${err.message}` });
     }

@@ -17,7 +17,6 @@ const {
 const { getMessage } = require('./lib/store');
 const get_session = require('./DataBase/session');
 const config = require("./set");
-const groupCache = require('./lib/cache_metadata');
 
 const {
   message_upsert,
@@ -65,20 +64,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       browser: Browsers.ubuntu("Chrome"),
       msgRetryCounterCache,
       syncFullHistory: false,
-      markOnlineOnConnect: true,
-      cachedGroupMetadata: async (jid) => {
-        let metadata = groupCache.get(jid);
-        if (!metadata) {
-          try {
-            metadata = await ovl.groupMetadata(jid);
-            groupCache.set(jid, metadata);
-          } catch (e) {
-            console.error(`Échec groupMetadata pour ${jid} :`, e.message);
-            return null;
-          }
-        }
-        return metadata;
-      },
       getMessage: async (key) => {
         const msg = getMessage(key.id);
         return msg?.message || undefined;
@@ -94,15 +79,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
         () => startGenericSession({ numero, isPrincipale, sessionId }),
         isPrincipale ? async () => await startSecondarySessions() : undefined
       );
-    });
-
-    ovl.ev.on('groups.update', async (data) => {
-      try {
-        const metadata = await ovl.groupMetadata(data.id);
-        groupCache.set(data.id, metadata);
-      } catch (e) {
-        console.error("Erreur groups.update:", e.message);
-      }
     });
 
     ovl.ev.on("creds.update", saveCreds);

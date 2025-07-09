@@ -7,27 +7,25 @@ const fs = require("fs");
 const path = require("path");
 
 async function sendMedia(ms_org, ovl, url, format, type, ms) {
-    try {
-      const dl_link = await ytdl(url, format);
-      if (!dl_link) throw new Error("Le lien de téléchargement est introuvable.");
+  try {
+    const dl_link = await ytdl(url, format);
+    if (!dl_link) throw new Error("Le lien de téléchargement est introuvable.");
 
-      const fileRes = await axios.get(dl_link, { responseType: 'arraybuffer' });
-      const buff = Buffer.from(fileRes.data);
+    const fileRes = await axios.get(dl_link, { responseType: 'arraybuffer' });
+    const buff = Buffer.from(fileRes.data);
 
-      const message = {
-        [type]: buff,
-        mimetype: format === "mp3" ? "audio/mpeg" : "video/mp4",
-        caption: "```Powered By OVL-MD-V2```"
-      };
+    const message = {
+      [type]: buff,
+      mimetype: format === "mp3" ? "audio/mpeg" : "video/mp4",
+      caption: "```Powered By OVL-MD-V2```"
+    };
 
-      await ovl.sendMessage(ms_org, message, { quoted: ms });
-
-      break;
-
-    } catch (error) {
-      attempt++;
-      console.error(`Erreur lors de l'envoi du média (tentative ${attempt}):`, error.message);
-    }
+    await ovl.sendMessage(ms_org, message, { quoted: ms });
+    return true;
+  } catch (error) {
+    console.error(`Erreur lors de l'envoi du média:`, error.message);
+    return false;
+  }
 }
 
 ovlcmd(

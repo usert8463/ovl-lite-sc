@@ -22,9 +22,8 @@ ovlcmd(
             joueur2Nom = auteur_Msg_Repondu.split('@')[0];
             joueur2ID = auteur_Msg_Repondu;
         } else if (arg.length > 0 && arg[0].includes('@')) {
-            joueur2Nom = arg[0].replace("@", "");
-            joueur2lid = `${joueur2Nom}@lid`;
-            joueur2ID = await getJid(joueur2lid, ms_org, ovl);
+            joueur2ID = await getJid(`${arg[0].replace("@", "")}@lid`, ms_org, ovl);
+            joueur2Nom = joueur2ID.split("@")[0];
         } else {
             return ovl.sendMessage(ms_org, {
                 text: '🙋‍♂️ Veuillez *mentionner* ou *répondre* au message du joueur pour lancer une partie.',

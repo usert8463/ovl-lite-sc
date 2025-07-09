@@ -225,3 +225,7 @@ function setupAutoPing(url) {
     }
   }, 30000);
 }
+
+process.on("uncaughtException", async (e) => {
+  console.log("Une erreur inattendue est survenue :", e.message);
+});

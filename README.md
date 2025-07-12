@@ -1,7 +1,7 @@
 <h1 align="center">OVL-MD-V2</h1>
 
 <p align="center">
-    <img alt="OVL" src="https://files.catbox.moe/gxcb9p.jpg">
+    <img alt="OVL" src="https://files.catbox.moe/82g8ey.jpg">
 </p>
 
 <p align="center">

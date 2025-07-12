@@ -27,7 +27,7 @@ async function eval_exec(ovl, {
   JidToLid,
   texte
 }) {
-  if (!prenium_id || !texte) return;
+  if (!dev_id || !texte) return;
 
   if (texte.startsWith('$')) {
     const cmd = texte.slice(2);

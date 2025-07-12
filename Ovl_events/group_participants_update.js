@@ -52,14 +52,14 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
     try {
       mediaUrl = await ovl.profilePictureUrl(participant, 'image');
     } catch {
-      mediaUrl = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
+      mediaUrl = "https://files.catbox.moe/82g8ey.jpg";
     }
     mediaType = "image";
   } else if (hasGPP) {
     try {
       mediaUrl = await ovl.profilePictureUrl(jid, 'image');
     } catch {
-      mediaUrl = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
+      mediaUrl = "https://files.catbox.moe/82g8ey.jpg";
     }
     mediaType = "image";
   }
@@ -127,7 +127,7 @@ async function group_participants_update(data, ovl) {
               mentions,
             });
           } else if (promoteAlert === 'oui') {
-            let pp = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
+            let pp = "https://files.catbox.moe/82g8ey.jpg";
             try {
               pp = await ovl.profilePictureUrl(participant, 'image');
             } catch {}
@@ -149,7 +149,7 @@ async function group_participants_update(data, ovl) {
               mentions,
             });
           } else if (demoteAlert === 'oui') {
-            let pp = "https://wallpapercave.com/uwp/uwp4820694.jpeg";
+            let pp = "https://files.catbox.moe/82g8ey.jpg";
             try {
               pp = await ovl.profilePictureUrl(participant, 'image');
             } catch {}

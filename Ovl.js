@@ -59,6 +59,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       },
       logger: pino({ level: "silent" }),
       browser: Browsers.ubuntu("Chrome"),
+      keepAliveIntervalMs: 5000,
       syncFullHistory: false,
       getMessage: async (key) => {
         const msg = getMessage(key.id);

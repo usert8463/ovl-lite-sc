@@ -2,8 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const pino = require("pino");
 const axios = require('axios');
-const NodeCache = require("node-cache");
-const msgRetryCounterCache = new NodeCache();
 
 const {
   default: makeWASocket,
@@ -60,9 +58,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
         keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" }))
       },
       logger: pino({ level: "silent" }),
-      keepAliveIntervalMs: 10000,
       browser: Browsers.ubuntu("Chrome"),
-      msgRetryCounterCache,
       syncFullHistory: false,
       getMessage: async (key) => {
         const msg = getMessage(key.id);

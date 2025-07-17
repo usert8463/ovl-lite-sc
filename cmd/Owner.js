@@ -488,13 +488,13 @@ ovlcmd(
   },
   async (jid, ovl, cmd_options) => {
     const { ms, repondre, arg, prenium_id } = cmd_options;
-    
+
     try {
-      if (!prenium_id) {
-        return repondre("Seuls les utilisateurs premium peuvent utiliser cette commande.");
-      }
+      if (!prenium_id) return repondre("🔒 Cette commande est réservée aux utilisateurs premium.");
 
       const sousCommande = arg[0]?.toLowerCase();
+      const mode = arg[1]?.toLowerCase();
+
       const validTypes = {
         1: 'pm',
         2: 'gc',
@@ -507,48 +507,73 @@ ovlcmd(
 
       const [settings] = await WA_CONF.findOrCreate({
         where: { id: '1' },
-        defaults: { id: '1' , antidelete: 'non' },
+        defaults: { id: '1', antidelete: 'non' },
       });
 
       if (sousCommande === 'off') {
-        if (settings.antidelete === 'non') {
-          return repondre("L'Antidelete est déjà désactivé.");
-        }
+        if (settings.antidelete === 'non') return repondre("❌ L'antidelete est déjà désactivé.");
         settings.antidelete = 'non';
         await settings.save();
-        return repondre("L'Antidelete désactivé avec succès !");
+        return repondre("✅ Antidelete désactivé avec succès.");
+      }
+
+      if (['pm', 'org'].includes(sousCommande) && !arg[1]) {
+        if (settings.antidelete === 'non') {
+          return repondre("❌ Veuillez d'abord configurer antidelete avec un type (ex: antidelete 1).");
+        }
+
+        const current = settings.antidelete.split('-');
+        if (current.includes(sousCommande)) {
+          return repondre(`⚠️ Le mode '${sousCommande}' est déjà actif.`);
+        }
+
+        current.push(sousCommande);
+        settings.antidelete = current.join('-');
+        await settings.save();
+        return repondre(`✅ Mode '${sousCommande}' ajouté. Nouveau paramètre : ${settings.antidelete}`);
       }
 
       const typeSelection = parseInt(sousCommande);
       if (validTypes[typeSelection]) {
         const selectedType = validTypes[typeSelection];
+        let finalSetting = selectedType;
 
-        if (settings.antidelete === selectedType) {
-          return repondre(`L'Antidelete est déjà configuré sur ${selectedType}.`);
+        if (mode && ['pm', 'org'].includes(mode)) {
+          finalSetting += `-${mode}`;
         }
 
-        settings.antidelete = selectedType;
+        if (settings.antidelete === finalSetting) {
+          return repondre(`⚠️ L'antidelete est déjà configuré sur '${finalSetting}'.`);
+        }
+
+        settings.antidelete = finalSetting;
         await settings.save();
-        return repondre(`L'Antidelete est maintenant configuré sur ${selectedType}.`);
+        return repondre(`✅ Antidelete configuré sur : *${finalSetting}*`);
       }
 
       return repondre(
-        "Utilisation :\n" +
-        "antidelete off: Désactiver l'antidelete\n\n" +
-        "antidelete 1: Configurer l'action antidelete sur les messages privés (pm)\n" +
-        "antidelete 2: Configurer l'action antidelete sur les messages de groupe (gc)\n" +
-        "antidelete 3: Configurer l'action antidelete sur les statuts (status)\n" +
-        "antidelete 4: Configurer l'action antidelete sur tous les types (all)\n" +
-        "antidelete 5: Configurer l'action antidelete sur les messages privés et de groupe (pm/gc)\n" +
-        "antidelete 6: Configurer l'action antidelete sur les messages privés et les statuts (pm/status)\n" +
-        "antidelete 7: Configurer l'action antidelete sur les messages de groupe et les statuts (gc/status)"
+        "📌 *Utilisation de la commande antidelete :*\n\n" +
+        "🔹 antidelete off : Désactiver l'antidelete\n\n" +
+        "🔹 antidelete 1 : Activer sur les messages privés (pm)\n" +
+        "🔹 antidelete 2 : Activer sur les messages de groupe (gc)\n" +
+        "🔹 antidelete 3 : Activer sur les statuts (status)\n" +
+        "🔹 antidelete 4 : Activer sur tous les types (all)\n" +
+        "🔹 antidelete 5 : Activer sur pm + gc\n" +
+        "🔹 antidelete 6 : Activer sur pm + status\n" +
+        "🔹 antidelete 7 : Activer sur gc + status\n\n" +
+        "✳️ Par défaut, les messages supprimés sont renvoyés en inbox (privé).\n" +
+        "➕ Pour les renvoyer dans la discussion d’origine, ajoute `org`. Exemple : `antidelete 4 org`\n" +
+        "🔁 Tu peux aussi taper directement `antidelete org` pour activer ce mode\n" +
+        "🔁 Pour revenir à l’inbox, refais simplement : `antidelete pm`"
       );
+
     } catch (error) {
-      console.error("Erreur lors de la configuration d'antidelete :", error);
-      repondre("Une erreur s'est produite lors de l'exécution de la commande.");
+      console.error("Erreur antidelete :", error);
+      repondre("❌ Une erreur s'est produite lors de la configuration de l'antidelete.");
     }
   }
 );
+
 
 ovlcmd(
   {

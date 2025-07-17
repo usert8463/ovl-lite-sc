@@ -3,6 +3,7 @@ const { Sticker, StickerTypes } = require('wa-sticker-formatter');
 const { Antilink } = require("../DataBase/antilink");
 const { Antitag } = require("../DataBase/antitag");
 const { Antibot } = require("../DataBase/antibot");
+const { Antispam } = require("../DataBase/antispam");
 const { GroupSettings, Events2 } = require("../DataBase/events");
 const fs = require("fs");
 const { Antimention } = require('../DataBase/antimention');
@@ -1206,6 +1207,68 @@ ovlcmd(
       );
     } catch (error) {
       console.error("Erreur lors de la configuration d'antibot :", error);
+      return repondre("❌ Une erreur s'est produite lors de l'exécution de la commande.");
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "antispam",
+    classe: "Groupe",
+    react: "🔗",
+    desc: "Active ou configure l'antispam pour les groupes",
+  },
+  async (jid, ovl, cmd_options) => {
+    const { repondre, arg, verif_Groupe, verif_Admin } = cmd_options;
+
+    try {
+      if (!verif_Groupe) {
+        return repondre("❌ Cette commande fonctionne uniquement dans les groupes.");
+      }
+
+      if (!verif_Admin) {
+        return repondre("❌ Seuls les administrateurs peuvent utiliser cette commande.");
+      }
+
+      const sousCommande = arg[0]?.toLowerCase();
+      const validModes = ["on", "off"];
+      const validTypes = ["supp", "warn", "kick"];
+
+      const [settings] = await Antispam.findOrCreate({
+        where: { id: jid },
+        defaults: { id: jid, mode: "non", type: "supp" },
+      });
+
+      if (validModes.includes(sousCommande)) {
+        const newMode = sousCommande === "on" ? "oui" : "non";
+        if (settings.mode === newMode) {
+          return repondre(`L'Antispam est déjà ${sousCommande}.`);
+        }
+        settings.mode = newMode;
+        await settings.save();
+        return repondre(`L'Antispam a été ${sousCommande === "on" ? "activé" : "désactivé"} avec succès !`);
+      }
+
+      if (validTypes.includes(sousCommande)) {
+        if (settings.mode !== "oui") {
+          return repondre("❌ Veuillez activer l'antispam d'abord avec `antispam on`.");
+        }
+        if (settings.type === sousCommande) {
+          return repondre(`⚠️ L'action antispam est déjà définie sur ${sousCommande}.`);
+        }
+        settings.type = sousCommande;
+        await settings.save();
+        return repondre(`✅ L'action antispam est maintenant définie sur ${sousCommande}.`);
+      }
+
+      return repondre(
+        "Utilisation :\n" +
+        "antispam on/off : Activer ou désactiver l'antispam.\n" +
+        "antispam supp/warn/kick : Configurer l'action antispam."
+      );
+    } catch (error) {
+      console.error("Erreur lors de la configuration d'antispam :", error);
       return repondre("❌ Une erreur s'est produite lors de l'exécution de la commande.");
     }
   }

@@ -64,6 +64,7 @@ async function antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif
                                     await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
                                     await warning.destroy();
                                 } else {
+                                    await ovl.sendMessage(ms_org, { delete: key });
                                     await ovl.sendMessage(ms_org, {
                                         text: `@${username}, avertissement ${warning.count}/3 pour avoir envoyé un lien.`,
                                         mentions: [auteur_Message]

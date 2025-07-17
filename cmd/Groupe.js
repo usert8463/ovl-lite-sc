@@ -542,7 +542,7 @@ ovlcmd(
     }
   }
 );
-
+/*
 ovlcmd(
   {
     nom_cmd: "clear",
@@ -575,7 +575,7 @@ ovlcmd(
       repondre("❌ Erreur lors de la suppression du message.");
     }
   }
-);
+);*/
 
 ovlcmd(
   {

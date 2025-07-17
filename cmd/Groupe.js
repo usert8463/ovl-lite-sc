@@ -543,7 +543,7 @@ ovlcmd(
   }
 );
 
-ovlcmd(
+/*ovlcmd(
   {
     nom_cmd: "clear",
     classe: "Groupe",
@@ -575,7 +575,7 @@ ovlcmd(
       repondre("❌ Erreur lors de la suppression du message.");
     }
   }
-);
+);*/
 
 ovlcmd(
   {

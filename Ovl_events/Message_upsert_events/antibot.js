@@ -59,6 +59,7 @@ async function antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Adm
                                     await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
                                     await warning.destroy();
                                 } else {
+                                    await ovl.sendMessage(ms_org, { delete: key });
                                     await ovl.sendMessage(ms_org, {
                                         text: `@${auteur_Message.split("@")[0]}, avertissement ${warning.count}/3 pour utilisation de bot.`,
                                         mentions: [auteur_Message]

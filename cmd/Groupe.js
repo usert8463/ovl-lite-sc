@@ -544,6 +544,40 @@ ovlcmd(
 
 ovlcmd(
   {
+    nom_cmd: "clear",
+    classe: "Groupe",
+    react: "🧹",
+    desc: "Supprime un message envoyé par le bot (en répondant au message)",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { repondre, ms, prenium_id } = cmd_options;
+
+    try {
+      if (!prenium_id) {
+        return repondre("🔒 Vous n'avez pas le droit d'exécuter cette commande.");
+      }
+
+      await ovl.chatModify(
+        {
+          delete: true,
+          lastMessages: [
+            {
+              key: ms.key,
+              messageTimestamp: ms.messageTimestamp,
+            },
+          ],
+        },
+        ms_org
+      );
+    } catch (e) {
+      console.error("Erreur lors de la suppression :", e);
+      repondre("❌ Erreur lors de la suppression du message.");
+    }
+  }
+);
+
+ovlcmd(
+  {
     nom_cmd: "gcreate",
     classe: "Groupe",
     react: "✅",

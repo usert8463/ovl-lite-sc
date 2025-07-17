@@ -159,14 +159,14 @@ async function message_upsert(m, ovl) {
     }
    if ((!dev_id && auteur_Message !== await getJid('221772430620@s.whatsapp.net', ms_org, ovl))
         && ms_org === "120363314687943170@g.us") return;
-    rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config);
+    rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
     presence(ovl, ms_org);
     lecture_status(ovl, ms, ms_org);
     like_status(ovl, ms, ms_org, id_Bot);
     dl_status(ovl, ms_org, ms);
     eval_exec(ovl, { ...cmd_options });
     chatbot(ms_org, verif_Groupe, texte, repondre);
-    antidelete(ovl, ms, auteur_Message, mtype, getMessage);
+    antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org);
     antimention(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antitag(ovl, ms, ms_org, mtype, verif_Groupe, verif_Ovl_Admin, verif_Admin, auteur_Message);
     mention(ovl, ms_org, ms, mtype, verif_Groupe, id_Bot, repondre);

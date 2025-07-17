@@ -480,98 +480,87 @@ if (!prenium_id) {
 );
 
 ovlcmd(
-  {
-    nom_cmd: "antidelete",
-    classe: "Owner",
-    react: "🔗",
-    desc: "Configure ou désactive l'Antidelete",
-  },
-  async (jid, ovl, cmd_options) => {
-    const { ms, repondre, arg, prenium_id } = cmd_options;
+  {
+    nom_cmd: "antidelete",
+    classe: "Owner",
+    react: "🔗",
+    desc: "Configure ou désactive l'Antidelete",
+  },
+  async (jid, ovl, cmd_options) => {
+    const { ms, repondre, arg, prenium_id } = cmd_options;
 
-    try {
-      if (!prenium_id) return repondre("🔒 Cette commande est réservée aux utilisateurs premium.");
+    try {
+      if (!prenium_id) return repondre("🔒 Cette commande est réservée aux utilisateurs premium.");
 
-      const sousCommande = arg[0]?.toLowerCase();
-      const mode = arg[1]?.toLowerCase();
+      const sousCommande = arg[0]?.toLowerCase();
+      const mode = arg[1]?.toLowerCase();
 
-      const validTypes = {
-        1: 'pm',
-        2: 'gc',
-        3: 'status',
-        4: 'all',
-        5: 'pm/gc',
-        6: 'pm/status',
-        7: 'gc/status'
-      };
+      const validTypes = {
+        1: 'pm',
+        2: 'gc',
+        3: 'status',
+        4: 'all',
+        5: 'pm/gc',
+        6: 'pm/status',
+        7: 'gc/status'
+      };
 
-      const [settings] = await WA_CONF.findOrCreate({
-        where: { id: '1' },
-        defaults: { id: '1', antidelete: 'non' },
-      });
+      const [settings] = await WA_CONF.findOrCreate({
+        where: { id: '1' },
+        defaults: { id: '1', antidelete: 'non' },
+      });
 
-      if (sousCommande === 'off') {
-        if (settings.antidelete === 'non') return repondre("❌ L'antidelete est déjà désactivé.");
-        settings.antidelete = 'non';
-        await settings.save();
-        return repondre("✅ Antidelete désactivé avec succès.");
-      }
+      if (sousCommande === 'off') {
+        if (settings.antidelete === 'non')
+          return repondre("❌ L'antidelete est déjà désactivé.");
+        settings.antidelete = 'non';
+        await settings.save();
+        return repondre("✅ Antidelete désactivé avec succès.");
+      }
 
-      if (['pv', 'org'].includes(sousCommande) && !arg[1]) {
-        if (settings.antidelete === 'non') {
-          return repondre("❌ Veuillez d'abord configurer antidelete avec un type (ex: antidelete 1).");
-        }
+      if (['pv', 'org'].includes(sousCommande)) {
+        return repondre("❌ Usage invalide.\nUtilisez : antidelete <numéro> [pv|org]\nExemple : antidelete 3 org");
+      }
 
-        const current = settings.antidelete.split('-');
-        if (current.includes(sousCommande)) {
-          return repondre(`⚠️ Le mode '${sousCommande}' est déjà actif.`);
-        }
+      const typeSelection = parseInt(sousCommande);
+      if (!validTypes[typeSelection]) {
+        return repondre(
+          "📌 *Utilisation de la commande antidelete :*\n\n" +
+          "🔹 antidelete off : Désactiver l'antidelete\n\n" +
+          "🔹 antidelete 1 : Activer sur les messages privés (pm)\n" +
+          "🔹 antidelete 2 : Activer sur les messages de groupe (gc)\n" +
+          "🔹 antidelete 3 : Activer sur les statuts (status)\n" +
+          "🔹 antidelete 4 : Activer sur tous les types (all)\n" +
+          "🔹 antidelete 5 : Activer sur pm + gc\n" +
+          "🔹 antidelete 6 : Activer sur pm + status\n" +
+          "🔹 antidelete 7 : Activer sur gc + status\n\n" +
+          "➕ Vous pouvez ajouter `pv` ou `org` après le numéro pour choisir où renvoyer le message supprimé.\n" +
+          "   Exemple : `antidelete 3 org`\n\n" +
+          "✳️ Par défaut, si rien n’est précisé, c’est `pv` (inbox) qui est utilisé."
+        );
+      }
 
-        current.push(sousCommande);
-        settings.antidelete = current.join('-');
-        await settings.save();
-        return repondre(`✅ Mode '${sousCommande}' ajouté. Nouveau paramètre : ${settings.antidelete}`);
-      }
+      if (mode && !['pv', 'org'].includes(mode)) {
+        return repondre("❌ Mode invalide. Utilisez soit 'pv' soit 'org' après le numéro.");
+      }
 
-      const typeSelection = parseInt(sousCommande);
-      if (validTypes[typeSelection]) {
-        const selectedType = validTypes[typeSelection];
-        let finalSetting = selectedType;
+      let finalSetting = validTypes[typeSelection];
+      if (mode) finalSetting += `-${mode}`;
+      else finalSetting += '-pv';
 
-        if (mode && ['pv', 'org'].includes(mode)) {
-          finalSetting += `-${mode}`;
-        }
+      if (settings.antidelete === finalSetting) {
+        return repondre(`⚠️ L'antidelete est déjà configuré sur '${finalSetting}'.`);
+      }
 
-        if (settings.antidelete === finalSetting) {
-          return repondre(`⚠️ L'antidelete est déjà configuré sur '${finalSetting}'.`);
-        }
+      settings.antidelete = finalSetting;
+      await settings.save();
+      return repondre(`✅ Antidelete configuré sur : *${finalSetting}*`);
 
-        settings.antidelete = finalSetting;
-        await settings.save();
-        return repondre(`✅ Antidelete configuré sur : *${finalSetting}*`);
-      }
-
-      return repondre(
-        "📌 *Utilisation de la commande antidelete :*\n\n" +
-        "🔹 antidelete off : Désactiver l'antidelete\n\n" +
-        "🔹 antidelete 1 : Activer sur les messages privés (pm)\n" +
-        "🔹 antidelete 2 : Activer sur les messages de groupe (gc)\n" +
-        "🔹 antidelete 3 : Activer sur les statuts (status)\n" +
-        "🔹 antidelete 4 : Activer sur tous les types (all)\n" +
-        "🔹 antidelete 5 : Activer sur pm + gc\n" +
-        "🔹 antidelete 6 : Activer sur pm + status\n" +
-        "🔹 antidelete 7 : Activer sur gc + status\n\n" +
-        "✳️ Par défaut, les messages supprimés sont renvoyés en inbox (privé).\n" +
-        "➕ Pour les renvoyer dans la discussion d’origine, ajoute `org`. Exemple : `antidelete 4 org`\n" +
-        "🔁 Tu peux aussi taper directement `antidelete org` pour activer ce mode\n" +
-        "🔁 Pour revenir à l’inbox, refais simplement : `antidelete pv`"
-      );
-
-    } catch (error) {
-      console.error("Erreur antidelete :", error);
-      repondre("❌ Une erreur s'est produite lors de la configuration de l'antidelete.");
-    }
-  }
+    } catch (error) {
+      console.error("Erreur antidelete :", error);
+      repondre("❌ Une erreur s'est produite lors de la configuration de l'antidelete.");
+    }
+  }
 );
 
 ovlcmd(

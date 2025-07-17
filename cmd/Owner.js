@@ -88,7 +88,7 @@ ovlcmd(
         auteur_Msg_Repondu || 
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
 
-      const cible = await getJid(cbl, ms_org, ovl);
+      const cible = await getJid(cbl, jid, ovl);
       if (!cible) return repondre("Mentionnez un utilisateur valide à bannir.");
 
       if (dev_num.includes(cible)) {
@@ -129,7 +129,7 @@ ovlcmd(
         auteur_Msg_Repondu || 
         (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
       
-       const cible = await getJid(cbl, ms_org, ovl);
+       const cible = await getJid(cbl, jid, ovl);
       if (!cible) return repondre("Mentionnez un utilisateur valide à débannir.");
 
       const suppression = await Bans.destroy({ where: { id: cible, type: "user" } });

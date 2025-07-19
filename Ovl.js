@@ -14,7 +14,7 @@ const {
 const { getMessage } = require('./lib/store');
 const get_session = require('./DataBase/session');
 const config = require("./set");
-const { useSQLiteAuthState } = require('./OvlAuth');
+const { useSQLiteAuthState } = require('./lib/OvlAuth');
 
 const {
   message_upsert,

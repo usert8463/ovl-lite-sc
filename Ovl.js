@@ -39,7 +39,10 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     const { version } = await fetchLatestBaileysVersion();
     const ovl = makeWASocket({
       version,
-      auth: state,
+      auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' }).child({ level: 'fatal' }))
+      },
       logger: pino({ level: "silent" }),
       browser: Browsers.ubuntu("Chrome"),
       keepAliveIntervalMs: 10000,

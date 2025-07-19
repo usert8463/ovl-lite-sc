@@ -8,13 +8,13 @@ const {
   makeCacheableSignalKeyStore,
   Browsers,
   fetchLatestBaileysVersion,
-  useMultiFileAuthState,
   delay
 } = require("@whiskeysockets/baileys");
 
 const { getMessage } = require('./lib/store');
 const get_session = require('./DataBase/session');
 const config = require("./set");
+const { useSQLiteAuthState } = require('./OvlAuth');
 
 const {
   message_upsert,
@@ -31,32 +31,14 @@ const sessionsActives = new Set();
 const instancesSessions = new Map();
 
 async function startGenericSession({ numero, isPrincipale = false, sessionId = null }) {
-  const nomDossier = isPrincipale ? "principale" : numero;
-  const sessionDir = path.join(__dirname, "auth", nomDossier);
-  const credsPath = path.join(sessionDir, "creds.json");
-
-  if (!fs.existsSync(credsPath)) {
-    try {
-      const creds = isPrincipale ? await get_session(sessionId) : await getSecondSession(numero);
-      if (!creds) return null;
-      fs.mkdirSync(sessionDir, { recursive: true });
-      fs.writeFileSync(credsPath, creds, "utf8");
-    } catch (err) {
-      console.log(`❌ Erreur récupération creds pour ${nomDossier} :`, err.message);
-      return null;
-    }
-  }
-
   try {
-    const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+    const instanceId = isPrincipale ? `principale-${sessionId}` : numero;
+    const { state, saveCreds } = await useSQLiteAuthState(instanceId);
     const { version } = await fetchLatestBaileysVersion();
 
     const ovl = makeWASocket({
       version,
-      auth: {
-        creds: state.creds,
-        keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" }))
-      },
+      auth: state,
       logger: pino({ level: "silent" }),
       browser: Browsers.ubuntu("Chrome"),
       keepAliveIntervalMs: 10000,
@@ -88,7 +70,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     console.log(`✅ Session ${isPrincipale ? "principale" : "secondaire " + numero} démarrée`);
     return ovl;
   } catch (err) {
-    console.error(`❌ Erreur session ${nomDossier} :`, err.message);
+    console.error(`❌ Erreur session ${isPrincipale ? "principale" : numero} :`, err.message);
     return null;
   }
 }
@@ -137,8 +119,6 @@ async function startSecondarySessions() {
     }
   }
 
-  let compteurLances = 0;
-
   for (const { numero } of sessions) {
     if (sessionsActives.size >= MAX_SESSIONS) {
       console.log(`❌ Limite de sessions atteinte (${sessionsActives.size}/${MAX_SESSIONS}).`);
@@ -150,12 +130,10 @@ async function startSecondarySessions() {
       if (ovl) {
         sessionsActives.add(numero);
         instancesSessions.set(numero, ovl);
-        compteurLances++;
         console.log(`✅ Démarrage terminé — Sessions actives : ${sessionsActives.size}/${MAX_SESSIONS}`);
       }
     }
   }
-
 }
 
 function surveillerNouvellesSessions() {

@@ -187,7 +187,7 @@ ovlcmd(
     }
 
     try {
-      const videoDownloadLink = await axios.get(`https://bk9.fun/download/fb?url=${videoLink}`);
+      const videoDownloadLink = await fbdl(videoLink);
       const response = await axios.get(videoDownloadLink.data.BK9.hd, { responseType: 'arraybuffer' });
       const videoBuffer = Buffer.from(response.data);
 

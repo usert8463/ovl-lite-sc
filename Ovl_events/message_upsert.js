@@ -75,9 +75,9 @@ async function message_upsert(m, ovl) {
       ? await getJid(decodeJid(ms.key.participant), ms_org, ovl)
       : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJid);
 
-    const msg_Repondu = ms.message.extendedTextMessage?.contextInfo?.quotedMessage;
+    const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
     const auteur_Msg_Repondu = await getJid(
-      decodeJid(ms.message.extendedTextMessage?.contextInfo?.participant),
+      decodeJid(ms.message?.[mtype]?.contextInfo?.participant),
       ms_org, ovl
     );
     const mentionnes = ms.message.extendedTextMessage?.contextInfo?.mentionedJid || [];

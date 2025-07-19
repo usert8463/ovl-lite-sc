@@ -34,7 +34,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
   try {
     const instanceId = isPrincipale ? "principale" : numero;
     const sessionData = await get_session(sessionId);
-    await WAAuth.upsert({ key: instanceId, value: sessionData || null });
+    await WAAuth.upsert({ key: `creds--${instanceId}`, value: sessionData || null });
     const { state, saveCreds } = await useSQLiteAuthState(instanceId);
     const { version } = await fetchLatestBaileysVersion();
     const ovl = makeWASocket({

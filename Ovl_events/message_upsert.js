@@ -78,7 +78,7 @@ async function message_upsert(m, ovl) {
       decodeJid(ms.message?.[mtype]?.contextInfo?.participant),
       ms_org, ovl
     );
-    const mentionnes = ms.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
+    const mentionnes = ms.message?.[mtype]?.contextInfo?.mentionedJid || [];
     const mention_JID = await Promise.all(mentionnes.map(j => getJid(j, ms_org, ovl)));
 
     const nom_Auteur_Message = ms.pushName;

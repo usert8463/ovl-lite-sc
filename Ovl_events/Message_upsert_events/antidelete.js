@@ -38,7 +38,7 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
 
                 if (antideleteConfig.includes('-org')) {
                     if (antideleteConfig.includes('status') && jid.endsWith('status@broadcast')) {
-                        await ovl.sendMessage(auteur_Message, {
+                        await ovl.sendMessage(sender, {
                             forward: deletedMsg,
                             contextInfo: {
                                 externalAdReply: {

@@ -6,9 +6,7 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
 
     try {
         const antideleteConfig = settings.antidelete;
-        const modesSansTiret = [
-            'pm', 'gc', 'status', 'all', 'pm/gc', 'pm/status', 'gc/status'
-        ];
+        const modesSansTiret = ['pm', 'gc', 'status', 'all', 'pm/gc', 'pm/status', 'gc/status'];
         const isModeValide = modesSansTiret.some(mode => antideleteConfig.startsWith(mode));
         if (!isModeValide) return;
 
@@ -16,6 +14,7 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
             const deletedMsgKey = ms.message.protocolMessage;
             const deletedMsg = getMessage(deletedMsgKey.key.id);
             if (!deletedMsg) return;
+
             const jid = deletedMsg.key.remoteJid;
             const isGroup = jid?.endsWith("@g.us");
             const sender = isGroup ? (deletedMsg.key.participant || deletedMsg.participant) : jid;
@@ -25,6 +24,7 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
                 function modeMatch(mode) {
                     return antideleteConfig.includes(mode);
                 }
+
                 const shouldSend =
                     (modeMatch('gc') && jid.endsWith('@g.us')) ||
                     (modeMatch('pm') && jid.endsWith('@s.whatsapp.net')) ||
@@ -48,30 +48,48 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
                         }, { quoted: deletedMsg });
                     } else {
                         if (!ms_org) return;
-                        await ovl.sendMessage(ms_org, {
-                            forward: deletedMsg,
-                            contextInfo: {
-                                externalAdReply: {
-                                    title: "OVL-MD-V2-ANTIDELETE",
+
+                        const contenu = deletedMsg.message;
+                        const typeMsg = Object.keys(contenu || {})[0];
+
+                        if (typeMsg === 'conversation' || typeMsg === 'extendedTextMessage') {
+                            const texte = contenu?.conversation || contenu?.extendedTextMessage?.text || "📝 Message supprimé (vide)";
+                            await ovl.sendMessage(ms_org, {
+                                text: texte,
+                                contextInfo: {
+                                    externalAdReply: {
+                                        title: "OVL-MD-V2-ANTIDELETE",
+                                     }
                                 }
-                            }
-                        }, { quoted: deletedMsg });
+                            }, { quoted: deletedMsg });
+                        } else {
+                            await ovl.sendMessage(ms_org, {
+                                forward: deletedMsg,
+                                contextInfo: {
+                                    externalAdReply: {
+                                        title: "OVL-MD-V2-ANTIDELETE"
+                                    }
+                                }
+                            }, { quoted: deletedMsg });
+                        }
                     }
                 } else {
                     const provenance = isGroup
                         ? `👥 Groupe : ${(await ovl.groupMetadata(jid)).subject}`
                         : `📩 Chat : @${jid.split('@')[0]}`;
                     const header = `
-✨ OVL-MD ANTI-DELETE MSG✨
+✨ OVL-MD ANTI-DELETE MSG ✨
 👤 Envoyé par : @${sender.split('@')[0]}
 ❌ Supprimé par : @${auteur_Message.split('@')[0]}
 ⏰ Heure de suppression : ${deletionTime}
 ${provenance}
                     `.trim();
+
                     await ovl.sendMessage(ovl.user.id, {
                         text: header,
                         mentions: [sender, auteur_Message]
                     }, { quoted: deletedMsg });
+
                     await ovl.sendMessage(ovl.user.id, {
                         forward: deletedMsg
                     }, { quoted: deletedMsg });

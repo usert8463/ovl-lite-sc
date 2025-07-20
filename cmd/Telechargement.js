@@ -188,7 +188,7 @@ ovlcmd(
 
     try {
       const videoDownloadLink = await fbdl(videoLink);
-      const response = await axios.get(videoDownloadLink.data.BK9.hd, { responseType: 'arraybuffer' });
+      const response = await axios.get(videoDownloadLink, { responseType: 'arraybuffer' });
       const videoBuffer = Buffer.from(response.data);
 
       return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });

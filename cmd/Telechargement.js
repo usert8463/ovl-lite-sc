@@ -188,6 +188,7 @@ ovlcmd(
 
     try {
       const videoDownloadLink = await fbdl(videoLink);
+	    console.log(videoDownloadLink);
       const response = await axios.get(videoDownloadLink, { responseType: 'arraybuffer' });
       const videoBuffer = Buffer.from(response.data);
 

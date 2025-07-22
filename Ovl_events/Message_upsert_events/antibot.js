@@ -1,6 +1,6 @@
 const { Antibot, AntibotWarnings } = require("../../DataBase/antibot");
 
-async function antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message) {
+async function antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message, texte) {
     try {
       console.log(ms.key.id, ':', texte);
         const botMsg = (ms.key?.id?.startsWith('BAES') && ms.key?.id?.length === 16) ||

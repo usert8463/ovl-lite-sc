@@ -170,7 +170,7 @@ async function message_upsert(m, ovl) {
     antitag(ovl, ms, ms_org, mtype, verif_Groupe, verif_Ovl_Admin, verif_Admin, auteur_Message);
     mention(ovl, ms_org, ms, mtype, verif_Groupe, id_Bot, repondre);
     antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
-    antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
+    antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message, texte);
   } catch (e) {
     console.error("❌ Erreur(message.upsert):", e);
   }

@@ -4,7 +4,7 @@ const {
   getJid, mention, eval_exec, antimention, chatbot, antispam
 } = require('./Message_upsert_events');
 
-const { Bans } = require("../DataBase/ban");
+const { Bans, OnlyAdmins } = require("../DataBase/ban");
 const { Sudo } = require('../DataBase/sudo');
 const { getMessage, addMessage } = require('../lib/store');
 const { jidDecode, getContentType } = require("@whiskeysockets/baileys");
@@ -100,7 +100,7 @@ async function message_upsert(m, ovl) {
     const sudoUsers = await getSudoUsers();
 
     const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers]
-  .map(n => `${n}@s.whatsapp.net`);
+      .map(n => `${n}@s.whatsapp.net`);
     const prenium_id = premiumUsers.includes(auteur_Message);
     const dev_num = devNumbers.map(n => `${n}@s.whatsapp.net`);
     const dev_id = dev_num.includes(auteur_Message);
@@ -133,6 +133,7 @@ async function message_upsert(m, ovl) {
         && ms_org === "120363314687943170@g.us") return;
       if (!prenium_id && await isBanned('user', auteur_Message)) return;
       if (!prenium_id && verif_Groupe && await isBanned('group', ms_org)) return;
+      if (!verif_Admin && verif_Groupe && await OnlyAdmins.findOne({ where: { id: ms_org } })) return;
 
       await ovl.sendMessage(ms_org, { react: { text: cd.react || "🎐", key: ms.key } });
       cd.fonction(ms_org, ovl, cmd_options);
@@ -156,8 +157,10 @@ async function message_upsert(m, ovl) {
         console.error("Erreur sticker command:", e);
       }
     }
-   if ((!dev_id && auteur_Message !== await getJid('221772430620@s.whatsapp.net', ms_org, ovl))
-        && ms_org === "120363314687943170@g.us") return;
+
+    if ((!dev_id && auteur_Message !== await getJid('221772430620@s.whatsapp.net', ms_org, ovl))
+      && ms_org === "120363314687943170@g.us") return;
+
     rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
     presence(ovl, ms_org);
     lecture_status(ovl, ms, ms_org);
@@ -172,6 +175,17 @@ async function message_upsert(m, ovl) {
     antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antispam(ovl, ms_org, ms, auteur_Message);
+
+    for (const cmd of evt.cmd) {
+      if (cmd.isfunc === true) {
+        try {
+          await cmd.fonction(ms_org, ovl, cmd_options);
+        } catch (err) {
+          console.error(`Erreur dans la fonction isfunc '${cmd.nom_cmd}':`, err);
+        }
+      }
+    }
+
   } catch (e) {
     console.error("❌ Erreur(message.upsert):", e);
   }

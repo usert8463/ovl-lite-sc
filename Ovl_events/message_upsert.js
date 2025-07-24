@@ -1,7 +1,7 @@
 const {
   rankAndLevelUp, lecture_status, like_status, presence,
   dl_status, antidelete, antitag, antilink, antibot,
-  getJid, mention, eval_exec, antimention, chatbot
+  getJid, mention, eval_exec, antimention, chatbot, antispam
 } = require('./Message_upsert_events');
 
 const { Bans } = require("../DataBase/ban");
@@ -170,7 +170,8 @@ async function message_upsert(m, ovl) {
     antitag(ovl, ms, ms_org, mtype, verif_Groupe, verif_Ovl_Admin, verif_Admin, auteur_Message);
     mention(ovl, ms_org, ms, mtype, verif_Groupe, id_Bot, repondre);
     antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
-    antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message, texte);
+    antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
+    antispam(ovl, ms_org, ms, auteur_Message);
   } catch (e) {
     console.error("❌ Erreur(message.upsert):", e);
   }

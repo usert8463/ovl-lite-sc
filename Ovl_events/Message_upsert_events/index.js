@@ -12,5 +12,6 @@ module.exports = {
   mention: require('./mention'),
   eval_exec: require('./eval_exec'),
   antimention: require('./antimention'),
-  chatbot: require('./chatbot')
+  chatbot: require('./chatbot'),
+  antispam: require('./antispam')
 };

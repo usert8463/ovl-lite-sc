@@ -3,24 +3,19 @@ const { Antispam, AntispamWarnings } = require("../../DataBase/antispam");
 const antispamStore = {};
 const surveillance = {};
 
-async function antispam(ovl, ms_org, ms, auteur_Message) {
+async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
   try {
-    if (!ms.message) return;
-
     const now = Date.now();
 
     if (!antispamStore[ms_org]) antispamStore[ms_org] = {};
     if (!antispamStore[ms_org][auteur_Message]) antispamStore[ms_org][auteur_Message] = [];
 
-    antispamStore[ms_org][auteur_Message].push({ id: ms.key.id, timestamp: now });
-    if (antispamStore[ms_org][auteur_Message].length > 5) {
-      antispamStore[ms_org][auteur_Message].shift();
-    }
-
     const recentMsgs = antispamStore[ms_org][auteur_Message];
+    recentMsgs.push({ id: ms.key.id, timestamp: now });
+
     const settings = await Antispam.findOne({ where: { id: ms_org } });
     if (!settings || settings.mode !== "oui") return;
-
+    
     const key = {
       remoteJid: ms_org,
       fromMe: false,
@@ -28,12 +23,13 @@ async function antispam(ovl, ms_org, ms, auteur_Message) {
       participant: auteur_Message
     };
 
-    if (recentMsgs.length === 5) {
-      const first = recentMsgs[0].timestamp;
-      const last = recentMsgs[4].timestamp;
+    if (recentMsgs.length >= 5) {
+      const lastFive = recentMsgs.slice(-5);
+      const first = lastFive[0].timestamp;
+      const last = lastFive[4].timestamp;
 
-      if (last - first < 10000) {
-        const idsToDelete = recentMsgs.map(msg => ({
+      if (last - first < 25000) {
+        const idsToDelete = lastFive.map(msg => ({
           remoteJid: ms_org,
           fromMe: false,
           id: msg.id,
@@ -53,11 +49,19 @@ async function antispam(ovl, ms_org, ms, auteur_Message) {
             break;
 
           case 'kick':
-            await ovl.sendMessage(ms_org, {
-              text: `@${auteur_Message.split('@')[0]} a été retiré pour avoir spammé.`,
-              mentions: [auteur_Message]
-            }, { quoted: ms });
-            await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
+            if (verif_Groupe) {
+              await ovl.sendMessage(ms_org, {
+                text: `@${auteur_Message.split('@')[0]} a été retiré pour spam.`,
+                mentions: [auteur_Message]
+              }, { quoted: ms });
+              await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
+            } else {
+              await ovl.sendMessage(ms_org, {
+                text: `@${auteur_Message.split('@')[0]} a été bloqué pour spam (groupe non vérifié).`,
+                mentions: [auteur_Message]
+              }, { quoted: ms });
+              await ovl.updateBlockStatus(auteur_Message, "block");
+            }
             break;
 
           case 'warn':
@@ -76,11 +80,19 @@ async function antispam(ovl, ms_org, ms, auteur_Message) {
               await warning.save();
 
               if (warning.count >= 3) {
-                await ovl.sendMessage(ms_org, {
-                  text: `@${auteur_Message.split('@')[0]} a été retiré après 3 avertissements de spam.`,
-                  mentions: [auteur_Message]
-                }, { quoted: ms });
-                await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
+                if (isGroupVerified) {
+                  await ovl.sendMessage(ms_org, {
+                    text: `@${auteur_Message.split('@')[0]} retiré après 3 avertissements.`,
+                    mentions: [auteur_Message]
+                  }, { quoted: ms });
+                  await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
+                } else {
+                  await ovl.sendMessage(ms_org, {
+                    text: `@${auteur_Message.split('@')[0]} bloqué après 3 avertissements (non vérifié).`,
+                    mentions: [auteur_Message]
+                  }, { quoted: ms });
+                  await ovl.updateBlockStatus(auteur_Message, "block");
+                }
                 await warning.destroy();
               } else {
                 await ovl.sendMessage(ms_org, {
@@ -90,24 +102,27 @@ async function antispam(ovl, ms_org, ms, auteur_Message) {
               }
             }
             break;
-
-          default:
-            console.error(`Type d'action inconnu pour antispam: ${settings.type}`);
         }
 
         surveillance[ms_org] ??= {};
-        surveillance[ms_org][auteur_Message] = true;
-        antispamStore[ms_org][auteur_Message] = [recentMsgs[4]];
+        surveillance[ms_org][auteur_Message] = now;
+        antispamStore[ms_org][auteur_Message] = [];
         return;
+      } else {
+          while (recentMsgs.length > 4) {
+          recentMsgs.shift();
+        }
       }
     }
 
-    if (surveillance[ms_org]?.[auteur_Message]) {
-      const prevMsg = antispamStore[ms_org][auteur_Message][antispamStore[ms_org][auteur_Message].length - 2];
-      if (prevMsg && now - prevMsg.timestamp < 3000) {
+    const lastSurveillance = surveillance[ms_org]?.[auteur_Message];
+    if (lastSurveillance) {
+      const prev = recentMsgs[recentMsgs.length - 2];
+      if (prev && now - prev.timestamp < 5000) {
         await ovl.sendMessage(ms_org, { delete: key });
+        return;
       } else {
-        surveillance[ms_org][auteur_Message] = false;
+        surveillance[ms_org][auteur_Message] = null;
         antispamStore[ms_org][auteur_Message] = [{ id: ms.key.id, timestamp: now }];
       }
     }

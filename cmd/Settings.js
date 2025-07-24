@@ -229,8 +229,11 @@ ovlcmd(
     react: "🔍",
     desc: "Vérifie les mises à jour disponibles du bot.",
   },
-  async (ms_org, ovl, { repondre }) => {
+  async (ms_org, ovl, { repondre, prenium_id }) => {
     try {
+      if (!prenium_id) {
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+      }
       await git.init();
 
       const remotes = await git.getRemotes();
@@ -283,8 +286,11 @@ ovlcmd(
     desc: "Met à jour le bot automatiquement.",
     alias: ["maj"],
   },
-  async (ms_org, ovl, { repondre }) => {
+  async (ms_org, ovl, { repondre, prenium_id }) => {
     try {
+      if (!prenium_id) {
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+      }
       await git.init();
       const remotes = await git.getRemotes();
       if (!remotes.some(r => r.name === "origin")) {

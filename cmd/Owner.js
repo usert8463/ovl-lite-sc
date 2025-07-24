@@ -1,6 +1,6 @@
 const { exec } = require("child_process");
 const { ovlcmd } = require("../lib/ovlcmd");
-const { Bans } = require('../DataBase/ban');
+const { Bans, OnlyAdmins } = require('../DataBase/ban');
 const { Sudo } = require('../DataBase/sudo');
 const config = require('../set');
 const axios = require("axios");
@@ -204,6 +204,44 @@ ovlcmd(
       return repondre(`Groupe débanni avec succès.`);
     } catch (error) {
       console.error("Erreur lors de l'exécution de la commande debangroup :", error);
+      return repondre("Une erreur s'est produite.");
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "onlyadmins",
+    react: "🛡️",
+    desc: "Activer ou désactiver le mode only-admins dans un groupe",
+    classe: "Owner",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { repondre, arg, verif_Groupe, ms, prenium_id } = cmd_options;
+
+    try {
+      if (!verif_Groupe) return repondre("Cette commande ne fonctionne que dans un groupe.");
+      if (!prenium_id) {
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+      }
+      const mode = arg[0];
+
+      if (!["add", "del"].includes(mode)) {
+        return repondre("Utilisation : onlyadmins add | del");
+      }
+
+      if (mode === "add") {
+        await OnlyAdmins.findOrCreate({ where: { id: ms_org} });
+        return repondre("✅ Mode only-admin activé pour ce groupe.");
+      }
+
+      if (mode === "del") {
+        const deleted = await OnlyAdmins.destroy({ where: { id: ms_org } });
+        if (deleted) return repondre("❌ Mode only-admin désactivé pour ce groupe.");
+        else return repondre("⚠️ Ce groupe n'était pas en mode only-admin.");
+      }
+    } catch (err) {
+      console.error("Erreur onlyadmins:", err);
       return repondre("Une erreur s'est produite.");
     }
   }

@@ -176,16 +176,13 @@ async function message_upsert(m, ovl) {
     antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antispam(ovl, ms_org, ms, auteur_Message);
 
-    for (const cmd of evt.cmd) {
-      if (cmd.isfunc === true) {
-        try {
-          await cmd.fonction(ms_org, ovl, cmd_options);
-        } catch (err) {
-          console.error(`Erreur dans la fonction isfunc '${cmd.nom_cmd}':`, err);
-        }
-      }
-    }
-
+    for (const cmd of evt.func) {
+  try {
+    await cmd.fonction(ms_org, ovl, cmd_options);
+  } catch (err) {
+    console.error(`Erreur dans la fonction isfunc '${cmd.nom_cmd}':`, err);
+  }
+ }
   } catch (e) {
     console.error("❌ Erreur(message.upsert):", e);
   }

@@ -37,9 +37,19 @@ const Bans = sequelize.define('Bans', {
   timestamps: false,
 });
 
+const OnlyAdmins = sequelize.define('OnlyAdmins', {
+  id: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+  },
+}, {
+  tableName: 'onlyadmins',
+  timestamps: false,
+});
+
 (async () => {
   await Bans.sync();
   console.log("Bans synchronisée.");
 })();
 
-module.exports = { Bans };
+module.exports = { Bans, OnlyAdmins };

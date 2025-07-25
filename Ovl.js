@@ -37,15 +37,20 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     await WAAuth.upsert({ key: `creds--${instanceId}`, value: sessionData || null });
     const { state, saveCreds } = await useSQLiteAuthState(instanceId);
     const { version } = await fetchLatestBaileysVersion();
+    
     const ovl = makeWASocket({
       version,
       auth: {
       creds: state.creds,
-      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' }).child({ level: 'fatal' }))
+      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }).child({ level: 'silent' }))
       },
       logger: pino({ level: "silent" }),
       browser: Browsers.ubuntu("Chrome"),
+      printQRInTerminal: false,
       keepAliveIntervalMs: 10000,
+      markOnlineOnConnect: false,
+      generateHighQualityLinkPreview: true,
+      fireInitQueries: false,
       getMessage: async (key) => {
         const msg = getMessage(key.id);
         return msg?.message || undefined;

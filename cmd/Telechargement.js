@@ -6,26 +6,29 @@ const { search, download } = require("aptoide_scrapper_fixed");
 const fs = require("fs");
 const path = require("path");
 
-async function sendMedia(ms_org, ovl, url, format, type, ms) {
-  try {
-    const dl_link = await ytdl(url, format);
-    if (!dl_link) throw new Error("Le lien de téléchargement est introuvable.");
+async function sendMedia(ms_org, ovl, url, format, type, ms, name) {
+  try {
+    const dl_link = await ytdl(url, format);
+    if (!dl_link) throw new Error("Le lien de téléchargement est introuvable.");
 
-    const fileRes = await axios.get(dl_link, { responseType: 'arraybuffer' });
-    const buff = Buffer.from(fileRes.data);
+    const fileRes = await axios.get(dl_link.link, { responseType: 'arraybuffer' });
+    const buff = Buffer.from(fileRes.data);
 
-    const message = {
-      [type]: buff,
-      mimetype: format === "mp3" ? "audio/mpeg" : "video/mp4",
-      caption: "```Powered By OVL-MD-V2```"
-    };
+    if (!name) name = dl_link.name;
 
-    await ovl.sendMessage(ms_org, message, { quoted: ms });
-    return true;
-  } catch (error) {
-    console.error(`Erreur lors de l'envoi du média:`, error.message);
-    return false;
-  }
+    const message = {
+      [type]: buff,
+      mimetype: format === "mp3" ? "audio/mpeg" : "video/mp4",
+      caption: "```Powered By OVL-MD-V2```",
+      fileName: format === "mp3" ? `${name}.mp3` : `${name}.mp4`
+    };
+
+    await ovl.sendMessage(ms_org, message, { quoted: ms });
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de l'envoi du média:", error.message);
+    return false;
+  }
 }
 
 ovlcmd(
@@ -64,7 +67,7 @@ ovlcmd(
 
             await ovl.sendMessage(ms_org, { image: { url: videoInfo.thumbnail }, caption }, { quoted: ms });
 
-            await sendMedia(ms_org, ovl, videoInfo.url, "mp3", "audio", ms);
+            await sendMedia(ms_org, ovl, videoInfo.url, "mp3", "audio", ms, video.name);
         } catch (error) {
             console.error("Erreur Song Downloader:", error.message);
             await ovl.sendMessage(ms_org, { text: "Erreur lors du téléchargement." }, { quoted: ms });
@@ -110,7 +113,7 @@ ovlcmd(
                 image: { url: videoInfo.thumbnail },
                 caption: caption,
             }, { quoted: ms });
-            await sendMedia(ms_org, ovl, video.url, "mp4", "video", ms);
+            await sendMedia(ms_org, ovl, video.url, "mp4", "video", ms, video.name);
         } catch (error) {
             await ovl.sendMessage(ms_org, {
                 text: "Une erreur est survenue lors du traitement de votre commande.",

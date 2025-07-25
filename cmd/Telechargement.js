@@ -1,5 +1,5 @@
 const { ovlcmd } = require("../lib/ovlcmd");
-const { fbdl, ttdl, igdl, twitterdl, ytdl } = require("../lib/dl");
+const { fbdl, ttdl, igdl, twitterdl, notube_dl } = require("../lib/dl");
 const ytsr = require('@distube/ytsr');
 const axios = require('axios');
 const { search, download } = require("aptoide_scrapper_fixed");
@@ -8,10 +8,10 @@ const path = require("path");
 
 async function sendMedia(ms_org, ovl, url, format, type, ms, name) {
   try {
-    const dl_link = await ytdl(url, format);
-    if (!dl_link) throw new Error("Le lien de téléchargement est introuvable.");
+    const dl_link = await notube_dl(url, format);
+    if (!dl_link.ovl_dl_link) throw new Error("Le lien de téléchargement est introuvable.");
 
-    const fileRes = await axios.get(dl_link.link, { responseType: 'arraybuffer' });
+    const fileRes = await axios.get(dl_link.ovl_dl_link, { responseType: 'arraybuffer' });
     const buff = Buffer.from(fileRes.data);
 
     if (!name) name = dl_link.name;
@@ -190,9 +190,9 @@ ovlcmd(
     }
 
     try {
-      const videoDownloadLink = await fbdl(videoLink);
+      const videoDownloadLink = await notube_dl(videoLink, 'mp4');
 
-      return ovl.sendMessage(ms_org, { video: videoDownloadLink, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { video: videoDownloadLink.ovl_dl_link, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
 
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });

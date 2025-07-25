@@ -42,7 +42,7 @@ async function isBanned(type, id) {
 async function message_upsert(m, ovl) {
   try {
     if (m.type !== 'notify') return;
-    const ms = m[0];
+    const ms = m.messages?.[0];
     if (!ms?.message) return;
     addMessage(ms.key.id, ms);
 

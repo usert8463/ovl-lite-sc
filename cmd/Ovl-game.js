@@ -464,7 +464,15 @@ ovlcmd(
             return;
           }
 
-          if (txt === mot.toLowerCase()) {
+          function normaliserTexte(texte) {
+  return texte
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "")
+    .replace(/[^\w]/g, "");
+          }
+          if (normaliserTexte(txt) === normaliserTexte(mot)) {
             joueur.score++;
             correct = true;
             reussitesCeTour++;

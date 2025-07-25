@@ -371,22 +371,14 @@ ovlcmd(
     try {
       const stickerBuffer = await ovl.dl_save_media_ms(msg_Repondu.stickerMessage);
 
-      const fileName = path.join(os.tmpdir(), `${Date.now()}_${Math.floor(Math.random() * 10000)}.png`);
-
-      // Convertir directement le buffer du sticker en PNG
-      await sharp(stickerBuffer)
-        .png()
-        .toFile(fileName);
+      const imageBuffer = await sharp(stickerBuffer).png().toBuffer();
 
       await ovl.sendMessage(
         ms_org,
-        { image: fs.readFileSync(fileName) },
+        { image: imageBuffer },
         { quoted: ms }
       );
-
-      fs.unlinkSync(fileName);
     } catch (error) {
-      console.error("Erreur lors de la conversion du sticker en image:", error);
       await ovl.sendMessage(ms_org, {
         text: `Erreur lors de la conversion en image : ${error.message}`,
       }, { quoted: ms });
@@ -979,3 +971,94 @@ ovlcmd(
     }
 );
 
+ovlcmd(
+  {
+    nom_cmd: "topm4",
+    classe: "Conversion",
+    react: "🎬",
+    desc: "Convertit un audio en vidéo animée",
+  },
+  async (ms_org, ovl, { msg_Repondu, ms }) => {
+    if (!msg_Repondu || !msg_Repondu.audioMessage) {
+      return ovl.sendMessage(ms_org, { text: "Répondez à un audio." }, { quoted: ms });
+    }
+
+    try {
+      const audioBuffer = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
+      const tmpAudio = path.join(os.tmpdir(), `aud_${Date.now()}.mp3`);
+      const tmpVideo = path.join(os.tmpdir(), `vid_${Date.now()}.mp4`);
+
+      fs.writeFileSync(tmpAudio, audioBuffer);
+
+      const ffmpegCmd = `
+        ffmpeg -y -i "${tmpAudio}" -filter_complex \
+        "[0:a]showwaves=s=640x360:mode=line:rate=25:colors=white[vis]; \
+        color=s=640x360:c=black[bg]; \
+        [bg][vis]overlay=format=auto" \
+        -pix_fmt yuv420p -shortest "${tmpVideo}"
+      `;
+
+      await new Promise((resolve, reject) => {
+        exec(ffmpegCmd, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      await ovl.sendMessage(
+        ms_org,
+        { video: fs.readFileSync(tmpVideo), mimetype: 'video/mp4' },
+        { quoted: ms }
+      );
+
+      fs.unlinkSync(tmpAudio);
+      fs.unlinkSync(tmpVideo);
+    } catch (err) {
+      await ovl.sendMessage(ms_org, {
+        text: `Erreur de conversion en vidéo : ${err.message}`
+      }, { quoted: ms });
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "toaud",
+    classe: "Conversion",
+    react: "🎧",
+    desc: "Convertit une vidéo en audio",
+  },
+  async (ms_org, ovl, { msg_Repondu, ms }) => {
+    if (!msg_Repondu || !msg_Repondu.videoMessage) {
+      return ovl.sendMessage(ms_org, { text: "Répondez à une vidéo." }, { quoted: ms });
+    }
+
+    try {
+      const videoBuffer = await ovl.dl_save_media_ms(msg_Repondu.videoMessage);
+      const tmpInput = path.join(os.tmpdir(), `vid_${Date.now()}.mp4`);
+      const tmpOutput = path.join(os.tmpdir(), `aud_${Date.now()}.mp3`);
+
+      fs.writeFileSync(tmpInput, videoBuffer);
+
+      await new Promise((resolve, reject) => {
+        exec(`ffmpeg -i "${tmpInput}" -vn -acodec libmp3lame -q:a 4 "${tmpOutput}"`, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      await ovl.sendMessage(
+        ms_org,
+        { audio: fs.readFileSync(tmpOutput), mimetype: 'audio/mp4' },
+        { quoted: ms }
+      );
+
+      fs.unlinkSync(tmpInput);
+      fs.unlinkSync(tmpOutput);
+    } catch (err) {
+      await ovl.sendMessage(ms_org, {
+        text: `Erreur de conversion : ${err.message}`
+      }, { quoted: ms });
+    }
+  }
+);

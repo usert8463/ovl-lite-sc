@@ -372,70 +372,69 @@ ovlcmd(
 );
 
 ovlcmd(
-    {
-        nom_cmd: "tgs",
-        classe: "Owner",
-        react: "🔍",
-        desc: "Importe des stickers Telegram sur WhatsApp",
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const { repondre, arg, prenium_id, ms } = cmd_options;
+    {
+        nom_cmd: "tgs",
+        classe: "Owner",
+        react: "🔍",
+        desc: "Importe des stickers Telegram sur WhatsApp",
+    },
+    async (ms_org, ovl, cmd_options) => {
+        const { repondre, arg, prenium_id, ms } = cmd_options;
 
-         if (!prenium_id) {
-      return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." });
-         }
-        if (!arg[0]) {
-            repondre("Merci de fournir un lien de stickers Telegram valide.");
-            return;
-        }
+        if (!prenium_id) {
+            return ovl.sendMessage(ms_org, { text: "❌ Vous n'avez pas le droit d'exécuter cette commande." });
+        }
 
-        const lien = arg[0];
-        const nomStickers = lien.split("/addstickers/")[1];
+        if (!arg[0]) {
+            return repondre("Merci de fournir un lien de stickers Telegram valide.");
+        }
 
-        if (!nomStickers) {
-            repondre("Lien incorrect");
-            return;
-        }
+        const lien = arg[0];
+        const nomStickers = lien.split("/addstickers/")[1];
 
-        const urlAPI = `https://api.telegram.org/bot7644701915:AAGP8fIx_wv1pC7BNMpgncL4i-rRSDLlvqI/getStickerSet?name=${nomStickers}`;
+        if (!nomStickers) {
+            return repondre("❌ Lien incorrect.");
+        }
 
-        try {
-            const { data } = await axios.get(urlAPI);
-            const stickers = data.result.stickers;
+        const TELEGRAM_TOKEN = "8408302436:AAFAKAtwCOywhSW0vqm9VNK71huTi8pUp1k";
+        const urlAPI = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/getStickerSet?name=${nomStickers}`;
 
-            if (!stickers || stickers.length === 0) {
-                repondre("Aucun sticker trouvé dans cet ensemble.");
-                return;
-            }
+        try {
+            const { data } = await axios.get(urlAPI);
+            const stickers = data.result.stickers;
 
-            repondre(`Nom du pack: ${data.result.name}\nType : ${data.result.is_animated ? "animés" : "statiques"}\nTotal : ${stickers.length} stickers\n`);
+            if (!stickers || stickers.length === 0) {
+                return repondre("Aucun sticker trouvé dans cet ensemble.");
+            }
 
-            for (const stickerData of stickers) {
-                const fileInfo = await axios.get(`https://api.telegram.org/bot7644701915:AAGP8fIx_wv1pC7BNMpgncL4i-rRSDLlvqI/getFile?file_id=${stickerData.file_id}`);
-                const stickerBuffer = await axios({
-                    method: "get",
-                    url: `https://api.telegram.org/file/bot7644701915:AAGP8fIx_wv1pC7BNMpgncL4i-rRSDLlvqI/${fileInfo.data.result.file_path}`,
-                    responseType: "arraybuffer",
-                });
+            repondre(`✅ Nom du pack: ${data.result.name}\nType : ${data.result.is_animated ? "animés" : "statiques"}\nTotal : ${stickers.length} stickers\n`);
 
-                const sticker = new Sticker(stickerBuffer.data, {
-                    pack: config.STICKER_PACK_NAME,
-                    author: config.STICKER_AUTHOR_NAME,
-                    type: StickerTypes.FULL,
-                    quality: 40
-                });
+            for (const stickerData of stickers) {
+                const fileInfo = await axios.get(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getFile?file_id=${stickerData.file_id}`);
+                const stickerBuffer = await axios({
+                    method: "get",
+                    url: `https://api.telegram.org/file/bot${TELEGRAM_TOKEN}/${fileInfo.data.result.file_path}`,
+                    responseType: "arraybuffer",
+                });
 
-                await ovl.sendMessage(ms_org, {
-                    sticker: await sticker.toBuffer(),
-                }, { quoted: ms });
-            }
+                const sticker = new Sticker(stickerBuffer.data, {
+                    pack: config.STICKER_PACK_NAME,
+                    author: config.STICKER_AUTHOR_NAME,
+                    type: StickerTypes.FULL,
+                    quality: 40
+                });
 
-            repondre("Tous les stickers ont été envoyés.");
-        } catch (error) {
-            console.error(error);
-            repondre("Une erreur s'est produite lors du téléchargement des stickers.");
-        }
-    }
+                await ovl.sendMessage(ms_org, {
+                    sticker: await sticker.toBuffer(),
+                }, { quoted: ms });
+            }
+
+            repondre("✅ Tous les stickers ont été envoyés.");
+        } catch (error) {
+            console.error(error);
+            repondre("❌ Une erreur s'est produite lors du téléchargement des stickers.");
+        }
+    }
 );
 
 ovlcmd(
@@ -597,6 +596,68 @@ ovlcmd(
     } catch (error) {
       console.error("Erreur antidelete :", error);
       repondre("❌ Une erreur s'est produite lors de la configuration de l'antidelete.");
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "antispam",
+    classe: "Groupe",
+    react: "🔗",
+    desc: "Active ou configure l'antispam pour les groupes",
+  },
+  async (jid, ovl, cmd_options) => {
+    const { repondre, arg, verif_Groupe, verif_Admin } = cmd_options;
+
+    try {
+      if (!verif_Groupe) {
+        return repondre("❌ Cette commande fonctionne uniquement dans les groupes.");
+      }
+
+      if (!verif_Admin) {
+        return repondre("❌ Seuls les administrateurs peuvent utiliser cette commande.");
+      }
+
+      const sousCommande = arg[0]?.toLowerCase();
+      const validModes = ["on", "off"];
+      const validTypes = ["supp", "warn", "kick"];
+
+      const [settings] = await Antispam.findOrCreate({
+        where: { id: jid },
+        defaults: { id: jid, mode: "non", type: "supp" },
+      });
+
+      if (validModes.includes(sousCommande)) {
+        const newMode = sousCommande === "on" ? "oui" : "non";
+        if (settings.mode === newMode) {
+          return repondre(`L'Antispam est déjà ${sousCommande}.`);
+        }
+        settings.mode = newMode;
+        await settings.save();
+        return repondre(`L'Antispam a été ${sousCommande === "on" ? "activé" : "désactivé"} avec succès !`);
+      }
+
+      if (validTypes.includes(sousCommande)) {
+        if (settings.mode !== "oui") {
+          return repondre("❌ Veuillez activer l'antispam d'abord avec `antispam on`.");
+        }
+        if (settings.type === sousCommande) {
+          return repondre(`⚠️ L'action antispam est déjà définie sur ${sousCommande}.`);
+        }
+        settings.type = sousCommande;
+        await settings.save();
+        return repondre(`✅ L'action antispam est maintenant définie sur ${sousCommande}.`);
+      }
+
+      return repondre(
+        "Utilisation :\n" +
+        "antispam on/off : Activer ou désactiver l'antispam.\n" +
+        "antispam supp/warn/kick : Configurer l'action antispam."
+      );
+    } catch (error) {
+      console.error("Erreur lors de la configuration d'antispam :", error);
+      return repondre("❌ Une erreur s'est produite lors de l'exécution de la commande.");
     }
   }
 );

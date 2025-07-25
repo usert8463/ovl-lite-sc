@@ -4,42 +4,26 @@ const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 const FileType = require('file-type');
 const { getJid } = require('./Message_upsert_events');
 
-async function dl_save_media_ms(ovl, message, filename = '', attachExtension = true, directory = './downloads') {
-    try {
-        const quoted = message.msg || message;
-        const mime = quoted.mimetype || '';
-        const messageType = message.mtype ? message.mtype.replace(/Message/gi, '') : mime.split('/')[0];
+async function dl_save_media_ms(ovl, message) {
+  const quoted = message.msg || message;
+  const mime = quoted.mimetype || '';
+  const type = quoted.mtype ? quoted.mtype.replace(/Message/gi, '') : mime.split('/')[0];
+  if (!mime) throw new Error("MIME type manquant");
 
-        if (!mime) {
-            throw new Error("Type MIME non spécifié ou non pris en charge.");
-        }
+  const stream = await downloadContentFromMessage(quoted, type);
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  const buffer = Buffer.concat(chunks);
 
-        const stream = await downloadContentFromMessage(quoted, messageType);
-        const bufferChunks = [];
-        for await (const chunk of stream) {
-            bufferChunks.push(chunk);
-        }
+  const fileType = await FileType.fromBuffer(buffer);
+  if (!fileType) throw new Error("Type de fichier inconnu");
 
-        const buffer = Buffer.concat(bufferChunks);
-        const type = await FileType.fromBuffer(buffer);
-        if (!type) {
-            throw new Error("Type de fichier non reconnu");
-        }
+  const dir = './downloads';
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-        if (!fs.existsSync(directory)) {
-            fs.mkdirSync(directory, { recursive: true });
-        }
-
-        const trueFileName = attachExtension ? `${filename}.${type.ext}` : filename;
-        const filePath = path.resolve(directory, trueFileName);
-
-        await fs.promises.writeFile(filePath, buffer);
-
-        return filePath;
-    } catch (error) {
-        console.error('Erreur lors du téléchargement et de la sauvegarde du fichier:', error);
-        throw error;
-    }
+  const filePath = path.join(dir, `media_${Date.now()}.${fileType.ext}`);
+  await fs.promises.writeFile(filePath, buffer);
+  return filePath;
 }
 
 async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {

@@ -17,6 +17,7 @@ const { set_stick_cmd, del_stick_cmd, get_stick_cmd } = require("../DataBase/sti
 const { set_cmd, del_cmd, list_cmd } = require("../DataBase/public_private_cmd");
 const { Plugin } = require('../DataBase/plugin');
 const { extractNpmModules, installModules } = require("../lib/plugin");
+const { Antispam } = require("../DataBase/antispam");
 
 ovlcmd(
   {
@@ -608,15 +609,12 @@ ovlcmd(
     desc: "Active ou configure l'antispam pour les groupes",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, arg, verif_Groupe, verif_Admin } = cmd_options;
+    const { repondre, arg, prenium_id } = cmd_options;
 
     try {
-      if (!verif_Groupe) {
-        return repondre("❌ Cette commande fonctionne uniquement dans les groupes.");
-      }
 
-      if (!verif_Admin) {
-        return repondre("❌ Seuls les administrateurs peuvent utiliser cette commande.");
+      if (!prenium_id) {
+      return repondre("Seuls les utilisateurs prenium peuvent utiliser cette commande");
       }
 
       const sousCommande = arg[0]?.toLowerCase();

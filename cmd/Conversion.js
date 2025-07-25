@@ -1,10 +1,10 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const fs = require("fs");
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
-const { execSync, exec } = require("child_process");
+const { execSync, exec, spawn } = require("child_process");
 const path = require('path');
 const config = require('../set');
-const gTTS = require('google-tts-api');
+const googleTTS = require('google-tts-api');
 const axios = require('axios');
 const FormData = require('form-data');
 const { readFileSync } = require('fs');

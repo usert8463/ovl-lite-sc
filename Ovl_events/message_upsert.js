@@ -43,7 +43,6 @@ async function message_upsert(m, ovl) {
   try {
     if (m.type !== 'notify') return;
     if (!ms?.message) return;
-    console.log(ms?.message);
     addMessage(ms.key.id, ms);
 
     const mtype = getContentType(ms.message);

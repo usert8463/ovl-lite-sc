@@ -4,7 +4,7 @@ const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const { execSync, exec } = require("child_process");
 const path = require('path');
 const config = require('../set');
-const gTTS = require('gtts');
+const gTTS = require('google-tts-api');
 const axios = require('axios');
 const FormData = require('form-data');
 const { readFileSync } = require('fs');
@@ -609,59 +609,53 @@ let [emoji1, emoji2] = arg[0].split(';');
 );
 
 ovlcmd(
-  {
-    nom_cmd: "tts",
-    classe: "Conversion",
-    react: "🔊",
-    desc: "Convertit un texte en parole et renvoie l'audio.",
-  },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, prefixe, ms } = cmd_options;
+  {
+    nom_cmd: "tts",
+    classe: "Conversion",
+    react: "🔊",
+    desc: "Convertit un texte en parole et renvoie l'audio.",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { arg, prefixe, ms } = cmd_options;
 
-    if (!arg[0]) {
-      return ovl.sendMessage(ms_org, {
-        text: `Entrez un texte à lire.`,
-      }, { quoted: ms });
-    }
+    if (!arg[0]) {
+      return ovl.sendMessage(ms_org, {
+        text: `Entrez un texte à lire.`,
+      }, { quoted: ms });
+    }
 
-    let lang = 'fr';
-    let textToRead = arg.join(' ');
+    let lang = 'fr';
+    let textToRead = arg.join(' ');
 
-    if (arg[0].length === 2) {
-      lang = arg[0];
-      textToRead = arg.slice(1).join(' ');
-    }
+    if (arg[0].length === 2) {
+      lang = arg[0];
+      textToRead = arg.slice(1).join(' ');
+    }
 
-    try {
-      const gtts = new gTTS(textToRead, lang);
-      const audioPath = path.join(__dirname, 'output.mp3');
+    try {
+      const url = googleTTS.getAudioUrl(textToRead, {
+        lang,
+        slow: false,
+        host: 'https://translate.google.com',
+      });
 
-      gtts.save(audioPath, function (err, result) {
-        if (err) {
-          return ovl.sendMessage(ms_org, {
-            text: "Une erreur est survenue lors de la conversion en audio. Veuillez réessayer plus tard.",
-          }, { quoted: ms });
-        }
+      const { data } = await axios.get(url, { responseType: 'arraybuffer' });
 
-        const audioBuffer = fs.readFileSync(audioPath);
+      const message = {
+        audio: Buffer.from(data),
+        mimetype: 'audio/mpeg',
+        caption: '```Powered By OVL-MD-V2```',
+      };
 
-        const message = {
-          audio: audioBuffer,
-          mimetype: "audio/mpeg",
-          caption: `\`\`\`Powered By OVL-MD\`\`\``,
-        };
+      await ovl.sendMessage(ms_org, message, { quoted: ms });
 
-        ovl.sendMessage(ms_org, message, { quoted: ms }).then(() => {
-          fs.unlinkSync(audioPath);
-        });
-      });
-
-    } catch (error) {
-      return ovl.sendMessage(ms_org, {
-        text: "Une erreur est survenue lors de la conversion en audio. Veuillez réessayer plus tard.",
-      }, { quoted: ms });
-    }
-  }
+    } catch (error) {
+      console.error("Erreur TTS :", error);
+      return ovl.sendMessage(ms_org, {
+        text: "Une erreur est survenue lors de la conversion en audio.",
+      }, { quoted: ms });
+    }
+  }
 );
 
 ovlcmd(
@@ -786,7 +780,7 @@ ovlcmd(
 
       await ovl.sendMessage(ms_org, {
         video: { url: mp4Url },
-        caption: `\`\`\`Powered By OVL-MD\`\`\``,
+        caption: `\`\`\`Powered By OVL-MD-V2\`\`\``,
       }, { quoted: ms });
 
       fs.unlinkSync(cheminFichier);

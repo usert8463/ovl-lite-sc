@@ -3,7 +3,6 @@ const { Sticker, StickerTypes } = require('wa-sticker-formatter');
 const { Antilink } = require("../DataBase/antilink");
 const { Antitag } = require("../DataBase/antitag");
 const { Antibot } = require("../DataBase/antibot");
-const { Antispam } = require("../DataBase/antispam");
 const { GroupSettings, Events2 } = require("../DataBase/events");
 const fs = require("fs");
 const { Antimention } = require('../DataBase/antimention');

@@ -13,9 +13,11 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
     const recentMsgs = antispamStore[ms_org][auteur_Message];
     recentMsgs.push({ id: ms.key.id, timestamp: now });
 
+    while (recentMsgs.length > 20) recentMsgs.shift();
+
     const settings = await Antispam.findOne({ where: { id: ms_org } });
     if (!settings || settings.mode !== "oui") return;
-    
+
     const key = {
       remoteJid: ms_org,
       fromMe: false,
@@ -23,20 +25,26 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
       participant: auteur_Message
     };
 
-    if (recentMsgs.length >= 5) {
+    const isInSurveillance = surveillance[ms_org]?.[auteur_Message];
+    if (isInSurveillance && now - isInSurveillance < 10000) {
+      await ovl.sendMessage(ms_org, { delete: key });
+      return;
+    }
+
+    if (recentMsgs.length >= 4) {
       const lastFive = recentMsgs.slice(-5);
       const first = lastFive[0].timestamp;
       const last = lastFive[4].timestamp;
 
       if (last - first < 25000) {
-        const idsToDelete = lastFive.map(msg => ({
+        const allIds = recentMsgs.map(msg => ({
           remoteJid: ms_org,
           fromMe: false,
           id: msg.id,
           participant: auteur_Message
         }));
 
-        for (const delKey of idsToDelete) {
+        for (const delKey of allIds) {
           await ovl.sendMessage(ms_org, { delete: delKey });
         }
 
@@ -57,7 +65,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
               await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
             } else {
               await ovl.sendMessage(ms_org, {
-                text: `@${auteur_Message.split('@')[0]} a été bloqué pour spam (groupe non vérifié).`,
+                text: `@${auteur_Message.split('@')[0]} a été bloqué pour spam.`,
                 mentions: [auteur_Message]
               }, { quoted: ms });
               await ovl.updateBlockStatus(auteur_Message, "block");
@@ -80,7 +88,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
               await warning.save();
 
               if (warning.count >= 3) {
-                if (isGroupVerified) {
+                if (verif_Groupe) {
                   await ovl.sendMessage(ms_org, {
                     text: `@${auteur_Message.split('@')[0]} retiré après 3 avertissements.`,
                     mentions: [auteur_Message]
@@ -88,7 +96,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
                   await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
                 } else {
                   await ovl.sendMessage(ms_org, {
-                    text: `@${auteur_Message.split('@')[0]} bloqué après 3 avertissements (non vérifié).`,
+                    text: `@${auteur_Message.split('@')[0]} bloqué après 3 avertissements.`,
                     mentions: [auteur_Message]
                   }, { quoted: ms });
                   await ovl.updateBlockStatus(auteur_Message, "block");
@@ -108,22 +116,6 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
         surveillance[ms_org][auteur_Message] = now;
         antispamStore[ms_org][auteur_Message] = [];
         return;
-      } else {
-          while (recentMsgs.length > 4) {
-          recentMsgs.shift();
-        }
-      }
-    }
-
-    const lastSurveillance = surveillance[ms_org]?.[auteur_Message];
-    if (lastSurveillance) {
-      const prev = recentMsgs[recentMsgs.length - 2];
-      if (prev && now - prev.timestamp < 5000) {
-        await ovl.sendMessage(ms_org, { delete: key });
-        return;
-      } else {
-        surveillance[ms_org][auteur_Message] = null;
-        antispamStore[ms_org][auteur_Message] = [{ id: ms.key.id, timestamp: now }];
       }
     }
 

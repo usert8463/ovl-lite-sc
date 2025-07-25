@@ -11,16 +11,16 @@ async function sendMedia(ms_org, ovl, url, format, type, ms, name) {
     const dl_link = await notube_dl(url, format);
     if (!dl_link.ovl_dl_link) throw new Error("Le lien de téléchargement est introuvable.");
 
-    const fileRes = await axios.get(dl_link.ovl_dl_link, { responseType: 'arraybuffer' });
+    const fileRes = await axios.get(dl_link.downloadLink, { responseType: 'arraybuffer' });
     const buff = Buffer.from(fileRes.data);
 
-    if (!name) name = dl_link.name;
+    if (!name) name = dl_link.file_name;
 
     const message = {
       [type]: buff,
       mimetype: format === "mp3" ? "audio/mpeg" : "video/mp4",
       caption: "```Powered By OVL-MD-V2```",
-      fileName: format === "mp3" ? `${name}.mp3` : `${name}.mp4`
+      fileName: name
     };
 
     await ovl.sendMessage(ms_org, message, { quoted: ms });
@@ -191,7 +191,7 @@ ovlcmd(
 
     try {
       const videoDownloadLink = await notube_dl(videoLink, 'mp4');
-      const response = await axios.get(videoDownloadLink.ovl_dl_link, { responseType: 'arraybuffer' });
+      const response = await axios.get(videoDownloadLink.downloadLink, { responseType: 'arraybuffer' });
       const videoBuffer = Buffer.from(response.data);
 
       return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });

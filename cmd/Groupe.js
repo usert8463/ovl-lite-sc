@@ -506,10 +506,11 @@ ovlcmd(
 
 ovlcmd(
   {
-    nom_cmd: "del",
+    nom_cmd: "delete",
     classe: "Groupe",
     react: "🗑️",
     desc: "Supprimer un message.",
+    alias: ["del", "dlt"]
   },
   async (ms_org, ovl, cmd_options) => {
     const { msg_Repondu, ms, auteur_Msg_Repondu, verif_Admin, verif_Ovl_Admin, verif_Groupe, dev_num, dev_id, repondre, id_Bot, prenium_id } = cmd_options;

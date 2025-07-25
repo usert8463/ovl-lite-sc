@@ -191,8 +191,10 @@ ovlcmd(
 
     try {
       const videoDownloadLink = await notube_dl(videoLink, 'mp4');
+      const response = await axios.get(videoDownloadLink.ovl_dl_link, { responseType: 'arraybuffer' });
+      const videoBuffer = Buffer.from(response.data);
 
-      return ovl.sendMessage(ms_org, { video: videoDownloadLink.ovl_dl_link, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
 
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });

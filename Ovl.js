@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const pino = require("pino");
+const pino = require('pino');
 const axios = require('axios');
 
 const {
@@ -9,11 +9,11 @@ const {
   Browsers,
   fetchLatestBaileysVersion,
   delay
-} = require("@whiskeysockets/baileys");
+} = require('@whiskeysockets/baileys');
 
 const { getMessage, addContact, getContact } = require('./lib/store');
 const get_session = require('./DataBase/session');
-const config = require("./set");
+const config = require('./set');
 const { useSQLiteAuthState, WAAuth } = require('./lib/OvlAuth');
 
 const {
@@ -24,7 +24,7 @@ const {
   recup_msg
 } = require('./Ovl_events');
 
-const { getSecondAllSessions, getSecondSession } = require("./DataBase/connect");
+const { getSecondAllSessions, getSecondSession } = require('./DataBase/connect');
 
 const MAX_SESSIONS = 100;
 const sessionsActives = new Set();
@@ -32,33 +32,37 @@ const instancesSessions = new Map();
 
 async function startGenericSession({ numero, isPrincipale = false, sessionId = null }) {
   try {
-    const instanceId = isPrincipale ? "principale" : numero;
+    const instanceId = isPrincipale ? 'principale' : numero;
     const sessionData = await get_session(sessionId);
-    await WAAuth.upsert({ key: `creds--${instanceId}`, value: sessionData || null });
+
+    await WAAuth.upsert({ key: `creds--${instanceId}`, value: sessionData.creds || null });
+    await WAAuth.upsert({ key: `keys--${instanceId}`, value: sessionData.keys || null });
+
     const { state, saveCreds } = await useSQLiteAuthState(instanceId);
     const { version } = await fetchLatestBaileysVersion();
-    
+
     const ovl = makeWASocket({
       version,
       auth: {
-      creds: state.creds,
-      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }).child({ level: 'silent' }))
+        creds: state.creds,
+        keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }).child({ level: 'silent' }))
       },
-      logger: pino({ level: "silent" }),
-      browser: Browsers.ubuntu("Chrome"),
+      logger: pino({ level: 'silent' }),
+      browser: Browsers.ubuntu('Chrome'),
       printQRInTerminal: false,
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
-      generateHighQualityLinkPreview: true,
-      fireInitQueries: false,
+      generateHighQualityLinkPreview: true,
+      fireInitQueries: false,
       getMessage: async (key) => {
         const msg = getMessage(key.id);
         return msg?.message || undefined;
       }
     });
-    ovl.ev.on("messages.upsert", async (m) => message_upsert(m, ovl));
-    ovl.ev.on("group-participants.update", async (data) => group_participants_update(data, ovl));
-    ovl.ev.on("connection.update", async (con) => {
+
+    ovl.ev.on('messages.upsert', async (m) => message_upsert(m, ovl));
+    ovl.ev.on('group-participants.update', async (data) => group_participants_update(data, ovl));
+    ovl.ev.on('connection.update', async (con) => {
       connection_update(
         con,
         ovl,
@@ -66,27 +70,31 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
         isPrincipale ? async () => await startSecondarySessions() : undefined
       );
     });
-    ovl.ev.on("creds.update", saveCreds);
+    ovl.ev.on('creds.update', saveCreds);
+
     ovl.ev.on('contacts.upsert', async (contacts) => {
-  for (const contact of contacts) {
-    if (!contact.id) continue;
-    const jid = contact.id;
-    addContact(jid, contact);
-  }
-});
-    ovl.getName = function(jid) {
-  const contact = getContact(jid);
-  if (!contact) return null;
-  return contact.name || null;
-};
+      for (const contact of contacts) {
+        if (!contact.id) continue;
+        const jid = contact.id;
+        addContact(jid, contact);
+      }
+    });
+
+    ovl.getName = function (jid) {
+      const contact = getContact(jid);
+      if (!contact) return null;
+      return contact.name || null;
+    };
+
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);
-    ovl.recup_msg = (params = {}) =>
-      recup_msg({ ovl, ...params });
-    console.log(`✅ Session ${isPrincipale ? "principale" : "secondaire " + numero} démarrée`);
+
+    ovl.recup_msg = (params = {}) => recup_msg({ ovl, ...params });
+
+    console.log(`✅ Session ${isPrincipale ? 'principale' : 'secondaire ' + numero} démarrée`);
     return ovl;
   } catch (err) {
-    console.error(`❌ Erreur session ${isPrincipale ? "principale" : numero} :`, err.message);
+    console.error(`❌ Erreur session ${isPrincipale ? 'principale' : numero} :`, err.message);
     return null;
   }
 }
@@ -109,10 +117,10 @@ async function stopSession(numero) {
 
 async function startPrincipalSession() {
   await delay(45000);
-  const sess = config.SESSION_ID || "";
-  if (!(sess && sess.startsWith("Ovl-MD_") && sess.endsWith("_SESSION-ID"))) return;
-  const ovlPrincipale = await startGenericSession({ numero: "principale", isPrincipale: true, sessionId: sess });
-  if (ovlPrincipale) instancesSessions.set("principale", ovlPrincipale);
+  const sess = config.SESSION_ID || '';
+  if (!(sess && sess.startsWith('Ovl-MD_') && sess.endsWith('_SESSION-ID'))) return;
+  const ovlPrincipale = await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: sess });
+  if (ovlPrincipale) instancesSessions.set('principale', ovlPrincipale);
   await startSecondarySessions();
   console.log(`🤖 Session principale + secondaires démarrées : ${sessionsActives.size}/${MAX_SESSIONS}`);
   surveillerNouvellesSessions();
@@ -121,12 +129,14 @@ async function startPrincipalSession() {
 async function startSecondarySessions() {
   const sessions = await getSecondAllSessions();
   const numerosEnBase = new Set(sessions.map(s => s.numero));
+
   for (const numero of sessionsActives) {
     if (!numerosEnBase.has(numero)) {
       console.log(`⚠️ Session supprimée détectée : ${numero} - arrêt en cours.`);
       await stopSession(numero);
     }
   }
+
   for (const { numero } of sessions) {
     if (sessionsActives.size >= MAX_SESSIONS) {
       console.log(`❌ Limite de sessions atteinte (${sessionsActives.size}/${MAX_SESSIONS}).`);
@@ -148,13 +158,13 @@ function surveillerNouvellesSessions() {
     try {
       await startSecondarySessions();
     } catch (err) {
-      console.error("❌ Erreur lors de la vérification des sessions secondaires :", err.message);
+      console.error('❌ Erreur lors de la vérification des sessions secondaires :', err.message);
     }
   }, 10000);
 }
 
 startPrincipalSession().catch((err) => {
-  console.error("❌ Erreur inattendue :", err.message || err);
+  console.error('❌ Erreur inattendue :', err.message || err);
 });
 
 const express = require('express');
@@ -168,29 +178,29 @@ app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OVL-Bot Web Page</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #121212; font-family: Arial, sans-serif; color: #fff; overflow: hidden; }
-    .content { text-align: center; padding: 30px; background-color: #1e1e1e; border-radius: 12px; box-shadow: 0 8px 20px rgba(255,255,255,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    .content:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(255,255,255,0.15); }
-    h1 { font-size: 2em; color: #f0f0f0; margin-bottom: 15px; letter-spacing: 1px; }
-    p { font-size: 1.1em; color: #d3d3d3; line-height: 1.5; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OVL-Bot Web Page</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #121212; font-family: Arial, sans-serif; color: #fff; overflow: hidden; }
+    .content { text-align: center; padding: 30px; background-color: #1e1e1e; border-radius: 12px; box-shadow: 0 8px 20px rgba(255,255,255,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .content:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(255,255,255,0.15); }
+    h1 { font-size: 2em; color: #f0f0f0; margin-bottom: 15px; letter-spacing: 1px; }
+    p { font-size: 1.1em; color: #d3d3d3; line-height: 1.5; }
+  </style>
 </head>
 <body>
-  <div class="content">
-    <h1>Bienvenue sur OVL-MD-V2</h1>
-    <p>Votre assistant WhatsApp</p>
-  </div>
+  <div class="content">
+    <h1>Bienvenue sur OVL-MD-V2</h1>
+    <p>Votre assistant WhatsApp</p>
+  </div>
 </body>
 </html>`);
 });
 
 app.listen(port, () => {
-  console.log("Listening on port: " + port);
+  console.log('Listening on port: ' + port);
   setupAutoPing(`http://localhost:${port}/`);
 });
 
@@ -207,6 +217,6 @@ function setupAutoPing(url) {
   }, 30000);
 }
 
-process.on("uncaughtException", async (e) => {
-  console.log("Une erreur inattendue est survenue :", e.message);
+process.on('uncaughtException', async (e) => {
+  console.log('Une erreur inattendue est survenue :', e.message);
 });

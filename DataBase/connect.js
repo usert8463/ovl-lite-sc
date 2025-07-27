@@ -45,8 +45,8 @@ const Connect = sequelize.define("Connect", {
 })();
 
 async function saveSecondSession(session_id) {
-  let credsRaw = await get_session(session_id);
-
+  let sess = await get_session(session_id);
+  let credsRaw = sess.creds
   if (!credsRaw) {
     console.error(`❌ Session invalide pour l’ID : ${session_id}`);
     return false;

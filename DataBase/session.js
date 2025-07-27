@@ -22,6 +22,10 @@ const Session = sequelize.define('Session', {
     type: DataTypes.TEXT,
     allowNull: false,
   },
+  keys: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  },
   createdAt: {
     type: DataTypes.DATE,
     allowNull: false,
@@ -43,7 +47,10 @@ async function get_session(id) {
   session.createdAt = new Date();
   await session.save();
 
-  return session.content;
+  return {
+  creds: session.content,
+  keys: session.keys,
+};
 }
 
 module.exports = get_session;

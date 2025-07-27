@@ -977,7 +977,6 @@ ovlcmd(
   }
 );
 
-
 ovlcmd(
   {
     nom_cmd: "vcf",
@@ -989,39 +988,45 @@ ovlcmd(
     const { verif_Groupe, prenium_id, ms } = cmd_options;
 
     try {
-      if (!verif_Groupe) return ovl.sendMessage(ms_org, { text: "Cette commande doit être utilisée dans un groupe." }, { quoted: ms });
-      if (!prenium_id) {
-      return ovl.sendMessage(jid, { text: "Vous n'avez pas les permissions requises pour quitter ce groupe." }, { quoted: cmd_options.ms });
-      }
-      const groupMetadata = await ovl.groupMetadata(ms_org).catch((e) => null);
+      if (!verif_Groupe)
+        return ovl.sendMessage(ms_org, { text: "Cette commande doit être utilisée dans un groupe." }, { quoted: ms });
+      if (!prenium_id)
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas les permissions requises pour utiliser cette commande." }, { quoted: ms });
 
-      if (!groupMetadata || !groupMetadata.participants) {
-        return ovl.sendMessage(ms_org, { text: 'Échec de la récupération des métadonnées du groupe ou de la liste des participants.' }, { quoted: ms });
-      }
+      const groupMetadata = await ovl.groupMetadata(ms_org).catch(() => null);
+      if (!groupMetadata || !groupMetadata.participants)
+        return ovl.sendMessage(ms_org, { text: "Échec de la récupération des métadonnées du groupe ou de la liste des participants." }, { quoted: ms });
 
       const participants = groupMetadata.participants;
       const vcfData = [];
 
       for (const participant of participants) {
-        const number = participant.jid.split('@')[0];
-        vcfData.push(`BEGIN:VCARD\nVERSION:3.0\nFN:${number}\nTEL;TYPE=CELL:${number}\nEND:VCARD`);
+        const jid = participant.jid;
+        const number = jid.split("@")[0];
+        const name = ovl.getName(jid) || number;
+        vcfData.push(`BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${number}\nEND:VCARD`);
       }
 
-      const groupName = groupMetadata.subject || `Groupe ${ms_org.key.remoteJid}`;
+      const groupName = groupMetadata.subject || `Groupe_${ms_org.key.remoteJid.replace(/[@.]/g, "_")}`;
       const vcfFileName = `contacts_groupe_${groupName}.vcf`;
       const vcfFilePath = `./${vcfFileName}`;
-      
+
       fs.writeFileSync(vcfFilePath, vcfData.join('\n'));
 
       const message = `*TOUS LES CONTACTS DES MEMBRES ENREGISTRÉS*\nGroupe : *${groupName}*\nContacts : *${participants.length}*`;
 
       const vcfFile = fs.readFileSync(vcfFilePath);
-      await ovl.sendMessage(ms_org, { document: vcfFile, mimetype: 'text/vcard', filename: vcfFileName, caption: message }, { quoted: ms });
+      await ovl.sendMessage(ms_org, {
+        document: vcfFile,
+        mimetype: "text/vcard",
+        filename: vcfFileName,
+        caption: message,
+      }, { quoted: ms });
 
-      fs.unlinkSync(vcfFilePath); 
+      fs.unlinkSync(vcfFilePath);
     } catch (error) {
-      console.error('Erreur lors du traitement de la commande vcf:', error);
-      return ovl.sendMessage(ms_org, { text: 'Une erreur est survenue lors du traitement de la commande vcf.' }, { quoted: ms });
+      console.error("Erreur lors du traitement de la commande vcf:", error);
+      return ovl.sendMessage(ms_org, { text: "Une erreur est survenue lors du traitement de la commande vcf." }, { quoted: ms });
     }
   }
 );

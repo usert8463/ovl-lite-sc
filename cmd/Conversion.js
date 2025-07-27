@@ -971,7 +971,7 @@ ovlcmd(
     nom_cmd: "toaud",
     classe: "Conversion",
     react: "🎧",
-    desc: "Convertit une vidéo en audio",
+    desc: "Convertit une vidéo en audio"
   },
   async (ms_org, ovl, { msg_Repondu, ms }) => {
     if (!msg_Repondu || !msg_Repondu.videoMessage) {
@@ -994,23 +994,19 @@ ovlcmd(
         ffmpeg.stdin.write(videoBuffer);
         ffmpeg.stdin.end();
 
-        ffmpeg.on('exit', (code) => {
-          if (code === 0) resolve();
-          else reject(new Error(`ffmpeg exited with code ${code}`));
+        ffmpeg.on('close', code => {
+          code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
         });
       });
 
-      await ovl.sendMessage(
-        ms_org,
-        { audio: fs.readFileSync(output), mimetype: 'audio/mp4' },
-        { quoted: ms }
-      );
+      await ovl.sendMessage(ms_org, {
+        audio: fs.readFileSync(output),
+        mimetype: 'audio/mp4'
+      }, { quoted: ms });
 
       fs.unlinkSync(output);
     } catch (err) {
-      await ovl.sendMessage(ms_org, {
-        text: `Erreur de conversion : ${err.message}`
-      }, { quoted: ms });
+      await ovl.sendMessage(ms_org, { text: `Erreur de conversion : ${err.message}` }, { quoted: ms });
     }
   }
 );
@@ -1020,7 +1016,7 @@ ovlcmd(
     nom_cmd: "tovideo",
     classe: "Conversion",
     react: "🎬",
-    desc: "Convertit un audio en vidéo animée",
+    desc: "Convertit un audio en vidéo animée"
   },
   async (ms_org, ovl, { msg_Repondu, ms }) => {
     if (!msg_Repondu || !msg_Repondu.audioMessage) {
@@ -1045,23 +1041,19 @@ ovlcmd(
         ffmpeg.stdin.write(audioBuffer);
         ffmpeg.stdin.end();
 
-        ffmpeg.on('exit', (code) => {
-          if (code === 0) resolve();
-          else reject(new Error(`ffmpeg exited with code ${code}`));
+        ffmpeg.on('close', code => {
+          code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
         });
       });
 
-      await ovl.sendMessage(
-        ms_org,
-        { video: fs.readFileSync(output), mimetype: 'video/mp4' },
-        { quoted: ms }
-      );
+      await ovl.sendMessage(ms_org, {
+        video: fs.readFileSync(output),
+        mimetype: 'video/mp4'
+      }, { quoted: ms });
 
       fs.unlinkSync(output);
     } catch (err) {
-      await ovl.sendMessage(ms_org, {
-        text: `Erreur de conversion en vidéo : ${err.message}`
-      }, { quoted: ms });
+      await ovl.sendMessage(ms_org, { text: `Erreur de conversion en vidéo : ${err.message}` }, { quoted: ms });
     }
   }
 );

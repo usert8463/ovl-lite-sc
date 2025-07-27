@@ -74,6 +74,7 @@ async function message_upsert(m, ovl) {
       : ms.key.fromMe ? id_Bot : decodeJid(ms.key.remoteJid);
 
     const msg_Repondu = ms.message?.[mtype]?.contextInfo?.quotedMessage;
+    const quote = ms.message?.[mtype]?.contextInfo;
     const auteur_Msg_Repondu = await getJid(
       decodeJid(ms.message?.[mtype]?.contextInfo?.participant),
       ms_org, ovl
@@ -113,7 +114,7 @@ async function message_upsert(m, ovl) {
       infos_Groupe, nom_Groupe, auteur_Message, nom_Auteur_Message, mtype,
       id_Bot, prenium_id, dev_id, dev_num, id_Bot_N, verif_Ovl_Admin,
       prefixe, arg, repondre, groupe_Admin: () => groupe_Admin,
-      msg_Repondu, auteur_Msg_Repondu, ms, ms_org, texte, getJid
+      msg_Repondu, auteur_Msg_Repondu, ms, ms_org, texte, getJid, quote
     };
 
     const executerCommande = async (cd) => {

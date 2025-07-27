@@ -107,8 +107,11 @@ async function message_upsert(m, ovl) {
     const dev_id = dev_num.includes(auteur_Message);
     const verif_Admin = verif_Groupe && (groupe_Admin.includes(auteur_Message) || prenium_id);
 
-    const repondre = (msg) => ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
-
+    const repondre = (msg, jid) => {
+    const cible = jid || ms_org;
+      return ovl.sendMessage(cible, { text: msg }, { quoted: ms });
+    };
+    
     const cmd_options = {
       verif_Groupe, mbre_membre, membre_Groupe: auteur_Message, verif_Admin,
       infos_Groupe, nom_Groupe, auteur_Message, nom_Auteur_Message, mtype,

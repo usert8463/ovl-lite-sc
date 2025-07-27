@@ -5,6 +5,7 @@ const prefixe = config.PREFIXE;
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const { WA_CONF } = require('../DataBase/wa_conf');
 const { TempMail } = require("tempmail.lol");
 const JavaScriptObfuscator = require('javascript-obfuscator');
 const { exec } = require('child_process');
@@ -24,45 +25,48 @@ function stylize(text) {
 }
 
 ovlcmd(
-    {
-        nom_cmd: "test",
-        classe: "Outils",
-        react: "🌟",
-        desc: "Tester la connectivité du bot"
-    },
-    async (ms_org, ovl, cmd_options) => {
-        try {
-           const themePath = './lib/theme.json';
-           const rawData = fs.readFileSync(themePath, 'utf8');
-           const themes = JSON.parse(rawData);
+    {
+        nom_cmd: "test",
+        classe: "Outils",
+        react: "🌟",
+        desc: "Tester la connectivité du bot"
+    },
+    async (ms_org, ovl, cmd_options) => {
+        try {
+            const menu = `🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`;
+            const themePath = './lib/theme.json';
+            const rawData = fs.readFileSync(themePath, 'utf8');
+            const themes = JSON.parse(rawData);
 
-            let lien;
-        if (config.THEME.startsWith("http://") || config.THEME.startsWith("https://")) {
-          lien = config.THEME;
-        } else {
-          const selectedTheme = themes.find(t => t.id === config.THEME);
-          if (!selectedTheme) throw new Error("Thème introuvable dans le fichier JSON");
-          lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
-        }
-            const menu = `🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`;
+            let lien;
+            if (settings.theme.startsWith("http://") || settings.theme.startsWith("https://")) {
+                lien = settings.theme;
+            } else {
+                const selectedTheme = themes.find(t => t.id === settings.theme);
+                if (!selectedTheme) throw new Error("Thème introuvable dans le fichier JSON");
+                lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
+            }
 
-            if (lien.endsWith(".mp4")) {
-                await ovl.sendMessage(ms_org, {
-                    video: { url: lien },
-                    caption: stylize(menu),
-                    gifPlayback: true,
-                }, { quoted: cmd_options.ms });
-            } else {
-                await ovl.sendMessage(ms_org, {
-                    image: { url: lien },
-                    caption: stylize(menu)
-                }, { quoted: cmd_options.ms });
-            }
+            const options = {
+                quoted: cmd_options.ms
+            };
 
-        } catch (error) {
-            console.error("Erreur lors de l'envoi du message de test :", error.message || error);
-        }
-    }
+            if (lien.endsWith(".mp4")) {
+                await ovl.sendMessage(ms_org, {
+                    video: { url: lien },
+                    caption: stylize(menu),
+                    gifPlayback: true
+                }, options);
+            } else {
+                await ovl.sendMessage(ms_org, {
+                    image: { url: lien },
+                    caption: stylize(menu)
+                }, options);
+            }
+        } catch {
+            await ovl.sendMessage(ms_org, { text: stylize(`🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`) }, { quoted: cmd_options.ms });
+        }
+    }
 );
 
 ovlcmd(
@@ -122,12 +126,18 @@ ovlcmd(
     const { arg, ms, repondre, prenium_id } = cmd_options;
 
     try {
-        if (!prenium_id) {
+      if (!prenium_id) {
         return repondre("Vous n'avez pas le droit d'exécuter cette commande.");
-        }
+      }
+
       const themePath = './lib/theme.json';
       const rawData = fs.readFileSync(themePath, 'utf8');
       const themesData = JSON.parse(rawData);
+
+      const [settings] = await WA_CONF.findOrCreate({
+        where: { id: '1' },
+        defaults: { id: '1', mention: 'non' }
+      });
 
       const afficherAide = () => {
         const exemple = `${config.PREFIXE}theme 2`;
@@ -160,17 +170,12 @@ ovlcmd(
       }
 
       if (sousCmd.startsWith("http://") || sousCmd.startsWith("https://")) {
-        const setPath = path.join(__dirname, '../set.js');
-        let contenu = fs.readFileSync(setPath, 'utf8');
-        contenu = contenu.replace(/THEME:\s*".*?"/, `THEME: "${sousCmd}"`);
-        fs.writeFileSync(setPath, contenu);
+        settings.mention = sousCmd;
+        await settings.save();
 
-        await ovl.sendMessage(ms_org, {
-          text: `✅ Thème personnalisé défini avec succès depuis le lien fourni.\n🔄 Redémarrage du bot...`
+        return ovl.sendMessage(ms_org, {
+          text: `✅ Thème personnalisé défini avec succès depuis le lien fourni.`
         }, { quoted: ms });
-
-        exec('pm2 restart all');
-        return;
       }
 
       const numero = parseInt(sousCmd, 10);
@@ -184,16 +189,12 @@ ovlcmd(
       const themeId = selectedTheme.id;
       const themeName = selectedTheme.nom;
 
-      const setPath = path.join(__dirname, '../set.js');
-      let contenu = fs.readFileSync(setPath, 'utf8');
-      contenu = contenu.replace(/THEME:\s*".*?"/, `THEME: "${themeId}"`);
-      fs.writeFileSync(setPath, contenu);
+      settings.mention = themeId;
+      await settings.save();
 
-      await ovl.sendMessage(ms_org, {
-        text: `✅ Thème *${themeName}* sélectionné avec succès !\n🔄 Redémarrage du bot...`
+      return ovl.sendMessage(ms_org, {
+        text: `✅ Thème *${themeName}* sélectionné avec succès !`
       }, { quoted: ms });
-
-      exec('pm2 restart all');
 
     } catch (err) {
       console.error("Erreur dans la commande theme :", err);
@@ -205,50 +206,49 @@ ovlcmd(
 );
 
 ovlcmd(
-    {
-        nom_cmd: "menu",
-        classe: "Outils",
-        react: "🔅",
-        desc: "Affiche le menu du bot",
-    },
-    async (ms_org, ovl, cmd_options) => {
-        try {
-            const arg = cmd_options.arg;
-            const seconds = process.uptime();
-            const j = Math.floor(seconds / 86400);
-            const h = Math.floor((seconds / 3600) % 24);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = Math.floor(seconds % 60);
-            let uptime = "";
-            if (j > 0) uptime += `${j}J `;
-            if (h > 0) uptime += `${h}H `;
-            if (m > 0) uptime += `${m}M `;
-            if (s > 0) uptime += `${s}S`;
+  {
+    nom_cmd: "menu",
+    classe: "Outils",
+    react: "🔅",
+    desc: "Affiche le menu du bot",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    try {
+      const arg = cmd_options.arg;
+      const seconds = process.uptime();
+      const j = Math.floor(seconds / 86400);
+      const h = Math.floor((seconds / 3600) % 24);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      let uptime = "";
+      if (j > 0) uptime += `${j}J `;
+      if (h > 0) uptime += `${h}H `;
+      if (m > 0) uptime += `${m}M `;
+      if (s > 0) uptime += `${s}S`;
 
-            const dateObj = new Date();
-            const dateStr = dateObj.toLocaleDateString("fr-FR");
-            const heureStr = dateObj.toLocaleTimeString("fr-FR");
-            const platform = process.platform;
+      const dateObj = new Date();
+      const dateStr = dateObj.toLocaleDateString("fr-FR");
+      const heureStr = dateObj.toLocaleTimeString("fr-FR");
+      const platform = process.platform;
 
+      const commandes = cmd;
+      const cmd_classe = {};
+      commandes.forEach((cmd) => {
+        if (!cmd_classe[cmd.classe]) cmd_classe[cmd.classe] = [];
+        cmd_classe[cmd.classe].push(cmd);
+      });
 
-            const commandes = cmd;
-            const cmd_classe = {};
-            commandes.forEach((cmd) => {
-                if (!cmd_classe[cmd.classe]) cmd_classe[cmd.classe] = [];
-                cmd_classe[cmd.classe].push(cmd);
-            });
+      const classesSorted = Object.keys(cmd_classe).sort((a, b) => a.localeCompare(b));
+      for (const classe of classesSorted) {
+        cmd_classe[classe].sort((a, b) =>
+          a.nom_cmd.localeCompare(b.nom_cmd, undefined, { numeric: true })
+        );
+      }
 
-            const classesSorted = Object.keys(cmd_classe).sort((a, b) => a.localeCompare(b));
-            for (const classe of classesSorted) {
-                cmd_classe[classe].sort((a, b) =>
-                    a.nom_cmd.localeCompare(b.nom_cmd, undefined, { numeric: true })
-                );
-            }
+      let menu = "";
 
-            let menu = "";
-
-            if (arg.length === 0) {
-                menu += `╭──⟪ 🤖 OVL-MD BOT V2 ⟫──╮
+      if (arg.length === 0) {
+        menu += `╭──⟪ 🤖 OVL-MD BOT V2 ⟫──╮
 ├ ߷ Préfixe       : ${config.PREFIXE}
 ├ ߷ Owner         : ${config.NOM_OWNER}
 ├ ߷ Commandes  : ${commandes.length}
@@ -259,107 +259,120 @@ ovlcmd(
 ├ ߷ Version        : 2.0.0
 ╰──────────────────╯\n\n`;
 
-                menu += "╭───⟪ Catégories ⟫───╮\n";
-                classesSorted.forEach((classe, i) => {
-                    menu += `├ ߷ ${i + 1} • ${classe}\n`;
-                });
-                menu += "╰───────────────────╯\n";
-                menu += `
+        menu += "╭───⟪ Catégories ⟫───╮\n";
+        classesSorted.forEach((classe, i) => {
+          menu += `├ ߷ ${i + 1} • ${classe}\n`;
+        });
+        menu += "╰───────────────────╯\n";
+        menu += `
 💡 Tape *${config.PREFIXE}menu <numéro>* pour voir ses commandes.
 📌 Exemple : *${config.PREFIXE}menu 1*
 
 > ©2025 OVL-MD-V2 By *AINZ*`;
-            } else {
-                const input = parseInt(arg[0], 10);
-                if (isNaN(input) || input < 1 || input > classesSorted.length) {
-                    await ovl.sendMessage(ms_org, {
-                        text:`Catégorie introuvable : ${arg[0]}`
-                    }, { quoted: cmd_options.ms });
-                    return;
-                }
-                const classeSelectionnee = classesSorted[input - 1];
-                menu += `╭────⟪ ${classeSelectionnee.toUpperCase()} ⟫────╮\n`;
-                cmd_classe[classeSelectionnee].forEach((cmd) => {
-                    menu += `├ ߷ ${cmd.nom_cmd}\n`;
-                });
-                menu += `╰──────────────────╯\n\nTape *${config.PREFIXE}menu* pour revenir au menu principal.`;
-            }
+      } else {
+        const input = parseInt(arg[0], 10);
+        if (isNaN(input) || input < 1 || input > classesSorted.length) {
+          await ovl.sendMessage(ms_org, {
+            text: `Catégorie introuvable : ${arg[0]}`
+          }, { quoted: cmd_options.ms });
+          return;
+        }
+        const classeSelectionnee = classesSorted[input - 1];
+        menu += `╭────⟪ ${classeSelectionnee.toUpperCase()} ⟫────╮\n`;
+        cmd_classe[classeSelectionnee].forEach((cmd) => {
+          menu += `├ ߷ ${cmd.nom_cmd}\n`;
+        });
+        menu += `╰──────────────────╯\n\nTape *${config.PREFIXE}menu* pour revenir au menu principal.`;
+      }
 
-            const themePath = './lib/theme.json';
-            const rawData = fs.readFileSync(themePath, 'utf8');
-            const themes = JSON.parse(rawData);
+      const [settings] = await WA_CONF.findOrCreate({
+        where: { id: '1' },
+        defaults: { id: '1', mention: 'non' }
+      });
 
-            let lien;
-        if (config.THEME.startsWith("http://") || config.THEME.startsWith("https://")) {
-          lien = config.THEME;
+      const themeId = settings.mention;
+      const themePath = './lib/theme.json';
+      const rawData = fs.readFileSync(themePath, 'utf8');
+      const themes = JSON.parse(rawData);
+
+      let lien;
+      if (themeId.startsWith("http://") || themeId.startsWith("https://")) {
+        lien = themeId;
+      } else {
+        const selectedTheme = themes.find(t => t.id === themeId);
+        if (!selectedTheme) lien = null;
+        else lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
+      }
+
+      try {
+        if (lien && lien.endsWith(".mp4")) {
+          await ovl.sendMessage(ms_org, {
+            video: { url: lien },
+            caption: stylize(menu),
+            gifPlayback: true
+          }, { quoted: cmd_options.ms });
+        } else if (lien) {
+          await ovl.sendMessage(ms_org, {
+            image: { url: lien },
+            caption: stylize(menu)
+          }, { quoted: cmd_options.ms });
         } else {
-          const selectedTheme = themes.find(t => t.id === config.THEME);
-          if (!selectedTheme) throw new Error("Thème introuvable dans le fichier JSON");
-          lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
+          throw new Error("Aucun thème trouvé");
         }
+      } catch (e) {
+        await ovl.sendMessage(ms_org, {
+          text: stylize(menu)
+        }, { quoted: cmd_options.ms });
+      }
 
-            if (lien.endsWith(".mp4")) {
-                await ovl.sendMessage(ms_org, {
-                    video: { url: lien },
-                    caption: stylize(menu),
-                    gifPlayback: true
-                }, { quoted: cmd_options.ms });
-            } else {
-                await ovl.sendMessage(ms_org, {
-                    image: { url: lien },
-                    caption: stylize(menu)
-                }, { quoted: cmd_options.ms });
-            }
-
-        } catch (error) {
-            console.error("Erreur lors de la génération du menu :", error.message || error);
-            await ovl.sendMessage(ms_org, {
-                text: "Une erreur est survenue lors de la génération du menu."
-            }, { quoted: cmd_options.ms });
-        }
+    } catch (error) {
+      await ovl.sendMessage(ms_org, {
+        text: "Une erreur est survenue lors de la génération du menu."
+      }, { quoted: cmd_options.ms });
     }
+  }
 );
 
 ovlcmd(
-    {
-        nom_cmd: "allmenu",
-        classe: "Outils",
-        react: "📜",
-        desc: "Affiche toutes les commandes du bot",
-    },
-    async (ms_org, ovl, cmd_options) => {
-        try {
-            const seconds = process.uptime();
-            const j = Math.floor(seconds / 86400);
-            const h = Math.floor((seconds / 3600) % 24);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = Math.floor(seconds % 60);
-            let uptime = "";
-            if (j > 0) uptime += `${j}J `;
-            if (h > 0) uptime += `${h}H `;
-            if (m > 0) uptime += `${m}M `;
-            if (s > 0) uptime += `${s}S`;
+  {
+    nom_cmd: "allmenu",
+    classe: "Outils",
+    react: "📜",
+    desc: "Affiche toutes les commandes du bot",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    try {
+      const seconds = process.uptime();
+      const j = Math.floor(seconds / 86400);
+      const h = Math.floor((seconds / 3600) % 24);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      let uptime = "";
+      if (j > 0) uptime += `${j}J `;
+      if (h > 0) uptime += `${h}H `;
+      if (m > 0) uptime += `${m}M `;
+      if (s > 0) uptime += `${s}S`;
 
-            const dateObj = new Date();
-            const dateStr = dateObj.toLocaleDateString("fr-FR");
-            const heureStr = dateObj.toLocaleTimeString("fr-FR");
-            const platform = process.platform;
+      const dateObj = new Date();
+      const dateStr = dateObj.toLocaleDateString("fr-FR");
+      const heureStr = dateObj.toLocaleTimeString("fr-FR");
+      const platform = process.platform;
 
-            const commandes = cmd;
-            const cmd_classe = {};
-            commandes.forEach((cmd) => {
-                if (!cmd_classe[cmd.classe]) cmd_classe[cmd.classe] = [];
-                cmd_classe[cmd.classe].push(cmd);
-            });
+      const commandes = cmd;
+      const cmd_classe = {};
+      commandes.forEach((cmd) => {
+        if (!cmd_classe[cmd.classe]) cmd_classe[cmd.classe] = [];
+        cmd_classe[cmd.classe].push(cmd);
+      });
 
-            const classesSorted = Object.keys(cmd_classe).sort((a, b) => a.localeCompare(b));
-            for (const classe of classesSorted) {
-                cmd_classe[classe].sort((a, b) =>
-                    a.nom_cmd.localeCompare(b.nom_cmd, undefined, { numeric: true })
-                );
-            }
+      const classesSorted = Object.keys(cmd_classe).sort((a, b) => a.localeCompare(b));
+      for (const classe of classesSorted) {
+        cmd_classe[classe].sort((a, b) =>
+          a.nom_cmd.localeCompare(b.nom_cmd, undefined, { numeric: true })
+        );
+      }
 
-            let menu = `╭──⟪ 🤖 OVL-MD BOT V2 ⟫──╮
+      let menu = `╭──⟪ 🤖 OVL-MD BOT V2 ⟫──╮
 ├ ߷ Préfixe       : ${config.PREFIXE}
 ├ ߷ Owner         : ${config.NOM_OWNER}
 ├ ߷ Commandes  : ${commandes.length}
@@ -370,49 +383,62 @@ ovlcmd(
 ├ ߷ Version        : 2.0.0
 ╰──────────────────╯\n\n`;
 
-            for (const classe of classesSorted) {
-                menu += `╭──⟪ ${classe.toUpperCase()} ⟫──╮\n`;
-                cmd_classe[classe].forEach((cmd) => {
-                    menu += `├ ߷ ${cmd.nom_cmd}\n`;
-                });
-                menu += `╰──────────────────╯\n\n`;
-            }
+      for (const classe of classesSorted) {
+        menu += `╭──⟪ ${classe.toUpperCase()} ⟫──╮\n`;
+        cmd_classe[classe].forEach((cmd) => {
+          menu += `├ ߷ ${cmd.nom_cmd}\n`;
+        });
+        menu += `╰──────────────────╯\n\n`;
+      }
 
-            menu += `> ©2025 OVL-MD-V2 By *AINZ*`;
+      menu += `> ©2025 OVL-MD-V2 By *AINZ*`;
 
-            const themePath = './lib/theme.json';
-            const rawData = fs.readFileSync(themePath, 'utf8');
-            const themes = JSON.parse(rawData);
+      const [settings] = await WA_CONF.findOrCreate({
+        where: { id: '1' },
+        defaults: { id: '1', mention: 'non' }
+      });
 
-            let lien;
-        if (config.THEME.startsWith("http://") || config.THEME.startsWith("https://")) {
-          lien = config.THEME;
+      const themeId = settings.mention;
+      const themePath = './lib/theme.json';
+      const rawData = fs.readFileSync(themePath, 'utf8');
+      const themes = JSON.parse(rawData);
+
+      let lien;
+      if (themeId.startsWith("http://") || themeId.startsWith("https://")) {
+        lien = themeId;
+      } else {
+        const selectedTheme = themes.find(t => t.id === themeId);
+        if (!selectedTheme) lien = null;
+        else lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
+      }
+
+      try {
+        if (lien && lien.endsWith(".mp4")) {
+          await ovl.sendMessage(ms_org, {
+            video: { url: lien },
+            caption: stylize(menu),
+            gifPlayback: true
+          }, { quoted: cmd_options.ms });
+        } else if (lien) {
+          await ovl.sendMessage(ms_org, {
+            image: { url: lien },
+            caption: stylize(menu)
+          }, { quoted: cmd_options.ms });
         } else {
-          const selectedTheme = themes.find(t => t.id === config.THEME);
-          if (!selectedTheme) throw new Error("Thème introuvable dans le fichier JSON");
-          lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
+          throw new Error("Aucun thème trouvé");
         }
-            
-            if (lien.endsWith(".mp4")) {
-                await ovl.sendMessage(ms_org, {
-                    video: { url: lien },
-                    caption: stylize(menu),
-                    gifPlayback: true
-                }, { quoted: cmd_options.ms });
-            } else {
-                await ovl.sendMessage(ms_org, {
-                    image: { url: lien },
-                    caption: stylize(menu)
-                }, { quoted: cmd_options.ms });
-            }
+      } catch (e) {
+        await ovl.sendMessage(ms_org, {
+          text: stylize(menu)
+        }, { quoted: cmd_options.ms });
+      }
 
-        } catch (error) {
-            console.error("Erreur lors de la génération de allmenu :", error.message || error);
-            await ovl.sendMessage(ms_org, {
-                text: "Une erreur est survenue lors de l'affichage du menu complet."
-            }, { quoted: cmd_options.ms });
-        }
+    } catch (error) {
+      await ovl.sendMessage(ms_org, {
+        text: "Une erreur est survenue lors de l'affichage du menu complet."
+      }, { quoted: cmd_options.ms });
     }
+  }
 );
 
 ovlcmd(

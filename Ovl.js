@@ -11,7 +11,7 @@ const {
   delay
 } = require("@whiskeysockets/baileys");
 
-const { getMessage } = require('./lib/store');
+const { getMessage, addContact, getContact } = require('./lib/store');
 const get_session = require('./DataBase/session');
 const config = require("./set");
 const { useSQLiteAuthState, WAAuth } = require('./lib/OvlAuth');
@@ -67,6 +67,18 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       );
     });
     ovl.ev.on("creds.update", saveCreds);
+    ovl.ev.on('contacts.upsert', async (contacts) => {
+  for (const contact of contacts) {
+    if (!contact.id) continue;
+    const jid = contact.id;
+    addContact(jid, contact);
+  }
+});
+    ovl.getName = function(jid) {
+  const contact = getContact(jid);
+  if (!contact) return null;
+  return contact.name || null;
+};
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);
     ovl.recup_msg = (params = {}) =>

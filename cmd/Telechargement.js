@@ -6,29 +6,46 @@ const { search, download } = require("aptoide_scrapper_fixed");
 const fs = require("fs");
 const path = require("path");
 
-async function sendMedia(ms_org, ovl, url, format, type, ms, name) {
-  try {
-    const dl_link = await notube_dl(url, format);
-    if (!dl_link.ovl_dl_link) throw new Error("Le lien de téléchargement est introuvable.");
+async function sendMedia(ms_org, ovl, url, format, type, ms) {
+  try {
+    const baseUrl = "https://adverse-margette-newkoyeb123-ef5da9e4.koyeb.app";
 
-    const fileRes = await axios.get(dl_link.downloadLink, { responseType: 'arraybuffer' });
-    const buff = Buffer.from(fileRes.data);
+    const res1 = await axios.get(`${baseUrl}/api/ovldl`, {
+      params: {
+        url: url,
+        format: format,
+        source: "youtube"
+      }
+    });
 
-    if (!name) name = dl_link.file_name;
+    const data1 = res1.data;
+    if (!data1.status || !data1.id) throw new Error("Erreur lors de la génération de l'ID.");
 
-    const message = {
-      [type]: buff,
-      mimetype: format === "mp3" ? "audio/mpeg" : "video/mp4",
-      caption: "```Powered By OVL-MD-V2```",
-      fileName: name
-    };
+    const res2 = await axios.get(`${baseUrl}/api/ovldl`, {
+      params: {
+        id: data1.id
+      }
+    });
 
-    await ovl.sendMessage(ms_org, message, { quoted: ms });
-    return true;
-  } catch (error) {
-    console.error("Erreur lors de l'envoi du média:", error.message);
-    return false;
-  }
+    const data2 = res2.data;
+    if (!data2.status || !data2.stream_link) throw new Error("Lien de streaming introuvable.");
+
+    const name = data2.filename || "media.mp4";
+
+    const message = {
+      [type]: { url: data2.stream_link },
+      mimetype: format === "mp3" ? "audio/mpeg" : "video/mp4",
+      caption: "```Powered By OVL-MD-V2```",
+      fileName: name
+    };
+
+    await ovl.sendMessage(ms_org, message, { quoted: ms });
+    return true;
+
+  } catch (error) {
+    console.error("Erreur lors de l'envoi du média:", error.message);
+    return false;
+  }
 }
 
 ovlcmd(
@@ -67,7 +84,7 @@ ovlcmd(
 
             await ovl.sendMessage(ms_org, { image: { url: videoInfo.thumbnail }, caption }, { quoted: ms });
 
-            await sendMedia(ms_org, ovl, videoInfo.url, "mp3", "audio", ms, video.name);
+            await sendMedia(ms_org, ovl, videoInfo.url, "mp3", "audio", ms);
         } catch (error) {
             console.error("Erreur Song Downloader:", error.message);
             await ovl.sendMessage(ms_org, { text: "Erreur lors du téléchargement." }, { quoted: ms });
@@ -113,7 +130,7 @@ ovlcmd(
                 image: { url: videoInfo.thumbnail },
                 caption: caption,
             }, { quoted: ms });
-            await sendMedia(ms_org, ovl, video.url, "mp4", "video", ms, video.name);
+            await sendMedia(ms_org, ovl, video.url, "mp4", "video", ms);
         } catch (error) {
             await ovl.sendMessage(ms_org, {
                 text: "Une erreur est survenue lors du traitement de votre commande.",
@@ -183,22 +200,40 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     const { arg, ms } = cmd_options;
-    const videoLink = arg.join(" ");
-    
-    if (!videoLink) {
+    const url = arg.join(" ");
+
+    if (!url) {
       return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo, par exemple : fbdl https://www.facebook.com/video-link" }, { quoted: ms });
     }
 
     try {
-      const videoDownloadLink = await notube_dl(videoLink, 'mp4');
-      const response = await axios.get(videoDownloadLink.downloadLink, { responseType: 'arraybuffer' });
-      const videoBuffer = Buffer.from(response.data);
+      const baseUrl = "https://adverse-margette-newkoyeb123-ef5da9e4.koyeb.app";
 
-      return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
+      const res1 = await axios.get(`${baseUrl}/api/ovldl`, {
+        params: {
+          url: url,
+          format: "mp4",
+          source: "facebook"
+        }
+      });
+
+      const data1 = res1.data;
+      if (!data1.status || !data1.id) throw new Error("Erreur lors de la génération de l'ID.");
+
+      const res2 = await axios.get(`${baseUrl}/api/ovldl`, {
+        params: { id: data1.id }
+      });
+
+      const data2 = res2.data;
+      if (!data2.status || !data2.stream_link) throw new Error("Lien de streaming introuvable.");
+
+      return ovl.sendMessage(ms_org, {
+        video: { url: data2.stream_link },
+        caption: "```Powered By OVL-MD-V2```"
+      }, { quoted: ms });
 
     } catch (error) {
-      ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
-      console.error('Error:', error);
+      console.error("Erreur:", error);
       return ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
     }
   }

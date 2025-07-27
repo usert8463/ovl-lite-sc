@@ -56,7 +56,7 @@ const WA_CONF = sequelize.define(
     },
     mention: {
       type: DataTypes.STRING,
-      defaultValue: "non",
+      defaultValue: "1",
     },
   },
   {

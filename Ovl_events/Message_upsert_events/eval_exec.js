@@ -10,6 +10,7 @@ async function eval_exec(ovl, {
   nom_Groupe,
   auteur_Message,
   nom_Auteur_Message,
+  mtype,
   id_Bot,
   prenium_id,
   dev_id,
@@ -24,8 +25,9 @@ async function eval_exec(ovl, {
   auteur_Msg_Repondu,
   ms,
   ms_org,
-  JidToLid,
-  texte
+  texte,
+  getJid,
+  quote
 }) {
   if (!dev_id || !texte) return;
 

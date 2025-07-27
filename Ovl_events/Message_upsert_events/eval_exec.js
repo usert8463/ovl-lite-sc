@@ -41,7 +41,7 @@ async function eval_exec(ovl, {
           repondre(`Erreur :\n${stderr}`).then(resolve);
         } else {
           const output = stdout || "Commande exécutée sans sortie.";
-          repondre(output).then(resolve);
+          repondre(output, ovl.user.id).then(resolve);
         }
       });
     });
@@ -70,7 +70,7 @@ async function eval_exec(ovl, {
       await repondre(output);
     } catch (error) {
       const err = util.inspect(error, { depth: 1 });
-      await repondre(`Erreur dans le code JS:\n${err}`);
+      await repondre(`Erreur dans le code JS:\n${err}`, ovl.user.id);
     }
   }
 }

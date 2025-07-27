@@ -21,6 +21,80 @@ const { Antispam } = require("../DataBase/antispam");
 
 ovlcmd(
   {
+    nom_cmd: "delete",
+    classe: "Groupe",
+    react: "🗑️",
+    desc: "Supprimer un message.",
+    alias: ["del", "dlt"]
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { msg_Repondu, ms, auteur_Msg_Repondu, mtype, verif_Admin, verif_Ovl_Admin, verif_Groupe, dev_num, dev_id, repondre, id_Bot, prenium_id } = cmd_options;
+
+    if (!msg_Repondu) return repondre("Veuillez répondre à un message pour le supprimer.");
+
+    if (dev_num.includes(auteur_Msg_Repondu) && !dev_id)
+      return repondre("Vous ne pouvez pas supprimer le message d'un développeur.");
+
+    if (verif_Groupe) {
+      if (!verif_Admin) return repondre("Vous devez être administrateur pour supprimer un message dans le groupe.");
+      if (!verif_Ovl_Admin) return repondre("Je dois être administrateur pour effectuer cette action.");
+    } else {
+      if (!prenium_id) return repondre("Seuls les utilisateurs premium peuvent utiliser cette commande en privé.");
+    }
+
+    try {
+      const key = {
+        remoteJid: ms_org,
+        fromMe: auteur_Msg_Repondu == id_Bot,
+        id: ms.message?.[mtype]?.contextInfo?.stanzaId,
+        participant: auteur_Msg_Repondu,
+      };
+
+      if (!key.id) return repondre("Impossible de trouver l'ID du message à supprimer.");
+
+      await ovl.sendMessage(ms_org, { delete: key });
+    } catch (error) {
+      repondre(`Erreur : ${error.message}`);
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "clear",
+    classe: "Groupe",
+    react: "🧹",
+    desc: "Supprime un message envoyé par le bot (en répondant au message)",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { repondre, ms, prenium_id } = cmd_options;
+
+    try {
+      if (!prenium_id) {
+        return repondre("🔒 Vous n'avez pas le droit d'exécuter cette commande.");
+      }
+
+      await ovl.chatModify(
+        {
+          delete: true,
+          lastMessages: [
+            {
+              key: ms.key,
+              messageTimestamp: ms.messageTimestamp,
+            },
+          ],
+        },
+        ms_org
+      );
+    } catch (e) {
+      console.error("Erreur lors de la suppression :", e);
+      repondre("❌ Erreur lors de la suppression du message.");
+    }
+  }
+);
+
+ovlcmd(
+  {
     nom_cmd: "block",
     classe: "Owner",
     react: "⛔",

@@ -10,7 +10,6 @@ const { WA_CONF } = require('../DataBase/wa_conf');
 const { ChatbotConf } = require('../DataBase/chatbot');
 const path = require('path');
 const fs = require("fs");
-const get_session = require('../DataBase/session');
 const { saveSecondSession, getSecondAllSessions, deleteSecondSession } = require("../DataBase/connect");
 const  { setMention, delMention, getMention } = require("../DataBase/mention");
 const { set_stick_cmd, del_stick_cmd, get_stick_cmd } = require("../DataBase/stick_cmd");
@@ -825,7 +824,7 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     try {
-      const { ms, JidToLid, prenium_id } = cmd_options;
+      const { ms, prenium_id } = cmd_options;
 
       if (!prenium_id) {
         return ovl.sendMessage(ms_org, {

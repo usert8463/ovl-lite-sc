@@ -7,7 +7,7 @@ const config = require('../set');
 const { translate } = require('@vitalets/google-translate-api');
 const ytsr = require('@distube/ytsr');
 const LyricsFinder = require('@faouzkk/lyrics-finder');
-const { search, download } = require("aptoide_scrapper_fixed");
+const { apkdl } = require("../lib/dl");
 const FormData = require('form-data');
 
 ovlcmd(
@@ -477,7 +477,7 @@ ovlcmd(
         return repondre("*Veuillez entrer le nom de l'application à rechercher* 🧐");
       }
 
-      const searchResults = await search(appName);
+      const searchResults = await apkdl.search(appName);
 
       if (searchResults.length === 0) {
         return repondre("*Aucune application trouvée, essayez un autre nom* 😕");
@@ -487,7 +487,7 @@ ovlcmd(
 
       const appDetails = await Promise.all(
         limitedResults.map(async (app) => {
-          const appData = await download(app.id);
+          const appData = await apkdl.download(app.id);
           return {
             name: app.name,
             id: app.id,

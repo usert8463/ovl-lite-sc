@@ -1,42 +1,27 @@
 const { ovlcmd } = require("../lib/ovlcmd");
-const { fbdl, ttdl, igdl, twitterdl, notube_dl } = require("../lib/dl");
+const { fbdl, ttdl, igdl, twitterdl, fbdl, ytdl, apkdl } = require("../lib/dl");
 const ytsr = require('@distube/ytsr');
 const axios = require('axios');
-const { search, download } = require("aptoide_scrapper_fixed");
 const fs = require("fs");
 const path = require("path");
 
 async function sendMedia(ms_org, ovl, url, format, type, ms) {
   try {
-    const baseUrl = "https://adverse-margette-newkoyeb123-ef5da9e4.koyeb.app";
+    const media = await ytdl(url, format);
 
-    const res1 = await axios.get(`${baseUrl}/api/ovldl`, {
-      params: {
-        url: url,
-        format: format,
-        source: "youtube"
-      }
-    });
-
-    const data1 = res1.data;
-    if (!data1.status || !data1.id) throw new Error("Erreur lors de la génération de l'ID.");
-
-    const res2 = await axios.get(`${baseUrl}/api/ovldl`, {
-      params: {
-        id: data1.id
-      }
-    });
-
-    const data2 = res2.data;
-    if (!data2.status || !data2.stream_link) throw new Error("Lien de streaming introuvable.");
-
-    const name = data2.filename || "media.mp4";
-
+      const ytUrl = await axios.get(media, {
+        responseType: "arraybuffer",
+        headers: {
+          "Accept": "application/octet-stream",
+          "Content-Type": "application/octet-stream",
+          "User-Agent": "GoogleBot",
+        },
+      });
+	  
     const message = {
-      [type]: { url: data2.stream_link },
+      [type]: Buffer.from(ytUrl.data),
       mimetype: format === "mp3" ? "audio/mpeg" : "video/mp4",
-      caption: "```Powered By OVL-MD-V2```",
-      fileName: name
+      caption: "```Powered By OVL-MD-V2```"
     };
 
     await ovl.sendMessage(ms_org, message, { quoted: ms });
@@ -191,49 +176,39 @@ ovlcmd(
   }
 );
 
+
 ovlcmd(
   {
     nom_cmd: "fbdl",
     classe: "Telechargement",
     react: "📥",
-    desc: "Télécharger ou envoyer directement une vidéo depuis Facebook en HD"
+    desc: "Télécharger ou envoyer directement une vidéo depuis Facebook"
   },
   async (ms_org, ovl, cmd_options) => {
     const { arg, ms } = cmd_options;
-    const url = arg.join(" ");
-
-    if (!url) {
+    const videoLink = arg.join(" ");
+    
+    if (!videoLink) {
       return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo, par exemple : fbdl https://www.facebook.com/video-link" }, { quoted: ms });
     }
 
     try {
-      const baseUrl = "https://adverse-margette-newkoyeb123-ef5da9e4.koyeb.app";
-
-      const res1 = await axios.get(`${baseUrl}/api/ovldl`, {
-        params: {
-          url: url,
-          format: "mp4",
-          source: "facebook"
-        }
+      const videoDownloadLink = await fbdl(videoLink);
+      const response = await axios.get(videoDownloadLink, {
+        responseType: "arraybuffer",
+        headers: {
+          "Accept": "application/octet-stream",
+          "Content-Type": "application/octet-stream",
+          "User-Agent": "GoogleBot",
+        },
       });
+      const videoBuffer = Buffer.from(response.data);
 
-      const data1 = res1.data;
-      if (!data1.status || !data1.id) throw new Error("Erreur lors de la génération de l'ID.");
-
-      const res2 = await axios.get(`${baseUrl}/api/ovldl`, {
-        params: { id: data1.id }
-      });
-
-      const data2 = res2.data;
-      if (!data2.status || !data2.stream_link) throw new Error("Lien de streaming introuvable.");
-
-      return ovl.sendMessage(ms_org, {
-        video: { url: data2.stream_link },
-        caption: "```Powered By OVL-MD-V2```"
-      }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
 
     } catch (error) {
-      console.error("Erreur:", error);
+      ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
+      console.error('Error:', error);
       return ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
     }
   }
@@ -355,7 +330,7 @@ ovlcmd(
 
 ovlcmd(
   {
-    nom_cmd: "app",
+    nom_cmd: "apk",
     classe: "Telechargement",
     react: "📥",
     desc: "Télécharger une application depuis Aptoide",
@@ -369,13 +344,13 @@ ovlcmd(
         return repondre("*Entrer le nom de l'application à rechercher*");
       }
 
-      const searchResults = await search(appName);
+      const searchResults = await apkdl.search(appName);
 
       if (searchResults.length === 0) {
         return repondre("*Application non existante, veuillez entrer un autre nom*");
       }
 
-      const appData = await download(searchResults[0].id);
+      const appData = await apkdl.download(searchResults[0].id);
       const fileSize = parseInt(appData.size);
 
       if (isNaN(fileSize)) {

@@ -53,7 +53,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true,
-      fireInitQueries: true,
       getMessage: async (key) => {
         const msg = getMessage(key.id);
         return msg?.message || undefined;

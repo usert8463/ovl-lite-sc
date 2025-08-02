@@ -3,7 +3,7 @@ const getJid = require("./cache_jid");
 
 async function mention(ovl, jid, ms, mtype, verif_Groupe, id_Bot, repondre) {
   try {
-    const mentionedJid = getJid(ms.message?.[mtype]?.contextInfo?.mentionedJid, jid, ovl);
+    const mentionedJid = await getJid(ms.message?.[mtype]?.contextInfo?.mentionedJid, jid, ovl);
     if (mentionedJid && mentionedJid.includes(id_Bot)) {
       if (verif_Groupe) {
         const data = await getMention();

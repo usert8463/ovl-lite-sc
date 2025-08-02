@@ -52,7 +52,7 @@ async function mention(ovl, jid, ms, mtype, verif_Groupe, id_Bot, repondre) {
     }
   } catch (e) {
     console.error("Erreur dans mention:", e);
-    if (repondre) repondre("Ipossible d'exécuter la commande d'antimention.");
+    if (repondre) repondre("Impossible d'exécuter la commande d'antimention.");
   }
 }
 

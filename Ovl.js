@@ -137,17 +137,27 @@ async function startSecondarySessions() {
     }
   }
 
-  for (const { numero } of sessions) {
+  for (const { numero, session_id } of sessions) {
     if (sessionsActives.size >= MAX_SESSIONS) {
       console.log(`❌ Limite de sessions atteinte (${sessionsActives.size}/${MAX_SESSIONS}).`);
       break;
     }
+
     if (!sessionsActives.has(numero)) {
-      const ovl = await startGenericSession({ numero });
-      if (ovl) {
-        sessionsActives.add(numero);
-        instancesSessions.set(numero, ovl);
-        console.log(`✅ Démarrage terminé — Sessions actives : ${sessionsActives.size}/${MAX_SESSIONS}`);
+      try {
+        const ovl = await startGenericSession({
+          numero,
+          isPrincipale: false,
+          sessionId: session_id
+        });
+
+        if (ovl) {
+          sessionsActives.add(numero);
+          instancesSessions.set(numero, ovl);
+          console.log(`✅ Démarrage terminé — Sessions actives : ${sessionsActives.size}/${MAX_SESSIONS}`);
+        }
+      } catch (err) {
+        console.error(`❌ Échec du démarrage de la session ${numero} :`, err);
       }
     }
   }

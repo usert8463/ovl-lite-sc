@@ -39,7 +39,7 @@ ovlcmd(
                 try {
                     await ovl.sendMessage(ms_org, {
                         image: { url: image.url },
-                        caption: `\`\`\`Powered By OVL-MD\`\`\``
+                        caption: `\`\`\`Powered By OVL-MD-v2\`\`\``
                     }, { quoted: ms });
                 } catch (err) {
                     console.error("Erreur lors de l'envoi de l'image:", err);

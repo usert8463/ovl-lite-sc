@@ -1,6 +1,6 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const { fbdl, ttdl, igdl, twitterdl, ytdl, apkdl } = require("../lib/dl");
-const axios = require('axios');
+const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 

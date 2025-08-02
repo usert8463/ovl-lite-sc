@@ -5,8 +5,7 @@ const wiki = require('wikipedia');
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const config = require('../set');
 const { translate } = require('@vitalets/google-translate-api');
-const ytsr = require('@distube/ytsr');
-const { apkdl } = require("../lib/dl");
+const { apkdl, ytdl } = require("../lib/dl");
 const FormData = require('form-data');
 
 ovlcmd(
@@ -436,44 +435,6 @@ ovlcmd(
     }
   }
 );
-
-ovlcmd(
-    {
-        nom_cmd: "ytsearch",
-        classe: "Search",
-        react: "🎵",
-        desc: "Recherche une chanson depuis YouTube avec un terme de recherche",
-        alias: ['yts']
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const { arg, ms } = cmd_options;
-        if (!arg.length) {
-            return await ovl.sendMessage(ms_org, {
-                text: "Veuillez spécifier un terme de recherche.",
-            }, { quoted: ms });
-        }
-
-        const query = arg.join(" ");
-        try {
-            const searchResults = await ytsr(query, { limit: 5 });
-            if (searchResults.items.length === 0) {
-                return await ovl.sendMessage(ms_org, { text: "Aucun résultat trouvé." }, { quoted: ms });
-            }
-
-            const results = searchResults.items.map((item, index) => {
-                return `${index + 1}. \n*⬡Titre:* ${item.name}\n*⬡URL*: ${item.url}\n*⬡Vues:* ${item.views}\n*⬡Durée:* ${item.duration}\n\n`;
-            }).join("\n");
-
-            await ovl.sendMessage(ms_org, {
-                text: `╭─── 〔 OVL-MD YTS 〕 ──⬣\n${results}\n╰──────────────────⬣`,
-            }, { quoted: ms });
-        } catch (error) {
-            console.error("Erreur YTSearch:", error.message);
-            await ovl.sendMessage(ms_org, { text: "Erreur lors de la recherche." }, { quoted: ms });
-        }
-    }
-);
-
 
 ovlcmd(
   {

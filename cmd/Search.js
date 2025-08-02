@@ -6,7 +6,6 @@ const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const config = require('../set');
 const { translate } = require('@vitalets/google-translate-api');
 const ytsr = require('@distube/ytsr');
-const LyricsFinder = require('@faouzkk/lyrics-finder');
 const { apkdl } = require("../lib/dl");
 const FormData = require('form-data');
 

@@ -48,49 +48,6 @@ ovlcmd(
     }
 );
 
-ovlcmd(
-  {
-    nom_cmd: "lyrics",
-    classe: "Search",
-    react: "🎵",
-    desc: "Cherche les paroles d'une chanson"
-  },
-  async (ms_org, ovl, { arg, ms, repondre }) => {
-    const songName = arg.join(" ");
-    if (!songName) return repondre("❌ Veuillez fournir un nom de chanson.");
-
-    try {
-      const apiUrl = `https://api.kenshiro.cfd/api/search/lirik?q=${encodeURIComponent(songName)}`;
-      const { data } = await axios.get(apiUrl);
-
-      if (!data.status || !data.data?.lyrics) {
-        return repondre("❌ Paroles introuvables pour cette chanson.");
-      }
-
-      const { title, artist, url, image, lyrics, id } = data.data;
-
-      const caption = `╭──〔 *🎵 OVL-MD-LYRICS* 〕──⬣
-⬡ 🎧 *Titre* : ${title}
-⬡ 👤 *Artiste* : ${artist}
-⬡ 🌐 *Lien* : ${url}
-⬡ 🆔 *ID* : ${id}
-╰───────────────────⬣
-
-🎼 *Paroles :*
-
-${lyrics}`;
-
-      await ovl.sendMessage(ms_org, {
-        image: { url: image },
-        caption,
-      }, { quoted: ms });
-
-    } catch (e) {
-      console.error("Erreur API Lyrics :", e.message);
-      repondre("❌ Une erreur s'est produite lors de la récupération des paroles.");
-    }
-  }
-);
 
 ovlcmd(
     {
@@ -478,6 +435,50 @@ ovlcmd(
       await ovl.sendMessage(ms_org, {
         text: "❌ Une erreur est survenue lors de la recherche.",
       }, { quoted: ms });
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "lyrics",
+    classe: "Search",
+    react: "🎵",
+    desc: "Cherche les paroles d'une chanson"
+  },
+  async (ms_org, ovl, { arg, ms, repondre }) => {
+    const songName = arg.join(" ");
+    if (!songName) return repondre("❌ Veuillez fournir un nom de chanson.");
+
+    try {
+      const apiUrl = `https://api.kenshiro.cfd/api/search/lirik?q=${encodeURIComponent(songName)}`;
+      const { data } = await axios.get(apiUrl);
+
+      if (!data.status || !data.data?.lyrics) {
+        return repondre("❌ Paroles introuvables pour cette chanson.");
+      }
+
+      const { title, artist, url, image, lyrics, id } = data.data;
+
+      const caption = `╭──〔 *🎵 OVL-MD-LYRICS* 〕──⬣
+⬡ 🎧 *Titre* : ${title}
+⬡ 👤 *Artiste* : ${artist}
+⬡ 🌐 *Lien* : ${url}
+⬡ 🆔 *ID* : ${id}
+╰───────────────────⬣
+
+🎼 *Paroles :*
+
+${lyrics}`;
+
+      await ovl.sendMessage(ms_org, {
+        image: { url: image },
+        caption,
+      }, { quoted: ms });
+
+    } catch (e) {
+      console.error("Erreur API Lyrics :", e.message);
+      repondre("❌ Une erreur s'est produite lors de la récupération des paroles.");
     }
   }
 );

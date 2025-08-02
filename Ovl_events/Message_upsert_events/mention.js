@@ -2,7 +2,7 @@ const { getMention } = require("../../DataBase/mention");
 
 async function mention(ovl, jid, ms, mtype, verif_Groupe, id_Bot, repondre) {
   try {
-    const mentionedJid = ms.message?.[mtype]?.contextInfo?.mentionedJid;
+    const mentionedJid = getJid(ms.message?.[mtype]?.contextInfo?.mentionedJid, jid, ovl);
     if (mentionedJid && mentionedJid.includes(id_Bot)) {
       if (verif_Groupe) {
         const data = await getMention();

@@ -75,6 +75,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     ovl.ev.on('contacts.upsert', async (contacts) => {
       for (const contact of contacts) {
         if (!contact.id) continue;
+        console.log(contact);
         const jid = contact.id;
         addContact(jid, contact);
       }

@@ -1,4 +1,5 @@
 const { getMention } = require("../../DataBase/mention");
+const { getJid } = require("./cache_jid");
 
 async function mention(ovl, jid, ms, mtype, verif_Groupe, id_Bot, repondre) {
   try {

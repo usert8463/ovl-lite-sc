@@ -981,7 +981,7 @@ ovlcmd(
   },
   async (ms_org, ovl, { msg_Repondu, ms }) => {
     if (!msg_Repondu || !msg_Repondu.videoMessage) {
-      return ovl.sendMessage(ms_org, { text: "Répondez à une vidéo." }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: "❌ Répondez à une *vidéo*." }, { quoted: ms });
     }
 
     try {
@@ -1000,6 +1000,10 @@ ovlcmd(
         ffmpeg.stdin.write(videoBuffer);
         ffmpeg.stdin.end();
 
+        ffmpeg.stderr.on('data', data => {
+          console.error(`ffmpeg stderr: ${data}`);
+        });
+
         ffmpeg.on('close', code => {
           code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
         });
@@ -1012,7 +1016,7 @@ ovlcmd(
 
       fs.unlinkSync(output);
     } catch (err) {
-      await ovl.sendMessage(ms_org, { text: `Erreur de conversion : ${err.message}` }, { quoted: ms });
+      await ovl.sendMessage(ms_org, { text: `❌ Erreur de conversion : ${err.message}` }, { quoted: ms });
     }
   }
 );
@@ -1026,16 +1030,20 @@ ovlcmd(
   },
   async (ms_org, ovl, { msg_Repondu, ms }) => {
     if (!msg_Repondu || !msg_Repondu.audioMessage) {
-      return ovl.sendMessage(ms_org, { text: "Répondez à un audio." }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: "❌ Répondez à un *audio*." }, { quoted: ms });
     }
 
     try {
       const audioBuffer = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
       const output = path.join(os.tmpdir(), `vid_${Date.now()}.mp4`);
 
+      const type = await fileTypeFromBuffer(audioBuffer);
+      const format = type?.ext || 'mp3'; // Par défaut 'mp3' si non détecté
+
       await new Promise((resolve, reject) => {
         const ffmpeg = spawn('ffmpeg', [
           '-y',
+          '-f', format,
           '-i', 'pipe:0',
           '-filter_complex',
           '[0:a]showwaves=s=640x360:mode=line:rate=25:colors=white[vis];color=s=640x360:c=black[bg];[bg][vis]overlay=format=auto',
@@ -1046,6 +1054,10 @@ ovlcmd(
 
         ffmpeg.stdin.write(audioBuffer);
         ffmpeg.stdin.end();
+
+        ffmpeg.stderr.on('data', data => {
+          console.error(`ffmpeg stderr: ${data}`);
+        });
 
         ffmpeg.on('close', code => {
           code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
@@ -1059,7 +1071,7 @@ ovlcmd(
 
       fs.unlinkSync(output);
     } catch (err) {
-      await ovl.sendMessage(ms_org, { text: `Erreur de conversion en vidéo : ${err.message}` }, { quoted: ms });
+      await ovl.sendMessage(ms_org, { text: `❌ Erreur de conversion en vidéo : ${err.message}` }, { quoted: ms });
     }
   }
 );

@@ -38,7 +38,6 @@ ovlcmd(
       await ovl.sendMessage(ms_org, {
         audio: Buffer.from(data),
         mimetype: "audio/mpeg",
-        ptt: false,
         caption: "```Powered by OVL-MD-V2```"
       }, { quoted: ms });
 

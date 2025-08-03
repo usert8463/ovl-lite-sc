@@ -37,6 +37,10 @@ ovlcmd(
             const themePath = './lib/theme.json';
             const rawData = fs.readFileSync(themePath, 'utf8');
             const themes = JSON.parse(rawData);
+            const [settings] = await WA_CONF.findOrCreate({
+        where: { id: '1' },
+        defaults: { id: '1', mention: 'non' }
+      });
 
             let lien;
             if (settings.theme.startsWith("http://") || settings.theme.startsWith("https://")) {
@@ -70,49 +74,79 @@ ovlcmd(
 );
 
 ovlcmd(
-    {
-        nom_cmd: "description",
-        classe: "Outils",
-        desc: "Affiche la liste des commandes avec leurs descriptions ou les détails d'une commande spécifique.",
-        alias: ["desc", "help"],
-    },
-    async (ms_org, ovl, cmd_options) => {
-        try {
-            const { arg, ms } = cmd_options;
-            const commandes = cmd;
+  {
+    nom_cmd: "description",
+    classe: "Outils",
+    desc: "Menu des commandes : toutes, par catégorie ou détail d’une commande.",
+    alias: ["desc", "help"],
+  },
+  async (ms_org, ovl, cmd_options) => {
+    try {
+      const { arg, ms } = cmd_options;
+      const commandes = cmd;
 
-            if (arg.length) {
-                const recherche = arg[0].toLowerCase();
-                const commandeTrouvee = commandes.find(
-                    (c) =>
-                        c.nom_cmd.toLowerCase() === recherche ||
-                        c.alias.some((alias) => alias.toLowerCase() === recherche)
-                );
+      if (arg.length) {
+        const recherche = arg[0].toLowerCase();
 
-                if (commandeTrouvee) {
-                    const message = `♻️*Détails de la commande :*\n\n` +
-                        `Nom : *${commandeTrouvee.nom_cmd}*\n` +
-                        `Alias : [${commandeTrouvee.alias.join(", ")}]\n` +
-                        `Description : ${commandeTrouvee.desc}`;
-                    return await ovl.sendMessage(ms_org, { text: message }, { quoted: ms });
-                } else {
-                    return await ovl.sendMessage(ms_org, {
-                        text: `❌ Commande ou alias "${recherche}" introuvable. Vérifiez et réessayez.`,
-                    }, { quoted: ms });
-                }
-            }
-
-            let descriptionMsg = "♻️*Liste des commandes disponibles :*\n\n";
-            commandes.forEach((cmd) => {
-                descriptionMsg += `Nom : *${cmd.nom_cmd}*\nAlias : [${cmd.alias.join(", ")}]\nDescription : ${cmd.desc}\n\n`;
-            });
-
-            await ovl.sendMessage(ms_org, { text: descriptionMsg }, { quoted: ms });
-        } catch (error) {
-            console.error("Erreur lors de l'affichage des descriptions :", error.message || error);
-            await ovl.sendMessage(ms_org, { text: "Une erreur s'est produite lors de l'affichage des descriptions." }, { quoted: cmd_options.ms });
+        if (recherche === "all") {
+          let message = "📚 *Toutes les commandes disponibles :*\n\n";
+          commandes.forEach((c) => {
+            message += `🔹 *${c.nom_cmd}* — _${c.desc}_\nAlias : [${c.alias.join(", ")}]\nClasse : ${c.classe}\n\n`;
+          });
+          return await ovl.sendMessage(ms_org, { text: message }, { quoted: ms });
         }
+
+        if (recherche === "cat") {
+          const classes = [...new Set(commandes.map(c => c.classe))];
+          let message = "📂 *Catégories disponibles :*\n\n";
+          classes.forEach((classe) => {
+            const cmds = commandes.filter(c => c.classe === classe);
+            message += `📁 *${classe}* (${cmds.length})\n`;
+            cmds.forEach((c) => {
+              message += ` ┗ 🧩 *${c.nom_cmd}* — _${c.desc}_\n`;
+            });
+            message += "\n";
+          });
+          return await ovl.sendMessage(ms_org, { text: message }, { quoted: ms });
+        }
+ 
+        const commandeTrouvee = commandes.find(
+          (c) =>
+            c.nom_cmd.toLowerCase() === recherche ||
+            c.alias.map(a => a.toLowerCase()).includes(recherche)
+        );
+
+        if (commandeTrouvee) {
+          const detail = `🧩 *Détails de la commande :*\n\n` +
+            `🔹 *Nom* : ${commandeTrouvee.nom_cmd}\n` +
+            `📚 *Alias* : [${commandeTrouvee.alias.join(", ")}]\n` +
+            `🗂️ *Classe* : ${commandeTrouvee.classe}\n` +
+            `📝 *Description* : ${commandeTrouvee.desc}`;
+          return await ovl.sendMessage(ms_org, { text: detail }, { quoted: ms });
+        } else {
+          return await ovl.sendMessage(ms_org, {
+            text: `❌ Commande ou alias *"${recherche}"* introuvable.`,
+          }, { quoted: ms });
+        }
+      }
+ 
+      const menu = `📖 *Menu d'aide des commandes :*\n\n` +
+        `📌 *desc all* → Toutes les commandes\n` +
+        `📌 *desc cat* → Commandes par catégorie\n` +
+        `📌 *desc [commande]* → Détail d'une commande spécifique\n\n` +
+        `Exemples :\n` +
+        `• desc all\n` +
+        `• desc cat\n` +
+        `• desc tagall\n`;
+
+      await ovl.sendMessage(ms_org, { text: menu }, { quoted: ms });
+    } catch (error) {
+      console.error("Erreur dans description :", error);
+      await ovl.sendMessage(ms_org, {
+        text: "❌ Une erreur s’est produite dans le menu description.",
+      }, { quoted: cmd_options.ms });
     }
+  }
 );
 
 ovlcmd(
@@ -377,7 +411,8 @@ ovlcmd(
 ├ ߷ Owner         : ${config.NOM_OWNER}
 ├ ߷ Commandes  : ${commandes.length}
 ├ ߷ Uptime        : ${uptime.trim()}
-├ ߷ D-H: ${dateStr} - ${heureStr}
+├ ߷ Date    : ${dateStr}
+├ ߷ Heure   : ${heureStr}
 ├ ߷ Plateforme  : ${platform}
 ├ ߷ Développeur : AINZ
 ├ ߷ Version        : 2.0.0

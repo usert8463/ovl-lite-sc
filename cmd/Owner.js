@@ -296,29 +296,42 @@ ovlcmd(
     const { repondre, arg, verif_Groupe, ms, prenium_id } = cmd_options;
 
     try {
-      if (!verif_Groupe) return repondre("Cette commande ne fonctionne que dans un groupe.");
+      if (!verif_Groupe) return repondre("❌ Cette commande ne fonctionne que dans un groupe.");
+
       if (!prenium_id) {
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+        return ovl.sendMessage(ms_org, { text: "⛔ Vous n'avez pas l'autorisation d'exécuter cette commande." }, { quoted: ms });
       }
-      const mode = arg[0];
+
+      const mode = arg[0]?.toLowerCase();
 
       if (!["add", "del"].includes(mode)) {
-        return repondre("Utilisation : onlyadmins add | del");
+        return repondre("❓ Utilisation : `onlyadmins add` pour activer, `onlyadmins del` pour désactiver.");
       }
 
+      const groupId = ms_org;
+      const existing = await OnlyAdmins.findOne({ where: { id: groupId } });
+
       if (mode === "add") {
-        await OnlyAdmins.findOrCreate({ where: { id: ms_org} });
-        return repondre("✅ Mode only-admin activé pour ce groupe.");
+        if (existing) {
+          return repondre("⚠️ Le mode only-admin est **déjà activé** pour ce groupe.");
+        }
+
+        await OnlyAdmins.create({ id: groupId });
+        return repondre("✅ Mode only-admin **activé** pour ce groupe.");
       }
 
       if (mode === "del") {
-        const deleted = await OnlyAdmins.destroy({ where: { id: ms_org } });
-        if (deleted) return repondre("❌ Mode only-admin désactivé pour ce groupe.");
-        else return repondre("⚠️ Ce groupe n'était pas en mode only-admin.");
+        if (!existing) {
+          return repondre("⚠️ Ce groupe **n'était pas en mode only-admin**.");
+        }
+
+        await OnlyAdmins.destroy({ where: { id: groupId } });
+        return repondre("❌ Mode only-admin **désactivé** pour ce groupe.");
       }
+
     } catch (err) {
       console.error("Erreur onlyadmins:", err);
-      return repondre("Une erreur s'est produite.");
+      return repondre("❌ Une erreur s'est produite. Veuillez réessayer.");
     }
   }
 );

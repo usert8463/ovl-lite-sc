@@ -22,7 +22,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
 
     const key = {
       remoteJid: ms_org,
-      fromMe: false,
+      fromMe: true,
       id: ms.key.id,
       participant: auteur_Message
     };
@@ -44,7 +44,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
         for (const msg of recentMsgs) {
           const delKey = {
             remoteJid: ms_org,
-            fromMe: false,
+            fromMe: true,
             id: msg.id,
             participant: auteur_Message
           };

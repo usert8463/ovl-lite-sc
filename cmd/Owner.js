@@ -46,7 +46,7 @@ ovlcmd(
         remoteJid: ms_org,
         fromMe: auteur_Msg_Repondu == id_Bot,
         id: ms.message?.[mtype]?.contextInfo?.stanzaId,
-        participant: auteur_Msg_Repondu,
+        ...(verif_Groupe && { participant: auteur_Msg_Repondu })
       };
 
       if (!key.id) return repondre("Impossible de trouver l'ID du message à supprimer.");

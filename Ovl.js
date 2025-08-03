@@ -71,7 +71,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     });
     ovl.ev.on('creds.update', saveCreds);
 
-    ovl.ev.on('contacts.upsert', async (contacts) => {
+    ovl.ev.on('contacts.set', async (contacts) => {
       for (const contact of contacts) {
         if (!contact.id) continue;
         console.log(contact);

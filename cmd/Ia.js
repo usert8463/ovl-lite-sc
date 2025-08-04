@@ -134,7 +134,7 @@ ovlcmd(
         }
 
         const prompt = arg.join(" ");
-        const apiUrl = `https://fgsi1-restapi.hf.space/api/ai/lenna?text=${encodeURIComponent(prompt)}`;
+        const apiUrl = `https://fgsi.koyeb.app/api/ai/lenna?text=${encodeURIComponent(prompt)}`;
 
         try {
             const result = await axios.get(apiUrl);
@@ -162,7 +162,7 @@ ovlcmd(
         }
 
         const prompt = arg.join(" ");
-        const apiUrl = `https://fgsi1-restapi.hf.space/api/ai/copilot?text=${encodeURIComponent(prompt)}`;
+        const apiUrl = `https://fgsi.koyeb.app/api/ai/copilot?text=${encodeURIComponent(prompt)}`;
 
         try {
             const result = await axios.get(apiUrl);

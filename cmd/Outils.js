@@ -24,130 +24,77 @@ function stylize(text) {
     }).join('');
 }
 
+const ms_badge = {
+  key: {
+    fromMe: false,
+    participant: '0@s.whatsapp.net',
+    remoteJid: 'status@broadcast',
+  },
+  message: {
+    extendedTextMessage: {
+      text: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
+      contextInfo: {
+        mentionedJid: [],
+      },
+    },
+  }
+};
+
 ovlcmd(
-    {
-        nom_cmd: "test",
-        classe: "Outils",
-        react: "🌟",
-        desc: "Tester la connectivité du bot"
-    },
-    async (ms_org, ovl, cmd_options) => {
-        try {
-            const menu = `🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`;
-            const themePath = './lib/theme.json';
-            const rawData = fs.readFileSync(themePath, 'utf8');
-            const themes = JSON.parse(rawData);
-            const [settings] = await WA_CONF.findOrCreate({
+  {
+    nom_cmd: "test",
+    classe: "Outils",
+    react: "🌟",
+    desc: "Tester la connectivité du bot"
+  },
+  async (ms_org, ovl, { ms, repondre }) => {
+    try {
+      const themePath = './lib/theme.json';
+      const rawData = fs.readFileSync(themePath, 'utf8');
+      const themes = JSON.parse(rawData);
+
+      const [settings] = await WA_CONF.findOrCreate({
         where: { id: '1' },
         defaults: { id: '1', mention: 'non' }
       });
 
-            let lien;
-            if (settings.theme.startsWith("http://") || settings.theme.startsWith("https://")) {
-                lien = settings.theme;
-            } else {
-                const selectedTheme = themes.find(t => t.id === settings.theme);
-                if (!selectedTheme) throw new Error("Thème introuvable dans le fichier JSON");
-                lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
-            }
+      const menu = `🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.\n🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`;
 
-            const options = {
-                quoted: cmd_options.ms
-            };
+      let lien;
 
-            if (lien.endsWith(".mp4")) {
-                await ovl.sendMessage(ms_org, {
-                    video: { url: lien },
-                    caption: stylize(menu),
-                    gifPlayback: true
-                }, options);
-            } else {
-                await ovl.sendMessage(ms_org, {
-                    image: { url: lien },
-                    caption: stylize(menu)
-                }, options);
-            }
-        } catch {
-            await ovl.sendMessage(ms_org, { text: stylize(`🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`) }, { quoted: cmd_options.ms });
-        }
-    }
-);
-
-ovlcmd(
-  {
-    nom_cmd: "description",
-    classe: "Outils",
-    desc: "Menu des commandes : toutes, par catégorie ou détail d’une commande.",
-    alias: ["desc", "help"],
-  },
-  async (ms_org, ovl, cmd_options) => {
-    try {
-      const { arg, ms } = cmd_options;
-      const commandes = cmd;
-
-      if (arg.length) {
-        const recherche = arg[0].toLowerCase();
-
-        if (recherche === "all") {
-          let message = "📚 *Toutes les commandes disponibles :*\n\n";
-          commandes.forEach((c) => {
-            message += `🔹 *${c.nom_cmd}* — _${c.desc}_\nAlias : [${c.alias.join(", ")}]\nClasse : ${c.classe}\n\n`;
-          });
-          return await ovl.sendMessage(ms_org, { text: message }, { quoted: ms });
-        }
-
-        if (recherche === "cat") {
-          const classes = [...new Set(commandes.map(c => c.classe))];
-          let message = "📂 *Catégories disponibles :*\n\n";
-          classes.forEach((classe) => {
-            const cmds = commandes.filter(c => c.classe === classe);
-            message += `📁 *${classe}* (${cmds.length})\n`;
-            cmds.forEach((c) => {
-              message += ` ┗ 🧩 *${c.nom_cmd}* — _${c.desc}_\n`;
-            });
-            message += "\n";
-          });
-          return await ovl.sendMessage(ms_org, { text: message }, { quoted: ms });
-        }
- 
-        const commandeTrouvee = commandes.find(
-          (c) =>
-            c.nom_cmd.toLowerCase() === recherche ||
-            c.alias.map(a => a.toLowerCase()).includes(recherche)
-        );
-
-        if (commandeTrouvee) {
-          const detail = `🧩 *Détails de la commande :*\n\n` +
-            `🔹 *Nom* : ${commandeTrouvee.nom_cmd}\n` +
-            `📚 *Alias* : [${commandeTrouvee.alias.join(", ")}]\n` +
-            `🗂️ *Classe* : ${commandeTrouvee.classe}\n` +
-            `📝 *Description* : ${commandeTrouvee.desc}`;
-          return await ovl.sendMessage(ms_org, { text: detail }, { quoted: ms });
-        } else {
-          return await ovl.sendMessage(ms_org, {
-            text: `❌ Commande ou alias *"${recherche}"* introuvable.`,
-          }, { quoted: ms });
-        }
+      if (settings.mention.startsWith("http://") || settings.mention.startsWith("https://")) {
+        lien = settings.mention;
+      } else {
+        const selectedTheme = themes.find(t => t.id === settings.mention);
+        if (!selectedTheme) throw new Error("Thème introuvable dans le fichier JSON");
+        lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
       }
- 
-      const menu = `📖 *Menu d'aide des commandes :*\n\n` +
-        `📌 *desc all* → Toutes les commandes\n` +
-        `📌 *desc cat* → Commandes par catégorie\n` +
-        `📌 *desc [commande]* → Détail d'une commande spécifique\n\n` +
-        `Exemples :\n` +
-        `• desc all\n` +
-        `• desc cat\n` +
-        `• desc tagall\n`;
 
-      await ovl.sendMessage(ms_org, { text: menu }, { quoted: ms });
-    } catch (error) {
-      console.error("Erreur dans description :", error);
+      const options = { quoted: ms_badge };
+
+      if (lien.endsWith(".mp4")) {
+        await ovl.sendMessage(ms_org, {
+          video: { url: lien },
+          caption: stylize(menu),
+          gifPlayback: true
+        }, options);
+      } else {
+        await ovl.sendMessage(ms_org, {
+          image: { url: lien },
+          caption: stylize(menu)
+        }, options);
+      }
+
+    } catch (e) {
+      console.error("Erreur dans la commande test :", e);
+      const fallback = `🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.\n🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`;
       await ovl.sendMessage(ms_org, {
-        text: "❌ Une erreur s’est produite dans le menu description.",
-      }, { quoted: cmd_options.ms });
+        text: stylize(fallback)
+      }, { quoted: ms_badge });
     }
   }
 );
+
 
 ovlcmd(
   {
@@ -344,25 +291,25 @@ ovlcmd(
             video: { url: lien },
             caption: stylize(menu),
             gifPlayback: true
-          }, { quoted: cmd_options.ms });
+          }, { quoted: ms_badge });
         } else if (lien) {
           await ovl.sendMessage(ms_org, {
             image: { url: lien },
             caption: stylize(menu)
-          }, { quoted: cmd_options.ms });
+          }, { quoted: ms_badge });
         } else {
           throw new Error("Aucun thème trouvé");
         }
       } catch (e) {
         await ovl.sendMessage(ms_org, {
           text: stylize(menu)
-        }, { quoted: cmd_options.ms });
+        }, { quoted: ms_badge });
       }
 
     } catch (error) {
       await ovl.sendMessage(ms_org, {
         text: "Une erreur est survenue lors de la génération du menu."
-      }, { quoted: cmd_options.ms });
+      }, { quoted: ms_badge });
     }
   }
 );
@@ -453,25 +400,25 @@ ovlcmd(
             video: { url: lien },
             caption: stylize(menu),
             gifPlayback: true
-          }, { quoted: cmd_options.ms });
+          }, { quoted: ms_badge });
         } else if (lien) {
           await ovl.sendMessage(ms_org, {
             image: { url: lien },
             caption: stylize(menu)
-          }, { quoted: cmd_options.ms });
+          }, { quoted: ms_badge });
         } else {
           throw new Error("Aucun thème trouvé");
         }
       } catch (e) {
         await ovl.sendMessage(ms_org, {
           text: stylize(menu)
-        }, { quoted: cmd_options.ms });
+        }, { quoted: ms_badge });
       }
 
     } catch (error) {
       await ovl.sendMessage(ms_org, {
         text: "Une erreur est survenue lors de l'affichage du menu complet."
-      }, { quoted: cmd_options.ms });
+      }, { quoted: ms_badge });
     }
   }
 );
@@ -626,7 +573,7 @@ ovlcmd(
 
     const msg_envoye = await ovl.sendMessage(ms_org, {
       text: "*OVL-MD-V2 Ping...*"
-    }, { quoted: cmd_options.ms });
+    }, { quoted: ms_badge });
 
     const end = Date.now();
     const latency = end - start;
@@ -657,7 +604,7 @@ ovlcmd(
         if (h > 0) uptime += `${h}H `;
         if (m > 0) uptime += `${m}M `;
         if (s > 0) uptime += `${s}S`;
-        await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}` }, { quoted: cmd_options.ms });
+        await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}` }, { quoted: ms_badge });
     }
 );
 
@@ -1026,7 +973,7 @@ ovlcmd(
         displayName: devNom,
         contacts: [{ vcard }],
       },
-    }, { quoted: cmd_options.ms });
+    }, { quoted: ms_badge });
   }
 );
 
@@ -1046,9 +993,9 @@ ovlcmd(
 
     if (verif_Groupe) {
       await repondre("📩 Le lien d'invitation a été envoyé en message privé.");
-      await ovl.sendMessage(auteur_Message, { text: message }, { quoted: ms });
+      await ovl.sendMessage(auteur_Message, { text: message }, { quoted: ms_badge });
      } else {
-      await ovl.sendMessage(ms_org, { text: message }, { quoted: ms });
+      await ovl.sendMessage(ms_org, { text: message }, { quoted: ms_badge });
     }
   }
 );

@@ -69,9 +69,10 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
       [mediaType]: { url: mediaUrl },
       caption: msg.trim(),
       mentions,
-    });
+      contextInfo
+    }, { quoted: ms_badge });
   } else {
-    await ovl.sendMessage(jid, { text: msg.trim(), mentions });
+    await ovl.sendMessage(jid, { text: msg.trim(), mentions, contextInfo }, { quoted: ms_badge });
   }
 }
 
@@ -125,7 +126,8 @@ async function group_participants_update(data, ovl) {
             await ovl.sendMessage(data.id, {
               text: `🚫 *Promotion refusée !*\n${actorMention} n’a pas le droit de promouvoir ${userMention}.`,
               mentions,
-            });
+              contextInfo
+            }, { quoted: ms_badge });
           } else if (promoteAlert === 'oui') {
             let pp = "https://files.catbox.moe/82g8ey.jpg";
             try {
@@ -135,7 +137,8 @@ async function group_participants_update(data, ovl) {
               image: { url: pp },
               caption: `🆙 ${userMention} a été promu par ${actorMention}.`,
               mentions,
-            });
+              contextInfo
+            }, { quoted: ms_badge });
           }
         }
 
@@ -147,7 +150,8 @@ async function group_participants_update(data, ovl) {
             await ovl.sendMessage(data.id, {
               text: `🚫 *Rétrogradation refusée !*\n${actorMention} ne peut pas rétrograder ${userMention}.`,
               mentions,
-            });
+              contextInfo
+            }, { quoted: ms_badge });
           } else if (demoteAlert === 'oui') {
             let pp = "https://files.catbox.moe/82g8ey.jpg";
             try {
@@ -157,7 +161,8 @@ async function group_participants_update(data, ovl) {
               image: { url: pp },
               caption: `⬇️ ${userMention} a été rétrogradé par ${actorMention}.`,
               mentions,
-            });
+              contextInfo
+            }, { quoted: ms_badge });
           }
         }
       }

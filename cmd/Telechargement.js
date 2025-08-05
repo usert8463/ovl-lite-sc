@@ -18,21 +18,23 @@ ovlcmd(
     try {
       const query = arg.join(" ");
       const info = await ytdl(query, "audio");
-      if (!info.download) return repondre("Aucun lien audio disponible.");
+      const audio = info?.ytdl;
+
+      if (!audio?.download) return repondre("Aucun lien audio disponible.");
 
       const caption = `*AUDIO* 𝙊𝙑𝙇-𝙈𝘿\n\n` +
-        `🎼 *Titre* : ${info.title}\n` +
-        `🕐 *Durée* : ${info.duration}\n` +
-        `👁️ *Vues* : ${info.views}\n` +
-        `🔗 *Lien* : ${info.url}\n\n` +
+        `🎼 *Titre* : ${audio.title}\n` +
+        `🕐 *Durée* : ${audio.duration}\n` +
+        `👁️ *Vues* : ${audio.views}\n` +
+        `🔗 *Lien* : ${audio.url}\n\n` +
         `🔊 *Powered by OVL-MD-V2*`;
 
       await ovl.sendMessage(ms_org, {
-        image: { url: info.thumbnail },
+        image: { url: audio.thumbnail },
         caption,
       }, { quoted: ms });
 
-      const { data } = await axios.get(info.download, { responseType: "arraybuffer" });
+      const { data } = await axios.get(audio.download, { responseType: "arraybuffer" });
 
       await ovl.sendMessage(ms_org, {
         audio: Buffer.from(data),
@@ -60,21 +62,23 @@ ovlcmd(
     try {
       const query = arg.join(" ");
       const info = await ytdl(query, "video");
-      if (!info.download) return repondre("Aucun lien vidéo disponible.");
+      const video = info?.ytdl;
+
+      if (!video?.download) return repondre("Aucun lien vidéo disponible.");
 
       const caption = `*VIDÉO* 𝙊𝙑𝙇-𝙈𝘿\n\n` +
-        `🎼 *Titre* : ${info.title}\n` +
-        `🕐 *Durée* : ${info.duration}\n` +
-        `👁️ *Vues* : ${info.views}\n` +
-        `🔗 *Lien* : ${info.url}\n\n` +
+        `🎼 *Titre* : ${video.title}\n` +
+        `🕐 *Durée* : ${video.duration}\n` +
+        `👁️ *Vues* : ${video.views}\n` +
+        `🔗 *Lien* : ${video.url}\n\n` +
         `🎬 *Powered by OVL-MD-V2*`;
 
       await ovl.sendMessage(ms_org, {
-        image: { url: info.thumbnail },
+        image: { url: video.thumbnail },
         caption,
       }, { quoted: ms });
 
-      const { data } = await axios.get(info.download, { responseType: "arraybuffer" });
+      const { data } = await axios.get(video.download, { responseType: "arraybuffer" });
 
       await ovl.sendMessage(ms_org, {
         video: Buffer.from(data),
@@ -103,11 +107,16 @@ ovlcmd(
 
     try {
       const info = await ytdl(link, "audio");
-      const { data } = await axios.get(info.url, { responseType: "arraybuffer" });
+      const audio = info?.ytdl;
+
+      if (!audio?.download) return repondre("Lien audio non disponible.");
+
+      const { data } = await axios.get(audio.download, { responseType: "arraybuffer" });
 
       await ovl.sendMessage(ms_org, {
         audio: Buffer.from(data),
-        mimetype: "audio/mpeg"
+        mimetype: "audio/mpeg",
+        caption: "```Powered by OVL-MD-V2```"
       }, { quoted: ms });
 
     } catch (e) {
@@ -131,12 +140,16 @@ ovlcmd(
 
     try {
       const info = await ytdl(link, "video");
-      const { data } = await axios.get(info.url, { responseType: "arraybuffer" });
+      const video = info?.ytdl;
+
+      if (!video?.download) return repondre("Lien vidéo non disponible.");
+
+      const { data } = await axios.get(video.download, { responseType: "arraybuffer" });
 
       await ovl.sendMessage(ms_org, {
         video: Buffer.from(data),
         mimetype: "video/mp4",
-        caption: "```Powered By OVL-MD-V2```"
+        caption: "```Powered by OVL-MD-V2```"
       }, { quoted: ms });
 
     } catch (e) {

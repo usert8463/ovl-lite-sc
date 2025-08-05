@@ -55,7 +55,7 @@ ovlcmd(
 
       const [settings] = await WA_CONF.findOrCreate({
         where: { id: '1' },
-        defaults: { id: '1', mention: 'non' }
+        defaults: { id: '1', mention: '1' }
       });
 
       const menu = `🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.\n🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`;
@@ -70,26 +70,28 @@ ovlcmd(
         lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
       }
 
-      const options = { quoted: ms_badge };
-
       if (lien.endsWith(".mp4")) {
         await ovl.sendMessage(ms_org, {
           video: { url: lien },
           caption: stylize(menu),
-          gifPlayback: true
-        }, options);
+          gifPlayback: true,
+          contextInfo
+        }, { quoted: ms_badge });
       } else {
         await ovl.sendMessage(ms_org, {
           image: { url: lien },
-          caption: stylize(menu)
-        }, options);
+          caption: stylize(menu),
+          contextInfo
+        }, { quoted: ms_badge });
       }
 
     } catch (e) {
       console.error("Erreur dans la commande test :", e);
       const fallback = `🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.\n🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`;
+
       await ovl.sendMessage(ms_org, {
-        text: stylize(fallback)
+        text: stylize(fallback),
+        contextInfo
       }, { quoted: ms_badge });
     }
   }
@@ -213,7 +215,7 @@ ovlcmd(
 
       const [settings] = await WA_CONF.findOrCreate({
         where: { id: '1' },
-        defaults: { id: '1', mention: 'non' }
+        defaults: { id: '1', mention: '1' }
       });
 
       const afficherAide = () => {
@@ -276,7 +278,7 @@ ovlcmd(
     } catch (err) {
       console.error("Erreur dans la commande theme :", err);
       return ovl.sendMessage(ms_org, {
-        text: "❌ Une erreur est survenue lors du traitement de la commande."
+        text: "❌ Une erreur est survenue lors du traitement de la commande.",
       }, { quoted: ms });
     }
   }
@@ -330,7 +332,8 @@ ovlcmd(
 ├ ߷ Owner         : ${config.NOM_OWNER}
 ├ ߷ Commandes  : ${commandes.length}
 ├ ߷ Uptime        : ${uptime.trim()}
-├ ߷ D-H: ${dateStr} - ${heureStr}
+├ ߷ Date     : ${dateStr}
+├ ߷ Heure    : ${heureStr}
 ├ ߷ Plateforme  : ${platform}
 ├ ߷ Développeur : AINZ
 ├ ߷ Version        : 2.0.0
@@ -364,7 +367,7 @@ ovlcmd(
 
       const [settings] = await WA_CONF.findOrCreate({
         where: { id: '1' },
-        defaults: { id: '1', mention: 'non' }
+        defaults: { id: '1', mention: '1' }
       });
 
       const themeId = settings.mention;
@@ -386,25 +389,29 @@ ovlcmd(
           await ovl.sendMessage(ms_org, {
             video: { url: lien },
             caption: stylize(menu),
-            gifPlayback: true
+            gifPlayback: true,
+            contextInfo
           }, { quoted: ms_badge });
         } else if (lien) {
           await ovl.sendMessage(ms_org, {
             image: { url: lien },
-            caption: stylize(menu)
+            caption: stylize(menu),
+            contextInfo
           }, { quoted: ms_badge });
         } else {
           throw new Error("Aucun thème trouvé");
         }
       } catch (e) {
         await ovl.sendMessage(ms_org, {
-          text: stylize(menu)
+          text: stylize(menu),
+          contextInfo
         }, { quoted: ms_badge });
       }
 
     } catch (error) {
       await ovl.sendMessage(ms_org, {
-        text: "Une erreur est survenue lors de la génération du menu."
+        text: "Une erreur est survenue lors de la génération du menu.",
+        contextInfo
       }, { quoted: ms_badge });
     }
   }
@@ -473,7 +480,7 @@ ovlcmd(
 
       const [settings] = await WA_CONF.findOrCreate({
         where: { id: '1' },
-        defaults: { id: '1', mention: 'non' }
+        defaults: { id: '1', mention: '1' }
       });
 
       const themeId = settings.mention;
@@ -495,25 +502,29 @@ ovlcmd(
           await ovl.sendMessage(ms_org, {
             video: { url: lien },
             caption: stylize(menu),
-            gifPlayback: true
+            gifPlayback: true,
+            contextInfo
           }, { quoted: ms_badge });
         } else if (lien) {
           await ovl.sendMessage(ms_org, {
             image: { url: lien },
-            caption: stylize(menu)
+            caption: stylize(menu),
+            contextInfo
           }, { quoted: ms_badge });
         } else {
           throw new Error("Aucun thème trouvé");
         }
       } catch (e) {
         await ovl.sendMessage(ms_org, {
-          text: stylize(menu)
+          text: stylize(menu),
+          contextInfo
         }, { quoted: ms_badge });
       }
 
     } catch (error) {
       await ovl.sendMessage(ms_org, {
-        text: "Une erreur est survenue lors de l'affichage du menu complet."
+        text: "Une erreur est survenue lors de l'affichage du menu complet.",
+        contextInfo
       }, { quoted: ms_badge });
     }
   }
@@ -668,7 +679,8 @@ ovlcmd(
     const start = Date.now();
 
     const msg_envoye = await ovl.sendMessage(ms_org, {
-      text: "*OVL-MD-V2 Ping...*"
+      text: "*OVL-MD-V2 Ping...*",
+      contextInfo
     }, { quoted: ms_badge });
 
     const end = Date.now();
@@ -700,7 +712,7 @@ ovlcmd(
         if (h > 0) uptime += `${h}H `;
         if (m > 0) uptime += `${m}M `;
         if (s > 0) uptime += `${s}S`;
-        await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}` }, { quoted: ms_badge });
+        await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}`, contextInfo }, { quoted: ms_badge });
     }
 );
 
@@ -826,67 +838,6 @@ ovlcmd(
   }
 );
 
-ovlcmd(
-    {
-        nom_cmd: "qr",
-        classe: "Outils",
-        desc: "Génère un QR code pour obtenir une session_id.",
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const { ms } = cmd_options;
-        
-        try {
-            const response = await axios.get(`https://premier-armadillo-ovl-02d9d108.koyeb.app/qr`);
-            const qrImageBase64 = response.data.qr;
-
-            const filePath = path.join(__dirname, 'qr_code.png');  
-
-            fs.writeFile(filePath, qrImageBase64, 'base64', async (err) => {
-                if (err) {
-                    console.error("Erreur lors de l'écriture du fichier :", err);
-                    await ovl.sendMessage(ms_org, { text: "Désolé, il y a eu une erreur lors de la génération du QR code." }, { quoted: ms });
-                } else {
-                    console.log("Image sauvegardée avec succès !");
-                    
-                    await ovl.sendMessage(ms_org, {
-                        image: { url: filePath, caption: "Scannez ce QR code" }
-                    }, { quoted: ms });
-                }
-            });
-
-        } catch (error) {
-            console.error("Erreur lors de la génération du QR code:", error);
-            await ovl.sendMessage(ms_org, { text: "Désolé, il y a eu une erreur lors de la génération du QR code." }, { quoted: ms });
-        }
-    }
-);
-
-ovlcmd(
-    {
-        nom_cmd: "pair",
-        classe: "Outils",
-        desc: "Génère un pair_code pour obtenir une session_id",
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const { arg, ms } = cmd_options;
-       if(!arg) {
-            return await ovl.sendMessage(ms_org, { text: "entrer un numéro de téléphone" }, { quoted: ms });
-        }
-        const bc = arg.join(" ");
-
-        try {
-            let response = await axios(`https://premier-armadillo-ovl-02d9d108.koyeb.app/code?number=${bc}`);
-            let code = response.data.code || "indisponible";
-
-            await ovl.sendMessage(ms_org, {
-                text: `CODE : ${code}`,
-            }, { quoted: ms });
-        } catch (error) {
-            console.error("Erreur lors de la génération du code:", error);
-            await ovl.sendMessage(ms_org, { text: "Désolé, il y a eu une erreur lors de la génération du code." }, { quoted: ms });
-        }
-    }
-);
 
 ovlcmd(
   {
@@ -1069,6 +1020,7 @@ ovlcmd(
         displayName: devNom,
         contacts: [{ vcard }],
       },
+      contextInfo
     }, { quoted: ms_badge });
   }
 );
@@ -1089,9 +1041,9 @@ ovlcmd(
 
     if (verif_Groupe) {
       await repondre("📩 Le lien d'invitation a été envoyé en message privé.");
-      await ovl.sendMessage(auteur_Message, { text: message }, { quoted: ms_badge });
+      await ovl.sendMessage(auteur_Message, { text: message, contextInfo }, { quoted: ms_badge });
      } else {
-      await ovl.sendMessage(ms_org, { text: message }, { quoted: ms_badge });
+      await ovl.sendMessage(ms_org, { text: message, contextInfo}, { quoted: ms_badge });
     }
   }
 );

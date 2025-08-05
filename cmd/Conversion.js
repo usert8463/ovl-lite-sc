@@ -974,7 +974,7 @@ ovlcmd(
 
 ovlcmd(
   {
-    nom_cmd: "toaud",
+    nom_cmd: "toaudio",
     classe: "Conversion",
     react: "🎧",
     desc: "Convertit une vidéo en audio"
@@ -1033,21 +1033,25 @@ ovlcmd(
       const output = path.join(os.tmpdir(), `vid_${Date.now()}.mp4`);
 
       await new Promise((resolve, reject) => {
-        const ffmpeg = spawn('ffmpeg', [
-          '-y',
-          '-i', audioPath,
-          '-filter_complex',
-          '[0:a]showwaves=s=640x360:mode=line:rate=25:colors=white[vis];color=s=640x360:c=black[bg];[bg][vis]overlay=format=auto',
-          '-pix_fmt', 'yuv420p',
-          '-shortest',
-          output
-        ]);
+  const ffmpeg = spawn('ffmpeg', [
+    '-y',
+    '-i', audioPath,
+    '-filter_complex',
+    `
+      [0:a]showspectrum=s=640x360:mode=combined:color=intensity:slide=scroll:scale=log[spec];
+      color=s=640x360:c=black[bg];
+      [bg][spec]overlay=format=auto
+    `.replace(/\n/g, ''),
+    '-pix_fmt', 'yuv420p',
+    '-shortest',
+    output
+  ]);
 
-        ffmpeg.stderr.on('data', () => {});
-        ffmpeg.on('close', code => {
-          code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
-        });
-      });
+  ffmpeg.stderr.on('data', () => {});
+  ffmpeg.on('close', code => {
+    code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
+  });
+});
 
       await ovl.sendMessage(ms_org, {
         video: fs.readFileSync(output),

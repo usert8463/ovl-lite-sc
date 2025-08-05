@@ -40,6 +40,15 @@ const ms_badge = {
   }
 };
 
+const contextInfo = {
+    forwardingScore: 1,
+    isForwarded: true,
+    forwardedNewsletterMessageInfo: {
+        newsletterJid: '120363371282577847@newsletter',
+        newsletterName: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
+    },
+};
+
 ovlcmd(
   {
     nom_cmd: "test",
@@ -926,6 +935,77 @@ ovlcmd(
     } catch (error) {
       console.error(error);
       repondre("Une erreur est survenue lors de l'obfuscation du code.");
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "qr",
+    classe: "Outils",
+    desc: "Génère un QR code pour obtenir une session_id.",
+  },
+  async (ms_org, ovl, { ms }) => {
+    try {
+      const response = await axios.get(`https://premier-armadillo-ovl-02d9d108.koyeb.app/qr`);
+      const qrImageBase64 = response.data.qr;
+
+      const filePath = path.join(__dirname, 'qr_code.png');
+
+      fs.writeFile(filePath, qrImageBase64, 'base64', async (err) => {
+        if (err) {
+          await ovl.sendMessage(ms_org, {
+            text: "❌ Une erreur est survenue lors de la génération du QR code."
+          }, { quoted: ms });
+        } else {
+          const sent = await ovl.sendMessage(ms_org, {
+            image: { url: filePath },
+          });
+
+          await ovl.sendMessage(ms_org, {
+            text: "✅ Scannez ce QR code dans *WhatsApp > Appareils connectés > Connecter un appareil*.",
+          }, { quoted: sent });
+        }
+      });
+    } catch (error) {
+      await ovl.sendMessage(ms_org, {
+        text: "❌ Une erreur est survenue lors de la génération du QR code."
+      }, { quoted: ms });
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "pair",
+    classe: "Outils",
+    desc: "Génère un pair_code pour obtenir une session_id",
+  },
+  async (ms_org, ovl, { arg, ms }) => {
+    if (!arg.length) {
+      return await ovl.sendMessage(ms_org, {
+        text: "❌ Veuillez entrer un numéro de téléphone. Exemple :\n\n`pair 226XXXXXXXX`"
+      }, { quoted: ms });
+    }
+
+    const number = arg.join(" ");
+
+    try {
+      const response = await axios.get(`https://premier-armadillo-ovl-02d9d108.koyeb.app/code?number=${number}`);
+      const code = response.data.code || "indisponible";
+
+      const sent = await ovl.sendMessage(ms_org, {
+        text: code,
+      });
+
+      await ovl.sendMessage(ms_org, {
+        text: "✅ Entrez ce code dans *WhatsApp > Appareils connectés > Connecter un appareil > Appairer avec un code*.",
+      }, { quoted: sent });
+
+    } catch (error) {
+      await ovl.sendMessage(ms_org, {
+        text: "❌ Une erreur est survenue lors de la génération du code."
+      }, { quoted: ms });
     }
   }
 );

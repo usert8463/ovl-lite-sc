@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { delay, DisconnectReason } = require("@whiskeysockets/baileys");
 let evt = require("../lib/ovlcmd");
-const pkg = require('./package.json');
+const pkg = require('../package');
 const config = require("../set");
 const { installpg } = require("../lib/plugin");
 

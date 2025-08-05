@@ -7,7 +7,6 @@ const config = require('../set');
 const { translate } = require('@vitalets/google-translate-api');
 const { apkdl } = require("../lib/dl");
 const FormData = require('form-data');
-const { Innertube } = require('youtubei.js');
 
 ovlcmd(
     {
@@ -411,28 +410,27 @@ ovlcmd(
 
     const query = arg.join(" ");
     try {
-      const yt = await Innertube.create();
-      const search = await yt.search(query, { type: 'video' });
-
-      if (!search.results.length) {
+      const { yts } = await ytdl(query, 'video', 5);
+      
+      if (!yts || yts.length === 0) {
         return ovl.sendMessage(ms_org, {
           text: "🔍 Aucun résultat trouvé.",
         }, { quoted: ms });
       }
 
-      const results = search.results.slice(0, 5).map((video, i) => {
-        return `📌 *${i + 1}. ${video.title.text}*
-🔗 https://youtu.be/${video.id}
-👁️ ${video.view_count?.toLocaleString() || "?"} vues | ⏱️ ${video.duration?.text || "?"}\n`;
-      }).join("\n");
+      const results = yts.map((video, i) => {
+        return `📌 *${i + 1}. ${video.title}*
+🔗 ${video.url}
+👁️ ${video.views} | ⏱️ ${video.duration}`;
+      }).join("\n\n");
 
-      await ovl.sendMessage(ms_org, {
-        text: `🎶 *Résultats pour:* _"${query}"_\n\n${results}──────\n📽️ _OVL-MD YouTube Search_`,
+      return ovl.sendMessage(ms_org, {
+        text: `🎶 *Résultats pour:* _"${query}"_\n\n${results}\n──────\n📽️ _OVL-MD YouTube Search_`,
       }, { quoted: ms });
 
     } catch (err) {
-      console.error("Erreur YTSearch:", err.message);
-      await ovl.sendMessage(ms_org, {
+      console.error("Erreur YTSearch:", err);
+      return ovl.sendMessage(ms_org, {
         text: "❌ Une erreur est survenue lors de la recherche.",
       }, { quoted: ms });
     }

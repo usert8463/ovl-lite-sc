@@ -37,6 +37,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
       }
       installpg();
 
+      delay(2000);
       const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅
 │ ߷ *Préfixe*    ➜ ${config.PREFIXE}

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { delay, DisconnectReason } = require("@whiskeysockets/baileys");
 let evt = require("../lib/ovlcmd");
+const pkg = require('./package.json');
 const config = require("../set");
 const { installpg } = require("../lib/plugin");
 
@@ -41,15 +42,40 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 │ ߷ *Préfixe*    ➜ ${config.PREFIXE}
 │ ߷ *Mode*       ➜ ${config.MODE}
 │ ߷ *Commandes*  ➜ ${evt.cmd.length}
-│ ߷ *Version*    ➜ 2.0.0
+│ ߷ *Version*    ➜ ${pkg.version}
 │ ߷ *Développeur*➜ Ainz
 ╰──────────────⬣`;
 
       console.log(start_msg + "\n");
-
-      if (ovl.user?.id) {
-        await ovl.sendMessage(ovl.user.id, { text: start_msg });
-      }
+ 
+        await ovl.sendMessage(ovl.user.id, {
+  text: start_msg,
+  contextInfo: {
+    forwardingScore: 1,
+    isForwarded: true,
+    forwardedNewsletterMessageInfo: {
+      newsletterJid: '120363371282577847@newsletter',
+      newsletterName: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
+    },
+  }
+}, {
+  quoted: {
+    key: {
+      fromMe: false,
+      participant: '0@s.whatsapp.net',
+      remoteJid: 'status@broadcast',
+    },
+    message: {
+      extendedTextMessage: {
+        text: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
+        contextInfo: {
+          mentionedJid: [],
+        },
+      },
+    }
+  }
+});
+      
       delay(10000);
       
       if (startNextSession) {

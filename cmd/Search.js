@@ -5,7 +5,7 @@ const wiki = require('wikipedia');
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const config = require('../set');
 const { translate } = require('@vitalets/google-translate-api');
-const { apkdl, ytdl } = require("../lib/dl");
+const { ytdl } = require("../lib/dl");
 const FormData = require('form-data');
 
 ovlcmd(

@@ -36,7 +36,6 @@
     "sequelize": "^6.37.7",
     "simple-git": "^3.28.0",
     "wa-sticker-formatter": "^4.4.4",
-    "wikipedia": "^2.1.2",
-    "youtubei.js": "^15.0.1"
+    "wikipedia": "^2.1.2"
   }
 }

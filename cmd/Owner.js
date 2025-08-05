@@ -1343,7 +1343,8 @@ ovlcmd({
 🧩 *Nom:* ${plugin.name}
 👤 *Auteur:* ${plugin.author}
 📦 *Installé:* ${estInstalle ? "Oui ✅" : "Non ❌"}
-🔗 *Lien:* ${plugin.url}`
+🔗 *Lien:* ${plugin.url}
+📝 *Description:* ${plugin.description || "Aucune description"}`
       );
     });
 
@@ -1357,6 +1358,7 @@ ovlcmd({
     await repondre("❌ Une erreur est survenue lors du chargement des plugins.");
   }
 });
+
 
 ovlcmd({
   nom_cmd: "pgremove",

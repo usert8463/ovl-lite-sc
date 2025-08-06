@@ -83,7 +83,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
 ovl.ev.on('contacts.update', async (updates) => {
   for (const update of updates) {
     if (!update.id) continue;
-    const jid = ovl.decodeJid(update.id);
+    const jid = update.id;
     if (update.notify) {
       addContact(jid, { id: jid, name: update.notify });
     }

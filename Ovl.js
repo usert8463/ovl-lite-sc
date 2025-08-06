@@ -51,7 +51,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       browser: Browsers.ubuntu('Chrome'),
       printQRInTerminal: false,
       keepAliveIntervalMs: 10000,
-      markOnlineOnConnect: false,
+      markOnlineOnConnect: true,
       generateHighQualityLinkPreview: true,
       getMessage: async (key) => {
         const msg = getMessage(key.id);

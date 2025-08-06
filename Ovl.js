@@ -51,7 +51,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       browser: Browsers.ubuntu('Chrome'),
       printQRInTerminal: false,
       keepAliveIntervalMs: 10000,
-      markOnlineOnConnect: true,
+      markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true,
       getMessage: async (key) => {
         const msg = getMessage(key.id);
@@ -71,14 +71,24 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     });
     ovl.ev.on('creds.update', saveCreds);
 
-    ovl.ev.on('contacts.set', async (contacts) => {
-      for (const contact of contacts) {
-        if (!contact.id) continue;
-        console.log(contact);
-        const jid = contact.id;
-        addContact(jid, contact);
-      }
-    });
+    ovl.ev.on('contacts.upsert', async (contacts) => {
+  for (const contact of contacts) {
+    if (!contact.id) continue;
+    console.log(contact);
+    const jid = contact.id;
+    addContact(jid, contact);
+  }
+});
+
+ovl.ev.on('contacts.update', async (updates) => {
+  for (const update of updates) {
+    if (!update.id) continue;
+    const jid = ovl.decodeJid(update.id);
+    if (update.notify) {
+      addContact(jid, { id: jid, name: update.notify });
+    }
+  }
+});
 
     ovl.getName = function (jid) {
       const contact = getContact(jid);

@@ -1017,51 +1017,50 @@ ovlcmd(
 );
 
 ovlcmd(
-  {
-    nom_cmd: "tovideo",
-    classe: "Conversion",
-    react: "🎬",
-    desc: "Convertit un audio en vidéo animée"
-  },
-  async (ms_org, ovl, { msg_Repondu, ms }) => {
-    if (!msg_Repondu || !msg_Repondu.audioMessage) {
-      return ovl.sendMessage(ms_org, { text: "❌ Répondez à un *audio*." }, { quoted: ms });
-    }
+  {
+    nom_cmd: "tovideo",
+    classe: "Conversion",
+    react: "🎬",
+    desc: "Convertit un audio en vidéo animée"
+  },
+  async (ms_org, ovl, { msg_Repondu, ms }) => {
+    if (!msg_Repondu || !msg_Repondu.audioMessage) {
+      return ovl.sendMessage(ms_org, { text: "❌ Répondez à un *audio*." }, { quoted: ms });
+    }
 
-    try {
-      const audioPath = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
-      const output = path.join(os.tmpdir(), `vid_${Date.now()}.mp4`);
+    try {
+      const audioPath = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
+      const output = audioPath.replace(path.extname(audioPath), `.mp4`);
 
-      await new Promise((resolve, reject) => {
-  const ffmpeg = spawn('ffmpeg', [
-    '-y',
-    '-i', audioPath,
-    '-filter_complex',
-    `
-      [0:a]showspectrum=s=640x360:mode=combined:color=intensity:slide=scroll:scale=log[spec];
-      color=s=640x360:c=black[bg];
-      [bg][spec]overlay=format=auto
-    `.replace(/\n/g, ''),
-    '-pix_fmt', 'yuv420p',
-    '-shortest',
-    output
-  ]);
+      await new Promise((resolve, reject) => {
+        const ffmpeg = spawn('ffmpeg', [
+          '-y',
+          '-i', audioPath,
+          '-filter_complex',
+          `
+            [0:a]showspectrum=s=640x360:mode=combined:color=intensity:slide=scroll:scale=log[spec];
+            color=s=640x360:c=black[bg];
+            [bg][spec]overlay=format=auto
+          `.replace(/\n/g, ''),
+          '-pix_fmt', 'yuv420p',
+          '-shortest',
+          output
+        ]);
 
-  ffmpeg.stderr.on('data', () => {});
-  ffmpeg.on('close', code => {
-    code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
-  });
-});
+        ffmpeg.stderr.on('data', () => {});
+        ffmpeg.on('close', code => {
+          code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
+        });
+      });
 
-      await ovl.sendMessage(ms_org, {
-        video: fs.readFileSync(output),
-        mimetype: 'video/mp4'
-      }, { quoted: ms });
+      await ovl.sendMessage(ms_org, {
+        video: fs.readFileSync(output)
+      }, { quoted: ms });
 
-      fs.unlinkSync(audioPath);
-      fs.unlinkSync(output);
-    } catch (err) {
-      await ovl.sendMessage(ms_org, { text: `❌ Erreur de conversion en vidéo : ${err.message}` }, { quoted: ms });
-    }
-  }
+      fs.unlinkSync(audioPath);
+      fs.unlinkSync(output);
+    } catch (err) {
+      await ovl.sendMessage(ms_org, { text: `❌ Erreur de conversion en vidéo : ${err.message}` }, { quoted: ms });
+    }
+  }
 );

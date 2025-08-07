@@ -1,16 +1,19 @@
 FROM node:20-bullseye-slim
 
 RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/Ainz-devs/Ovl-dbf /ovl_bot
+RUN git clone https://github.com/Ainz-fo/NEO-BOT-MD.git /neo_bot
 
-WORKDIR /ovl_bot
+WORKDIR /neo_bot
+
+COPY package.json .
 
 RUN npm install
 
+COPY . .
+
 EXPOSE 8000
 
-CMD ["npm", "run", "Ovl"]
+CMD ["npm", "start"]

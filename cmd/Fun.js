@@ -125,7 +125,7 @@ ovlcmd(
       const filterName = arg[1] || '';
       return await repondre(
         `Liste des styles${filterName ? ` pour "${filterName}"` : ''} :\n` +
-        fancy.list(filterName)
+        fancy.list(fancy, filterName)
       );
     }
 

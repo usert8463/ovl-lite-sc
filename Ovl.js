@@ -12,6 +12,7 @@ const {
 } = require('@whiskeysockets/baileys');
 
 const { getMessage, addContact, getContact } = require('./lib/store');
+const { getCache } = require("./lib/cache_metadata");
 const get_session = require('./DataBase/session');
 const config = require('./set');
 const { useSQLiteAuthState, WAAuth } = require('./lib/OvlAuth');
@@ -52,7 +53,9 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       printQRInTerminal: false,
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
+      fireInitQueries: true,
       generateHighQualityLinkPreview: true,
+      cachedGroupMetadata: async (jid) => getCache(jid),
       getMessage: async (key) => {
         const msg = getMessage(key.id);
         return msg?.message || undefined;
@@ -70,7 +73,10 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       );
     });
     ovl.ev.on('creds.update', saveCreds);
-
+    ovl.ev.on('groups.update', async (data) => {
+  const metadata = await ovl.groupMetadata(data.id);
+  setCache(data.id, metadata);
+});
     ovl.ev.on('contacts.upsert', async (contacts) => {
       console.log(contacts);
   for (const contact of contacts) {

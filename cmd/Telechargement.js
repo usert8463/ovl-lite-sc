@@ -357,6 +357,7 @@ ovlcmd(
       }
 
       const appData = searchResults[0];
+		console.log(appData);
       const fileSizeMB = parseFloat(appData.size.replace(/[^\d\.]/g, '')) || 0;
       if (fileSizeMB > 300) {
         return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");

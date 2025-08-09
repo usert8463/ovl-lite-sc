@@ -201,7 +201,7 @@ ovlcmd(
         nom_cmd: "ttdl",
         classe: "Telechargement",
         react: "📥",
-        desc: "Télécharger ou envoyer directement une vidéo depuis TikTok"
+        desc: "Télécharger un média depuis TikTok"
     },
     async (ms_org, ovl, cmd_options) => {
         const { arg, ms, auteur_Message } = cmd_options;

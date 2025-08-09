@@ -51,7 +51,7 @@ ovlcmd(
         const { auteur_Msg_Repondu, auteur_Message, arg, ms,  getJid } = cmd_options;
         const tag = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
      const tags = await getJid(tag, ms_org, ovl);
-       if (tags.length === 0) {
+       if (!arg[0]) {
             return await ovl.sendMessage(ms_org, { text: "Mentionne une personne" }, { quoted: ms });
          }
         const randomPercentage = Math.floor(Math.random() * 101);
@@ -109,15 +109,36 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     const { arg, repondre } = cmd_options;
+    const prefixe = config.PREFIXE;
+
+    if (arg.length === 0) {
+      return await repondre(
+        `Utilisation :\n` +
+        `${prefixe}fancy <ID> <texte> — Appliquer un style au texte\n` +
+        `${prefixe}fancy list [nom] — Lister les styles disponibles (optionnel : filtrer par nom)\n\n` +
+        `Exemple : ${prefixe}fancy 3 Hello World\n` +
+        `Exemple pour la liste : ${prefixe}fancy list ovl\n\n` +
+        `Liste complète des styles disponibles :\n` +
+        fancy.list()
+      );
+    }
+
+    if (arg[0].toLowerCase() === 'list') {
+      const filterName = arg[1] || '';
+      return await repondre(
+        `Liste des styles${filterName ? ` pour "${filterName}"` : ''} :\n` +
+        fancy.list(filterName)
+      );
+    }
+
     const id = parseInt(arg[0], 10);
     const text = arg.slice(1).join(" ");
-    const prefixe = config.PREFIXE;
 
     if (isNaN(id) || !text) {
       return await repondre(
-        `\nExemple : ${prefixe}fancy 10 OVL-MD-V2\n` +
-          String.fromCharCode(8206).repeat(4001) +
-          fancy.list("OVL-MD-V2", fancy)
+        `❌ Arguments invalides.\n` +
+        `Utilisation : ${prefixe}fancy <ID> <texte>\n` +
+        `Pour voir la liste des styles : ${prefixe}fancy list`
       );
     }
 
@@ -128,8 +149,7 @@ ovlcmd(
       } else {
         return await repondre(`_Style introuvable pour l'ID : ${id}_`);
       }
-    } catch (error) {
-      console.error("Erreur lors de l'application du style :", error);
+    } catch {
       return await repondre("_Une erreur s'est produite :(_");
     }
   }

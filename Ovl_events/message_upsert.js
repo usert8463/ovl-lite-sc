@@ -171,7 +171,7 @@ async function message_upsert(m, ovl) {
     like_status(ovl, ms, ms_org, id_Bot);
     dl_status(ovl, ms_org, ms);
     eval_exec(ovl, { ...cmd_options });
-    chatbot(ms_org, verif_Groupe, texte, repondre);
+    chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot);
     antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org);
     antimention(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antitag(ovl, ms, ms_org, mtype, verif_Groupe, verif_Ovl_Admin, verif_Admin, auteur_Message);

@@ -72,7 +72,6 @@ const AntispamWarnings = sequelize.define(
   console.log("Antispam synchronisé.");
 
   await AntispamWarnings.sync();
-  console.log("Antispam_warnings synchronisé.");
 })();
 
 module.exports = { Antispam, AntispamWarnings };

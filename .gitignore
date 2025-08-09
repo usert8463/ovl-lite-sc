@@ -1,0 +1,7 @@
+node_modules/
+.vscode/
+.env
+*.db
+store_msg.json
+cache_metadata.js
+cache_jid.js

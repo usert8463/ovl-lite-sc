@@ -12,6 +12,22 @@ const parseID = (jid) => {
   return jid;
 };
 
+const ms_badge = {
+  key: {
+    fromMe: false,
+    participant: '0@s.whatsapp.net',
+    remoteJid: '0@s.whatsapp.net',
+  },
+  message: {
+    extendedTextMessage: {
+      text: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
+      contextInfo: {
+        mentionedJid: [],
+      },
+    },
+  }
+};
+
 async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl) {
   const groupInfo = await ovl.groupMetadata(jid);
   const groupName = groupInfo.subject || "Groupe";

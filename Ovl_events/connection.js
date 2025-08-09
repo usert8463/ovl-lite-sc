@@ -37,7 +37,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
       }
       installpg();
 
-      delay(2000);
+      delay(5000);
       const start_msg = `╭───〔 🤖 𝙊𝙑𝙇 𝘽𝙊𝙏 〕───⬣
 │ ߷ *Etat*       ➜ Connecté ✅
 │ ߷ *Préfixe*    ➜ ${config.PREFIXE}
@@ -64,7 +64,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
     key: {
       fromMe: false,
       participant: '0@s.whatsapp.net',
-      remoteJid: 'status@broadcast',
+      remoteJid: '0@s.whatsapp.net',
     },
     message: {
       extendedTextMessage: {

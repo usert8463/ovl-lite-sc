@@ -117,9 +117,7 @@ ovlcmd(
         `${prefixe}fancy <ID> <texte> — Appliquer un style au texte\n` +
         `${prefixe}fancy list [nom] — Lister les styles disponibles (optionnel : filtrer par nom)\n\n` +
         `Exemple : ${prefixe}fancy 3 Hello World\n` +
-        `Exemple pour la liste : ${prefixe}fancy list ovl\n\n` +
-        `Liste complète des styles disponibles :\n` +
-        fancy.list()
+        `Exemple pour la liste : ${prefixe}fancy list ovl\n\n`
       );
     }
 

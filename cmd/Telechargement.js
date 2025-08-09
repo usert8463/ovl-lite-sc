@@ -316,7 +316,7 @@ ovlcmd(
     classe: "Telechargement",
     react: "📥",
     desc: "Télécharger une application depuis Aptoide",
-  },  
+  },
   async (ms_org, ovl, cmd_options) => {
     const { repondre, arg, ms } = cmd_options;
 
@@ -326,53 +326,40 @@ ovlcmd(
         return repondre("*Entrer le nom de l'application à rechercher*");
       }
 
-      const searchResults = await apkdl.search(appName);
-
+      const searchResults = await apkdl(appName);
       if (searchResults.length === 0) {
         return repondre("*Application non existante, veuillez entrer un autre nom*");
       }
 
-      const appData = await apkdl.download(searchResults[0].id);
-      const fileSize = parseInt(appData.size);
-
-      if (isNaN(fileSize)) {
-        return repondre("*Erreur dans la taille du fichier*");
-      }
-
-      if (fileSize > 300) {
+      const appData = searchResults[0];
+      const fileSizeMB = parseFloat(appData.size.replace(/[^\d\.]/g, '')) || 0;
+      if (fileSizeMB > 300) {
         return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");
       }
 
-      const downloadLink = appData.dllink;
-      const captionText =
-        "『 *ᴏᴠʟ-ᴍᴅ-ᴠ𝟸 ᴀᴘᴋ-ᴅʟ* 』\n\n*📱ɴᴏᴍ :* " + appData.name +
-        "\n*🆔ɪᴅ :* " + appData["package"] +
-        "\n*📅ᴍɪsᴇ ᴀ̀ ᴊᴏᴜʀ:* " + appData.lastup +
-        "\n*📦ᴛᴀɪʟʟᴇ :* " + appData.size +
-        "\n";
+      const apkFileName = (appData.name || "Downloader") + ".apk";
+      const tempFilePath = path.join('/tmp', apkFileName);
 
-      const apkFileName = (appData?.["name"] || "Downloader") + ".apk";
-      const filePath = apkFileName;
+      const apkResponse = await axios.get(appData.dllink, { responseType: 'arraybuffer' });
+      fs.writeFileSync(tempFilePath, apkResponse.data);
 
-      const response = await axios.get(downloadLink, { 'responseType': "stream" });
-      const fileWriter = fs.createWriteStream(filePath);
-      response.data.pipe(fileWriter);
+      await ovl.sendMessage(ms_org, {
+        document: fs.readFileSync(tempFilePath),
+        mimetype: 'application/vnd.android.package-archive',
+        fileName: apkFileName,
+        contextInfo: {
+          externalAdReply: {
+            title: appData.name,
+            body: appData.size,
+            mediaUrl: appData.icon,
+            mediaType: 2,
+            thumbnail: (await axios.get(appData.icon, { responseType: 'arraybuffer' })).data,
+            sourceUrl: appData.icon
+          }
+        }
+      }, { quoted: ms });
 
-      await new Promise((resolve, reject) => {
-        fileWriter.on('finish', resolve);
-        fileWriter.on("error", reject);
-      });
-
-      const documentMessage = {
-        'document': fs.readFileSync(filePath),
-        'mimetype': 'application/vnd.android.package-archive',
-        'fileName': apkFileName
-      };
-
-      ovl.sendMessage(ms_org, { image: { url: appData.icon }, caption: captionText }, { quoted: ms });
-      ovl.sendMessage(ms_org, documentMessage, { quoted: ms });
-
-      fs.unlinkSync(filePath);
+      fs.unlinkSync(tempFilePath);
     } catch (error) {
       console.error('Erreur lors du traitement de la commande apk:', error);
       repondre("*Erreur lors du traitement de la commande apk*");

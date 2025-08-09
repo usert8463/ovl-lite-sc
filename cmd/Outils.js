@@ -28,7 +28,7 @@ const ms_badge = {
   key: {
     fromMe: false,
     participant: '0@s.whatsapp.net',
-    remoteJid: 'status@broadcast',
+    remoteJid: '0@s.whatsapp.net',
   },
   message: {
     extendedTextMessage: {

@@ -3,7 +3,7 @@ const { ChatbotConf } = require('../../DataBase/chatbot');
 
 async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot) {
   try {
-    if (mention_JID && mention_JID.includes(id_Bot)) {
+    if (mention_JID && mention_JID.includes(id_Bot)) return;
     if (!texte) return;
 
     const config = await ChatbotConf.findByPk('1');

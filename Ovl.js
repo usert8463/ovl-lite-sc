@@ -54,6 +54,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
       fireInitQueries: true,
+      emitOwnEvents': true,
       generateHighQualityLinkPreview: true,
       cachedGroupMetadata: async (jid) => getCache(jid),
       getMessage: async (key) => {
@@ -88,6 +89,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
 });
 
 ovl.ev.on('contacts.update', async (updates) => {
+  console.log(updates);
   for (const update of updates) {
     if (!update.id) continue;
     const jid = update.id;

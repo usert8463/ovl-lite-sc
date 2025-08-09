@@ -64,7 +64,6 @@ const Antilink_warnings = sequelize.define('Antilink_warnings', {
   console.log("Antilink synchronisée.");
 
   await Antilink_warnings.sync();
-  console.log("Antilink_warnings synchronisée.");
 })();
 
 module.exports = { Antilink, Antilink_warnings };

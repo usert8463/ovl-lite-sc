@@ -175,7 +175,7 @@ async function message_upsert(m, ovl) {
     antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org);
     antimention(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antitag(ovl, ms, ms_org, mtype, verif_Groupe, verif_Ovl_Admin, verif_Admin, auteur_Message);
-    mention(ovl, ms_org, ms, mtype, verif_Groupe, id_Bot, repondre);
+    mention(ovl, ms_org, ms, mtype, verif_Groupe, id_Bot, repondre, mention_JID);
     antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antispam(ovl, ms_org, ms, auteur_Message);

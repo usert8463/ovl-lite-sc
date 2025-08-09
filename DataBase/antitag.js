@@ -64,7 +64,6 @@ const Antitag_warnings = sequelize.define('Antitag_warnings', {
   console.log("Antitag synchronisée.");
 
   await Antitag_warnings.sync();
-  console.log("Antitag_warnings synchronisée.");
 })();
 
 module.exports = { Antitag, Antitag_warnings };

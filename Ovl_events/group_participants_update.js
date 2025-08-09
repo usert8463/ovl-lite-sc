@@ -97,7 +97,7 @@ async function group_participants_update(data, ovl) {
   try {
     const groupInfo = await ovl.groupMetadata(data.id);
     setCache(data.id, groupInfo);
-})
+    
     const metadata = groupInfo;
 
     const settings = await GroupSettings.findOne({ where: { id: data.id } });

@@ -135,7 +135,7 @@ async function stopSession(numero) {
 }
 
 async function startPrincipalSession() {
-  await delay(45000);
+//  await delay(45000);
   const sess = config.SESSION_ID || '';
   if (!(sess && sess.startsWith('Ovl-MD_') && sess.endsWith('_SESSION-ID'))) return;
   const ovlPrincipale = await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: sess });

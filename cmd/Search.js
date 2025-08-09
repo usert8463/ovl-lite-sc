@@ -5,7 +5,7 @@ const wiki = require('wikipedia');
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const config = require('../set');
 const { translate } = require('@vitalets/google-translate-api');
-const { ytdl } = require("../lib/dl");
+const ytsr = require('@distube/ytsr');
 const FormData = require('form-data');
 
 ovlcmd(
@@ -409,20 +409,26 @@ ovlcmd(
     }
 
     const query = arg.join(" ");
+    const max = 5;
+
     try {
-      const { yts } = await ytdl(query, 'video', 5);
-      
-      if (!yts || yts.length === 0) {
+      const searchResults = await ytsr(query, { limit: max });
+
+      if (!searchResults.items || searchResults.items.length === 0) {
         return ovl.sendMessage(ms_org, {
           text: "🔍 Aucun résultat trouvé.",
         }, { quoted: ms });
       }
 
-      const results = yts.map((video, i) => {
-        return `📌 *${i + 1}. ${video.title}*
-🔗 ${video.url}
-👁️ ${video.views} | ⏱️ ${video.duration}`;
-      }).join("\n\n");
+      const results = searchResults.items
+        .filter(item => item.type === 'video')
+        .slice(0, max)
+        .map((song, i) => {
+          return `📌 *${i + 1}. ${song.name}*
+🔗 ${song.url}
+👁️ ${song.views} | ⏱️ ${song.duration}`;
+        })
+        .join("\n\n");
 
       return ovl.sendMessage(ms_org, {
         text: `🎶 *Résultats pour:* _"${query}"_\n\n${results}\n──────\n📽️ _OVL-MD YouTube Search_`,

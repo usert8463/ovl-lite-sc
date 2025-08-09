@@ -1,8 +1,9 @@
 const axios = require('axios');
 const { ChatbotConf } = require('../../DataBase/chatbot');
 
-async function chatbot(ms_org, verif_Groupe, texte, repondre) {
+async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot) {
   try {
+    if (mention_JID && mention_JID.includes(id_Bot)) {
     if (!texte) return;
 
     const config = await ChatbotConf.findByPk('1');
@@ -42,7 +43,7 @@ async function chatbot(ms_org, verif_Groupe, texte, repondre) {
 
         reponseTexte = reponseTexte
           .replace(/Google/gi, 'AINZ')
-          .replace(/un grand modèle linguistique/gi, 'OVL-MD-V2-CHAT-BOT');
+          .replace(/un grand modèle linguistique/gi, 'OVL-CHAT-BOT');
 
         if (reponseTexte) {
           repondre(reponseTexte);

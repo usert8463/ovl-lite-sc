@@ -54,7 +54,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
       fireInitQueries: true,
-      emitOwnEvents': true,
+      emitOwnEvents: true,
       generateHighQualityLinkPreview: true,
       cachedGroupMetadata: async (jid) => getCache(jid),
       getMessage: async (key) => {

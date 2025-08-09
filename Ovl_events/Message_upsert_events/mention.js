@@ -1,10 +1,9 @@
 const { getMention } = require("../../DataBase/mention");
 const getJid = require("./cache_jid");
 
-async function mention(ovl, jid, ms, mtype, verif_Groupe, id_Bot, repondre) {
+async function mention(ovl, jid, ms, mtype, verif_Groupe, id_Bot, repondre, mention_JID) {
   try {
-    const mentionedJid = await getJid(ms.message?.[mtype]?.contextInfo?.mentionedJid, jid, ovl);
-    if (mentionedJid && mentionedJid.includes(id_Bot)) {
+    if (mention_JID && mention_JID.includes(id_Bot)) {
       if (verif_Groupe) {
         const data = await getMention();
 

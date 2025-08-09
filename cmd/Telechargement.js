@@ -197,39 +197,64 @@ ovlcmd(
 );
 
 ovlcmd(
-  {
-    nom_cmd: "ttdl",
-    classe: "Telechargement",
-    react: "📥",
-    desc: "Télécharger ou envoyer directement une vidéo depuis TikTok"
-  },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, ms } = cmd_options;
-    const videoLink = arg.join(" ");
-    
-    if (!videoLink) {
-      return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok, par exemple : ttdl https://vm.tiktok.com/..." }, { quoted: ms });
+    {
+        nom_cmd: "ttdl",
+        classe: "Telechargement",
+        react: "📥",
+        desc: "Télécharger ou envoyer directement une vidéo depuis TikTok"
+    },
+    async (ms_org, ovl, cmd_options) => {
+        const { arg, ms, auteur_Message } = cmd_options;
+        const videoLink = arg.join(" ");
+        if (!videoLink) {
+            return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok, par exemple : ttdl https://vm.tiktok.com/..." }, { quoted: ms });
+        }
+        try {
+            const links = await ttdl(videoLink);
+			console.log(links);
+            const options = [];
+            if (links.hdVideo) options.push({ type: "video", label: "Vidéo HD", url: links.hdVideo });
+            if (links.noWatermark) options.push({ type: "video", label: "Vidéo sans filigrane", url: links.noWatermark });
+            if (links.mp3) options.push({ type: "audio", label: "Audio (MP3)", url: links.mp3 });
+            if (links.slides.length > 0) options.push({ type: "images", label: "Images (slides)", urls: links.slides });
+            if (options.length === 0) {
+                return ovl.sendMessage(ms_org, { text: "Aucun fichier téléchargeable trouvé." }, { quoted: ms });
+            }
+            let msg = "📥 Options disponibles :\n";
+            options.forEach((opt, idx) => {
+                msg += `${idx + 1}. ${opt.label}\n`;
+            });
+            msg += "\nRépondez avec le numéro de l'option à télécharger.";
+            await ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
+            const rep = await ovl.recup_msg({
+                auteur: auteur_Message,
+                ms_org,
+                temps: 60000
+            });
+            const reponse = rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "";
+            const choix = parseInt(reponse.trim(), 10);
+            if (isNaN(choix) || choix < 1 || choix > options.length) {
+                return ovl.sendMessage(ms_org, { text: "Choix invalide." }, { quoted: ms });
+            }
+            const selection = options[choix - 1];
+            if (selection.type === "video") {
+                const file = await axios.get(selection.url, { responseType: "arraybuffer" });
+                return ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
+            } else if (selection.type === "audio") {
+                const file = await axios.get(selection.url, { responseType: "arraybuffer" });
+                return ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
+            } else if (selection.type === "images") {
+                for (const imgUrl of selection.urls) {
+                    const file = await axios.get(imgUrl, { responseType: "arraybuffer" });
+                    await ovl.sendMessage(ms_org, { image: Buffer.from(file.data) }, { quoted: ms });
+                }
+                return;
+            }
+        } catch (error) {
+            ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
+            console.error('Error:', error);
+        }
     }
-
-    try {
-      const downloadLinks = await ttdl(videoLink);
-
-      const video = await axios.get(downloadLinks.result.nowatermark, {
-        responseType: "arraybuffer",
-        headers: {
-          "Accept": "application/octet-stream",
-          "Content-Type": "application/octet-stream",
-          "User-Agent": "GoogleBot",
-        },
-      });
-
-      return ovl.sendMessage(ms_org, { video: Buffer.from(video.data), caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
-
-    } catch (error) {
-      ovl.sendMessage(ms_org, { text: `Erreur: ${error}` }, { quoted: ms });
-      console.error('Error:', error);
-    }
-  }
 );
 
 ovlcmd(

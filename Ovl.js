@@ -79,7 +79,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
   setCache(data.id, metadata);
 });
     ovl.ev.on('contacts.upsert', async (contacts) => {
-      console.log(contacts);
   for (const contact of contacts) {
     if (!contact.id) continue;
     
@@ -89,7 +88,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
 });
 
 ovl.ev.on('contacts.update', async (updates) => {
-  console.log(updates);
   for (const update of updates) {
     if (!update.id) continue;
     const jid = update.id;

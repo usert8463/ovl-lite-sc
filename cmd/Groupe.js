@@ -928,8 +928,9 @@ ovlcmd(
 
       for (const participant of participants) {
         const jid = participant.jid;
+        const lid = participant.id.split("@")[0];
         const number = jid.split("@")[0];
-        const name = ovl.getName(jid) || number;
+        const name = ovl.getName(lid) || number;
         vcfData.push(`BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${number}\nEND:VCARD`);
       }
 

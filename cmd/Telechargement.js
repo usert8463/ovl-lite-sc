@@ -211,7 +211,6 @@ ovlcmd(
         }
         try {
             const links = await ttdl(videoLink);
-			console.log(links);
             const options = [];
             if (links.hdVideo) options.push({ type: "video", label: "Vidéo HD", url: links.hdVideo });
             if (links.noWatermark) options.push({ type: "video", label: "Vidéo sans filigrane", url: links.noWatermark });
@@ -366,7 +365,7 @@ ovlcmd(
       const apkFileName = (appData.name || "Downloader") + ".apk";
       const tempFilePath = path.join('/tmp', apkFileName);
 
-      const apkResponse = await axios.get(appData.dllink, { responseType: 'arraybuffer' });
+      const apkResponse = await axios.get(appData.dllink, { responseType: 'stream' });
       fs.writeFileSync(tempFilePath, apkResponse.data);
 
       await ovl.sendMessage(ms_org, {

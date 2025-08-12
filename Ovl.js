@@ -11,7 +11,7 @@ const {
   delay
 } = require('@whiskeysockets/baileys');
 
-const { getMessage, addContact, getContact } = require('./lib/store');
+const { getMessage } = require('./lib/store');
 const { getCache } = require("./lib/cache_metadata");
 const get_session = require('./DataBase/session');
 const config = require('./set');
@@ -40,10 +40,8 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     await WAAuth.upsert({ key: `keys--${instanceId}`, value: sessionData.keys || null });
 
     const { state, saveCreds } = await useSQLiteAuthState(instanceId);
-    const { version } = await fetchLatestBaileysVersion();
-
+    
     const ovl = makeWASocket({
-      version,
       auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }).child({ level: 'silent' }))
@@ -53,8 +51,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       printQRInTerminal: false,
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
-      fireInitQueries: true,
-      emitOwnEvents: true,
       generateHighQualityLinkPreview: true,
       cachedGroupMetadata: async (jid) => getCache(jid),
       getMessage: async (key) => {
@@ -78,30 +74,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
   const metadata = await ovl.groupMetadata(data.id);
   setCache(data.id, metadata);
 });
-    ovl.ev.on('contacts.upsert', async (contacts) => {
-  for (const contact of contacts) {
-    if (!contact.id) continue;
-    
-    const jid = contact.id;
-    addContact(jid, contact);
-  }
-});
-
-ovl.ev.on('contacts.update', async (updates) => {
-  for (const update of updates) {
-    if (!update.id) continue;
-    const jid = update.id;
-    if (update.notify) {
-      addContact(jid, { id: jid, name: update.notify });
-    }
-  }
-});
-
-    ovl.getName = function (jid) {
-      const contact = getContact(jid);
-      if (!contact) return null;
-      return contact.name || null;
-    };
 
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);

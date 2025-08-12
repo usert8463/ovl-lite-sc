@@ -6,6 +6,7 @@ const { Antibot } = require("../DataBase/antibot");
 const { GroupSettings, Events2 } = require("../DataBase/events");
 const fs = require("fs");
 const { Antimention } = require('../DataBase/antimention');
+const { Ranks } = require('../DataBase/rank');
 
 ovlcmd(
     {
@@ -928,9 +929,14 @@ ovlcmd(
 
       for (const participant of participants) {
         const jid = participant.jid;
-        const lid = participant.id.split("@")[0];
         const number = jid.split("@")[0];
-        const name = ovl.getName(lid) || number;
+        let name;
+        const user = await Ranks.findOne({ where: { id: jid } });
+      if (user.name) { 
+         name = user.name
+		} else { 
+         name = number;
+      }
         vcfData.push(`BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${number}\nEND:VCARD`);
       }
 

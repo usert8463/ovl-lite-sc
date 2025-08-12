@@ -5,6 +5,7 @@ const { Antitag } = require("../DataBase/antitag");
 const { Antibot } = require("../DataBase/antibot");
 const { GroupSettings, Events2 } = require("../DataBase/events");
 const fs = require("fs");
+const { setWarn, delWarn, getWarn, getLimit, setLimit } = require("../DataBase/warn");
 const { Antimention } = require('../DataBase/antimention');
 const { Ranks } = require('../DataBase/rank');
 
@@ -900,6 +901,88 @@ ovlcmd(
     } catch (error) {
       console.error("Erreur lors de la suppression de la PP :", error);
       ovl.sendMessage(jid, { text: "❌ Une erreur est survenue lors de la suppression de la photo du groupe." }, { quoted: ms });
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "warn",
+    classe: "Groupe",
+    react: "⚠️",
+    desc: "Avertit un membre du groupe ou gère les avertissements.",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { verif_Groupe, getJid, infos_Groupe, arg, verif_Admin, verif_Ovl_Admin, prenium_id, dev_num, ms, auteur_Message, auteur_Msg_Repondu } = cmd_options;
+
+    if (!verif_Groupe)
+      return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
+
+    if (!arg[0])
+      return ovl.sendMessage(ms_org, {
+        text:
+          "⚠️ *Utilisation de la commande warn :*\n\n" +
+          "• `warn @utilisateur` : Ajouter un avertissement.\n" +
+          "• `warn reset @utilisateur` : Réinitialiser les avertissements.\n" +
+          "• `warn limit <nombre>` : Définir la limite d'avertissements."
+      }, { quoted: ms });
+
+    if (arg[0] === "limit") {
+      if (!prenium_id && !verif_Admin)
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission." }, { quoted: ms });
+
+      const newLimit = parseInt(arg[1]);
+      if (isNaN(newLimit) || newLimit < 1)
+        return ovl.sendMessage(ms_org, { text: "Veuillez entrer une limite valide." }, { quoted: ms });
+
+      await setLimit(newLimit);
+      return ovl.sendMessage(ms_org, { text: `✅ Limite d'avertissements définie à ${newLimit}.` }, { quoted: ms });
+    }
+
+    if (arg[0] === "reset") {
+      if (!prenium_id && !verif_Admin)
+        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission." }, { quoted: ms });
+		
+	  const cbl = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+      const membre = await getJid(cbl, ms_org, ovl);
+      await delWarn(membre);
+      return ovl.sendMessage(ms_org, { text: `✅ Les avertissements de @${membreReset.jid.split("@")[0]} ont été réinitialisés.`, mentions: [membreReset.jid] }, { quoted: ms });
+    }
+
+    const cbl = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+    const membre = await getJid(cbl, ms_org, ovl);
+	  
+    if (!prenium_id && !verif_Admin)
+      return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission." }, { quoted: ms });
+
+    if (!verif_Ovl_Admin)
+      return ovl.sendMessage(ms_org, { text: "Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
+
+    if (admins.includes(membre))
+      return ovl.sendMessage(ms_org, { text: "Impossible d'avertir un administrateur." }, { quoted: ms });
+
+    if (dev_num.includes(membre))
+      return ovl.sendMessage(ms_org, { text: "Impossible d'avertir un développeur." }, { quoted: ms });
+
+    const limit = await getLimit();
+    const currentWarn = await getWarn(membre);
+    const newCount = currentWarn ? currentWarn.count + 1 : 1;
+    const warnData = await setWarn(membre, newCount);
+    const dateWarn = new Date().toLocaleString("fr-FR");
+
+    await ovl.sendMessage(ms_org, {
+      text: `⚠️ **Avertissement** ⚠️\n\n👤 Utilisateur : @${membre.split("@")[0]}\n📌 Warn par : @${auteur_Message.split("@")[0]}\n📅 Date : ${dateWarn}\n📊 Total warns : ${warnData.count}/${limit}`,
+      mentions: [membre, auteur]
+    }, { quoted: ms });
+
+    if (warnData.count >= limit) {
+      try {
+        await ovl.groupParticipantsUpdate(ms_org, [membre], "remove");
+        ovl.sendMessage(ms_org, { text: `🚫 @${membre.split("@")[0]} a été exclu pour avoir atteint la limite d'avertissements.`, mentions: [membre] }, { quoted: ms });
+        await delWarn(membre);
+      } catch {
+        ovl.sendMessage(ms_org, { text: "Erreur lors de l'exclusion." }, { quoted: ms });
+      }
     }
   }
 );

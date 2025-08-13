@@ -996,8 +996,6 @@ ovlcmd(
   }
 );
 
-const fs = require("fs");
-
 ovlcmd(
   {
     nom_cmd: "vcf",

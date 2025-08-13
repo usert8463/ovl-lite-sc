@@ -58,6 +58,7 @@ const Levelup = sequelize.define('Levelup', {
   levelup: {
     type: DataTypes.TEXT,
     allowNull: false,
+    defaultValue: 'non'
   }
 }, {
   tableName: 'levelup',
@@ -68,6 +69,7 @@ const Levelup = sequelize.define('Levelup', {
   await Ranks.sync();
   await Levelup.sync();
   console.log("Ranks synchronisée.");
+  console.log("Levelup synchronisée.");
 })();
 
 module.exports = { Ranks, Levelup };

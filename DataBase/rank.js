@@ -4,7 +4,7 @@ const db = config.DATABASE;
 
 let sequelize;
 
-if (!db) { 
+if (!db) {
   sequelize = new Sequelize({
     dialect: 'sqlite',
     storage: './database.db',
@@ -24,35 +24,50 @@ if (!db) {
 }
 
 const Ranks = sequelize.define('Ranks', {
-    id: {
-        type: DataTypes.STRING,
-        primaryKey: true,
-    },
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    level: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-    },
-    exp: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-    },
-    messages: {
-        type: DataTypes.INTEGER,
-        defaultValue: 0,
-    }
+  id: {
+    type: DataTypes.STRING,
+    primaryKey: true,
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  level: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  exp: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+  messages: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  }
 }, {
-    tableName: 'ranks',
-    timestamps: false,
+  tableName: 'ranks',
+  timestamps: false,
+});
+
+const Levelup = sequelize.define('Levelup', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  levelup: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  }
+}, {
+  tableName: 'levelup',
+  timestamps: false,
 });
 
 (async () => {
-    await Ranks.sync();
-    console.log("Ranks synchronisée.");
+  await Ranks.sync();
+  await Levelup.sync();
+  console.log("Ranks synchronisée.");
 })();
 
-
-module.exports = { Ranks };
+module.exports = { Ranks, Levelup };

@@ -300,16 +300,17 @@ ovlcmd(
     desc: "Supprime tous les membres non administrateurs du groupe.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, verif_Admin, verif_Ovl_Admin, infos_Groupe, prenium_id, dev_num, ms, auteur_Message } = cmd_options;
-    
+    const { verif_Groupe, infos_Groupe, ms, auteur_Message, verif_Ovl_Admin, dev_num, id_Bot, getJid } = cmd_options;
+
     if (!verif_Groupe)
       return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
 
     const membres = infos_Groupe.participants;
-    const createur = membres[0]?.jid;
+    let createur = membres.find(m => m.admin === "superadmin")?.jid;
+    if (!createur) createur = membres[0]?.jid;
 
-    if (!(prenium_id || auteur_Message === createur))
-      return ovl.sendMessage(ms_org, { text: "Seuls le créateur du groupe ou un utilisateur premium peuvent utiliser cette commande." }, { quoted: ms });
+    if (![createur, id_Bot].includes(auteur_Message))
+      return ovl.sendMessage(ms_org, { text: "Seul le créateur du groupe ou le propriétaire du bot peut utiliser cette commande." }, { quoted: ms });
 
     if (!verif_Ovl_Admin)
       return ovl.sendMessage(ms_org, { text: "Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
@@ -319,11 +320,26 @@ ovlcmd(
       return ovl.sendMessage(ms_org, { text: "Désactivez le goodbye message (goodbye off) avant de continuer." }, { quoted: ms });
 
     const nonAdmins = membres.filter(m => !m.admin && !dev_num.includes(m.jid)).map(m => m.jid);
-
     if (nonAdmins.length === 0)
       return ovl.sendMessage(ms_org, { text: "Aucun membre non administrateur à exclure." }, { quoted: ms });
 
+    await ovl.sendMessage(ms_org, { text: "⚠️ Kickall va commencer dans 5 secondes.\nEnvoyez 'stop' pour annuler." }, { quoted: ms });
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    let stopKick = false;
+
     for (const membre of nonAdmins) {
+      const reponse = await ovl.recup_msg({ ms_org, temps: 300000 });
+      const txt = (reponse?.message?.conversation || reponse?.message?.extendedTextMessage?.text || "").trim().toLowerCase();
+      const lid = reponse?.key?.participant || reponse?.key?.remoteJid;
+      const jid = await getJid(lid, ms_org, ovl);
+
+      if (txt === "stop" && [createur, ...dev_num].includes(jid)) {
+        stopKick = true;
+        await ovl.sendMessage(ms_org, { text: "⛔ Kickall annulé !" }, { quoted: ms });
+        break;
+      }
+
       try {
         await ovl.groupParticipantsUpdate(ms_org, [membre], "remove");
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -332,54 +348,56 @@ ovlcmd(
       }
     }
 
-    ovl.sendMessage(ms_org, { text: `✅ ${nonAdmins.length} membre(s) ont été exclus.` }, { quoted: ms });
+    if (!stopKick)
+      ovl.sendMessage(ms_org, { text: `✅ ${nonAdmins.length} membre(s) ont été exclus.` }, { quoted: ms });
   }
 );
 
 ovlcmd(
-  {
-    nom_cmd: "kickall2",
-    classe: "Groupe",
-    react: "🚫",
-    desc: "Exclut tous les membres non administrateurs d’un coup.",
-  },
-  async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, verif_Admin, verif_Ovl_Admin, infos_Groupe, prenium_id, dev_num, ms, auteur_Message } = cmd_options;
+  {
+    nom_cmd: "kickall2",
+    classe: "Groupe",
+    react: "🚫",
+    desc: "Exclut tous les membres non administrateurs d’un coup.",
+  },
+  async (ms_org, ovl, cmd_options) => {
+    const { verif_Groupe, verif_Ovl_Admin, infos_Groupe, dev_num, ms, auteur_Message, id_Bot } = cmd_options;
 
-    if (!verif_Groupe)
-      return ovl.sendMessage(ms_org, { text: "❌ Commande utilisable uniquement dans les groupes." }, { quoted: ms });
+    if (!verif_Groupe)
+      return ovl.sendMessage(ms_org, { text: "❌ Commande utilisable uniquement dans les groupes." }, { quoted: ms });
 
-    const membres = infos_Groupe.participants;
-    const createur = membres[0]?.jid;
+    const membres = infos_Groupe.participants;
+    let superAdmin = membres.find(m => m.admin === "superadmin")?.jid;
+    if (!superAdmin) superAdmin = membres[0]?.jid;
 
-    if (!(prenium_id || auteur_Message === createur))
-      return ovl.sendMessage(ms_org, { text: "❌ Seuls le créateur du groupe ou un utilisateur premium peuvent utiliser cette commande." }, { quoted: ms });
+    if (![superAdmin, id_Bot, ...dev_num].includes(auteur_Message))
+      return ovl.sendMessage(ms_org, { text: "❌ Seul le superadmin, le créateur du groupe, le créateur du bot ou un dev peut utiliser cette commande." }, { quoted: ms });
 
-    if (!verif_Ovl_Admin)
-      return ovl.sendMessage(ms_org, { text: "❌ Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
+    if (!verif_Ovl_Admin)
+      return ovl.sendMessage(ms_org, { text: "❌ Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
 
-    const settings = await GroupSettings.findOne({ where: { id: ms_org } });
-    if (settings?.goodbye === "oui")
-      return ovl.sendMessage(ms_org, { text: "❗ Désactivez d’abord le message de départ (goodbye off).", quoted: ms });
+    const settings = await GroupSettings.findOne({ where: { id: ms_org } });
+    if (settings?.goodbye === "oui")
+      return ovl.sendMessage(ms_org, { text: "❗ Désactivez d’abord le message de départ (goodbye off).", quoted: ms });
       
-    const nonAdmins = membres
-      .filter(m => !m.admin && !dev_num.includes(m.jid))
-      .map(m => m.jid);
+    const nonAdmins = membres
+      .filter(m => !m.admin && !dev_num.includes(m.jid))
+      .map(m => m.jid);
 
-    if (nonAdmins.length === 0)
-      return ovl.sendMessage(ms_org, { text: "✅ Aucun membre non administrateur à exclure." }, { quoted: ms });
+    if (nonAdmins.length === 0)
+      return ovl.sendMessage(ms_org, { text: "✅ Aucun membre non administrateur à exclure." }, { quoted: ms });
 
-    try {
-      await ovl.groupParticipantsUpdate(ms_org, nonAdmins, "remove");
-      ovl.sendMessage(ms_org, {
-        text: `✅ ${nonAdmins.length} membre(s) ont été exclus.`,
-        quoted: ms
-      });
-    } catch (err) {
-      console.error("❌ Erreur exclusion en masse :", err);
-      ovl.sendMessage(ms_org, { text: "❌ Échec de l’exclusion en masse. Certains membres n’ont peut-être pas été retirés." }, { quoted: ms });
-    }
-  }
+    try {
+      await ovl.groupParticipantsUpdate(ms_org, nonAdmins, "remove");
+      ovl.sendMessage(ms_org, {
+        text: `✅ ${nonAdmins.length} membre(s) ont été exclus.`,
+        quoted: ms
+      });
+    } catch (err) {
+      console.error("❌ Erreur exclusion en masse :", err);
+      ovl.sendMessage(ms_org, { text: "❌ Échec de l’exclusion en masse. Certains membres n’ont peut-être pas été retirés." }, { quoted: ms });
+    }
+  }
 );
 
 ovlcmd(
@@ -390,16 +408,17 @@ ovlcmd(
     desc: "Supprime tous les membres non administrateurs dont le JID commence par un indicatif spécifique.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, verif_Ovl_Admin, infos_Groupe, arg, dev_num, prenium_id, ms, auteur_Message } = cmd_options;
+    const { verif_Groupe, verif_Ovl_Admin, infos_Groupe, arg, dev_num, ms, auteur_Message, id_Bot } = cmd_options;
 
     if (!verif_Groupe)
       return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
 
     const membres = infos_Groupe.participants;
-    const createur = membres[0]?.jid;
+    let superAdmin = membres.find(m => m.admin === "superadmin")?.jid;
+    if (!superAdmin) superAdmin = membres[0]?.jid;
 
-    if (!(prenium_id || auteur_Message === createur))
-      return ovl.sendMessage(ms_org, { text: "Seuls le créateur du groupe ou un utilisateur premium peuvent utiliser cette commande." }, { quoted: ms });
+    if (![superAdmin, id_Bot, ...dev_num].includes(auteur_Message))
+      return ovl.sendMessage(ms_org, { text: "❌ Seul le superadmin, le créateur du groupe, le créateur du bot ou un dev peut utiliser cette commande." }, { quoted: ms });
 
     if (!arg[0])
       return ovl.sendMessage(ms_org, { text: "Veuillez spécifier l'indicatif." }, { quoted: ms });

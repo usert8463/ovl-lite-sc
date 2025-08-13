@@ -121,7 +121,7 @@ ovlcmd(
     }
     if (arg[0].toLowerCase() === 'list') {
       const filterName = arg[1] || '';
-      return await repondre(list(fancy, filterName));
+      return await repondre(fancy.list(fancy, filterName));
     }
     const id = parseInt(arg[0], 10);
     const text = arg.slice(1).join(" ");

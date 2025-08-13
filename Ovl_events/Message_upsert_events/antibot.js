@@ -2,10 +2,7 @@ const { Antibot, AntibotWarnings } = require("../../DataBase/antibot");
 
 async function antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message) {
     try {
-        const botMsg = (ms.key?.id?.startsWith('BAES') && ms.key?.id?.length === 16) ||
-                       (ms.key?.id?.startsWith('BAE5') && ms.key?.id?.length === 16) ||
-                       (ms.key?.id?.startsWith('EVO') && ms.key?.id?.length >= 12) ||
-                       (ms.key?.id?.startsWith('3EB0') && ms.key?.id?.length >= 12);
+        const botMsg = id.startsWith('BAES') || id.startsWith('BAE5') || id.startsWith('EVO') || id.startsWith('3EB0');
 
         if (botMsg) {
             const settings = await Antibot.findOne({ where: { id: ms_org } });

@@ -1,4 +1,4 @@
-const { WA_CONF2 } = require("../../Database/wa_conf");
+const { WA_CONF2 } = require("../../DataBase/wa_conf");
 
 const emojis = [
   "🎐","👍","❤️","😂","😮","😢","😡","🎉","🔥","🙏",

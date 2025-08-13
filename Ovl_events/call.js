@@ -1,4 +1,4 @@
-const { WA_CONF2 } = require("../database/wa_conf");
+const { WA_CONF2 } = require("../DataBase/wa_conf");
 
 async function call(ovl, callEvent) {
   try {

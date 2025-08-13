@@ -1,130 +1,89 @@
 const { Antispam, AntispamWarnings } = require("../../DataBase/antispam");
 
-const antispamStore = {};
-const surveillance = {};
+const messageStore = {};
+const advancedSurveillance = {};
 
 async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
   try {
     if (!verif_Groupe) return;
-    if (!ms.key?.id) return;
+    if (!ms.key?.id || !auteur_Message) return;
 
     const now = Date.now();
 
-    if (!antispamStore[ms_org]) antispamStore[ms_org] = {};
-    if (!antispamStore[ms_org][auteur_Message]) antispamStore[ms_org][auteur_Message] = [];
+    if (!messageStore[ms_org]) messageStore[ms_org] = {};
+    if (!messageStore[ms_org][auteur_Message]) messageStore[ms_org][auteur_Message] = [];
 
-    antispamStore[ms_org][auteur_Message].push({ id: ms.key.id, timestamp: now });
+    const userMsgs = messageStore[ms_org][auteur_Message];
 
-    const recentMsgs = antispamStore[ms_org][auteur_Message];
-    while (recentMsgs.length > 20) recentMsgs.shift();
+    const inAdvanced = advancedSurveillance[ms_org]?.[auteur_Message];
+    if (inAdvanced && now - inAdvanced < 5000) {
+      await ovl.sendMessage(ms_org, {
+        delete: { remoteJid: ms_org, fromMe: false, id: ms.key.id, participant: auteur_Message }
+      });
+      return;
+    }
+
+    userMsgs.push({ id: ms.key.id, timestamp: now });
+
+    if (userMsgs.length > 5) userMsgs.shift();
 
     const settings = await Antispam.findOne({ where: { id: ms_org } });
     if (!settings || settings.mode !== "oui") return;
 
-    const key = {
-      remoteJid: ms_org,
-      fromMe: false,
-      id: ms.key.id,
-      participant: auteur_Message
-    };
+    if (userMsgs.length === 5) {
+      const timeDiff = userMsgs[4].timestamp - userMsgs[0].timestamp;
 
-    const isInSurveillance = surveillance[ms_org]?.[auteur_Message];
-    if (isInSurveillance && now - isInSurveillance < 10000) {
-      await ovl.sendMessage(ms_org, { delete: key });
-      return;
-    }
+      if (timeDiff < 25000) {
+        advancedSurveillance[ms_org] ??= {};
+        advancedSurveillance[ms_org][auteur_Message] = now;
 
-    if (recentMsgs.length >= 5) {
-      const lastFive = recentMsgs.slice(-5);
-      if (!lastFive[0] || !lastFive[4]) return;
-
-      const first = lastFive[0].timestamp;
-      const last = lastFive[4].timestamp;
-
-      if (last - first < 25000) {
-        for (const msg of recentMsgs) {
-          const delKey = {
-            remoteJid: ms_org,
-            fromMe: false,
-            id: msg.id,
-            participant: auteur_Message
-          };
-
+        for (const msg of userMsgs) {
           try {
-            await ovl.sendMessage(ms_org, { delete: delKey });
-          } catch (err) {
-            console.error("Erreur suppression message :", delKey, err.message);
-          }
+            await ovl.sendMessage(ms_org, {
+              delete: { remoteJid: ms_org, fromMe: false, id: msg.id, participant: auteur_Message }
+            });
+          } catch (err) {}
         }
 
-        const username = `@${auteur_Message.split('@')[0]}`;
+        const username = `@${auteur_Message.split("@")[0]}`;
 
         try {
           switch (settings.type) {
-            case 'supp':
-              await ovl.sendMessage(ms_org, {
-                text: `${username}, le spam est interdit ici.`,
-                mentions: [auteur_Message]
-              }, { quoted: ms });
+            case "supp":
+              await ovl.sendMessage(ms_org, { text: `${username}, le spam est interdit ici.`, mentions: [auteur_Message] }, { quoted: ms });
               break;
-
-            case 'kick':
-              await ovl.sendMessage(ms_org, {
-                text: `${username} a été retiré pour spam.`,
-                mentions: [auteur_Message]
-              }, { quoted: ms });
+            case "kick":
+              await ovl.sendMessage(ms_org, { text: `${username} a été retiré pour spam.`, mentions: [auteur_Message] }, { quoted: ms });
               await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
               break;
-
-            case 'warn': {
-              let warning = await AntispamWarnings.findOne({
-                where: { groupId: ms_org, userId: auteur_Message }
-              });
-
+            case "warn": {
+              let warning = await AntispamWarnings.findOne({ where: { groupId: ms_org, userId: auteur_Message } });
               if (!warning) {
-                await AntispamWarnings.create({
-                  groupId: ms_org,
-                  userId: auteur_Message,
-                  count: 1
-                });
-                await ovl.sendMessage(ms_org, {
-                  text: `${username}, avertissement 1/3 pour spam.`,
-                  mentions: [auteur_Message]
-                }, { quoted: ms });
+                await AntispamWarnings.create({ groupId: ms_org, userId: auteur_Message, count: 1 });
+                await ovl.sendMessage(ms_org, { text: `${username}, avertissement 1/3 pour spam.`, mentions: [auteur_Message] }, { quoted: ms });
               } else {
                 warning.count += 1;
                 await warning.save();
-
                 if (warning.count >= 3) {
-                  await ovl.sendMessage(ms_org, {
-                    text: `${username} retiré après 3 avertissements.`,
-                    mentions: [auteur_Message]
-                  }, { quoted: ms });
+                  await ovl.sendMessage(ms_org, { text: `${username} retiré après 3 avertissements.`, mentions: [auteur_Message] }, { quoted: ms });
                   await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
                   await warning.destroy();
                 } else {
-                  await ovl.sendMessage(ms_org, {
-                    text: `${username}, avertissement ${warning.count}/3 pour spam.`,
-                    mentions: [auteur_Message]
-                  }, { quoted: ms });
+                  await ovl.sendMessage(ms_org, { text: `${username}, avertissement ${warning.count}/3 pour spam.`, mentions: [auteur_Message] }, { quoted: ms });
                 }
               }
               break;
             }
           }
-        } catch (err) {
-          console.error("Erreur dans la gestion des sanctions :", err);
-        }
+        } catch (err) {}
 
-        surveillance[ms_org] ??= {};
-        surveillance[ms_org][auteur_Message] = now;
-        antispamStore[ms_org][auteur_Message] = [];
+        messageStore[ms_org][auteur_Message] = [userMsgs[4]];
+      } else {
+        messageStore[ms_org][auteur_Message] = [userMsgs[4]];
       }
     }
 
-  } catch (err) {
-    console.error("Erreur dans le système antispam :", err);
-  }
+  } catch (err) {}
 }
 
 module.exports = antispam;

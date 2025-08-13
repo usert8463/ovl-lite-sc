@@ -914,56 +914,61 @@ ovlcmd(
     desc: "Avertit un membre du groupe ou gère les avertissements.",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, getJid, infos_Groupe, arg, verif_Admin, verif_Ovl_Admin, prenium_id, dev_num, ms, auteur_Message, auteur_Msg_Repondu } = cmd_options;
+    const { verif_Groupe, getJid, infos_Groupe, arg, verif_Admin, verif_Ovl_Admin, prenium_id, dev_num, ms, auteur_Message, auteur_Msg_Repondu, repondre } = cmd_options;
 
     if (!verif_Groupe)
-      return ovl.sendMessage(ms_org, { text: "Commande utilisable uniquement dans les groupes." }, { quoted: ms });
+      return repondre("Commande utilisable uniquement dans les groupes.");
 
-    if (!arg[0])
-      return ovl.sendMessage(ms_org, {
-        text:
-          "⚠️ *Utilisation de la commande warn :*\n\n" +
-          "• `warn @utilisateur` : Ajouter un avertissement.\n" +
-          "• `warn reset @utilisateur` : Réinitialiser les avertissements.\n" +
-          "• `warn limit <nombre>` : Définir la limite d'avertissements."
-      }, { quoted: ms });
+    const membres = await infos_Groupe.participants;
+    const admins = membres.filter((m) => m.admin).map((m) => m.jid);
+
+    if (!arg[0] && !auteur_Msg_Repondu)
+      return repondre(
+        `⚠️ *Utilisation de la commande warn*\n\n` +
+        "• `warn @utilisateur` ou warn en répondant à un de ses messages : Ajouter un avertissement.\n" +
+        "• `warn reset @utilisateur` ou warn reset en répondant à un de ses messages : Réinitialiser les avertissements.\n" +
+        "• `warn limit <nombre>` : Définir la limite d'avertissements."
+      );
 
     if (arg[0] === "limit") {
       if (!prenium_id && !verif_Admin)
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission." }, { quoted: ms });
+        return repondre("Vous n'avez pas la permission.");
 
       const newLimit = parseInt(arg[1]);
       if (isNaN(newLimit) || newLimit < 1)
-        return ovl.sendMessage(ms_org, { text: "Veuillez entrer une limite valide." }, { quoted: ms });
+        return repondre("Veuillez entrer une limite valide.");
 
       await setLimit(newLimit);
-      return ovl.sendMessage(ms_org, { text: `✅ Limite d'avertissements définie à ${newLimit}.` }, { quoted: ms });
+      return repondre(`✅ Limite d'avertissements définie à ${newLimit}.`);
     }
 
     if (arg[0] === "reset") {
       if (!prenium_id && !verif_Admin)
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission." }, { quoted: ms });
-		
-	  const cbl = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
+        return repondre("Vous n'avez pas la permission.");
+
+      const cbl = auteur_Msg_Repondu || (arg[1]?.includes("@") && `${arg[1].replace("@", "")}@lid`);
       const membre = await getJid(cbl, ms_org, ovl);
       await delWarn(membre);
-      return ovl.sendMessage(ms_org, { text: `✅ Les avertissements de @${membreReset.jid.split("@")[0]} ont été réinitialisés.`, mentions: [membreReset.jid] }, { quoted: ms });
+      return ovl.sendMessage(ms_org, {
+        text: `✅ Les avertissements de @${membre.split("@")[0]} ont été réinitialisés.`,
+        mentions: [membre]
+      }, { quoted: ms });
     }
 
     const cbl = auteur_Msg_Repondu || (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
     const membre = await getJid(cbl, ms_org, ovl);
-	  
+
     if (!prenium_id && !verif_Admin)
-      return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission." }, { quoted: ms });
+      return repondre("Vous n'avez pas la permission.");
 
     if (!verif_Ovl_Admin)
-      return ovl.sendMessage(ms_org, { text: "Je dois être administrateur pour effectuer cette action." }, { quoted: ms });
+      return repondre("Je dois être administrateur pour effectuer cette action.");
 
     if (admins.includes(membre))
-      return ovl.sendMessage(ms_org, { text: "Impossible d'avertir un administrateur." }, { quoted: ms });
+      return repondre("Impossible d'avertir un administrateur.");
 
     if (dev_num.includes(membre))
-      return ovl.sendMessage(ms_org, { text: "Impossible d'avertir un développeur." }, { quoted: ms });
+      return repondre("Impossible d'avertir un développeur.");
 
     const limit = await getLimit();
     const currentWarn = await getWarn(membre);
@@ -973,20 +978,25 @@ ovlcmd(
 
     await ovl.sendMessage(ms_org, {
       text: `⚠️ **Avertissement** ⚠️\n\n👤 Utilisateur : @${membre.split("@")[0]}\n📌 Warn par : @${auteur_Message.split("@")[0]}\n📅 Date : ${dateWarn}\n📊 Total warns : ${warnData.count}/${limit}`,
-      mentions: [membre, auteur]
+      mentions: [membre, auteur_Message]
     }, { quoted: ms });
 
     if (warnData.count >= limit) {
       try {
         await ovl.groupParticipantsUpdate(ms_org, [membre], "remove");
-        ovl.sendMessage(ms_org, { text: `🚫 @${membre.split("@")[0]} a été exclu pour avoir atteint la limite d'avertissements.`, mentions: [membre] }, { quoted: ms });
+        ovl.sendMessage(ms_org, {
+          text: `🚫 @${membre.split("@")[0]} a été exclu pour avoir atteint la limite d'avertissements.`,
+          mentions: [membre]
+        }, { quoted: ms });
         await delWarn(membre);
       } catch {
-        ovl.sendMessage(ms_org, { text: "Erreur lors de l'exclusion." }, { quoted: ms });
+        repondre("Erreur lors de l'exclusion.");
       }
     }
   }
 );
+
+const fs = require("fs");
 
 ovlcmd(
   {
@@ -1001,6 +1011,7 @@ ovlcmd(
     try {
       if (!verif_Groupe)
         return ovl.sendMessage(ms_org, { text: "Cette commande doit être utilisée dans un groupe." }, { quoted: ms });
+
       if (!prenium_id)
         return ovl.sendMessage(ms_org, { text: "Vous n'avez pas les permissions requises pour utiliser cette commande." }, { quoted: ms });
 
@@ -1014,13 +1025,19 @@ ovlcmd(
       for (const participant of participants) {
         const jid = participant.jid;
         const number = jid.split("@")[0];
-        let name;
-        const user = await Ranks.findOne({ where: { id: jid } });
-      if (user.name) { 
-         name = user.name
-		} else { 
-         name = number;
-      }
+
+        let name = number;
+        try {
+          const user = await Ranks.findOne({ where: { id: jid } }).catch(() => null);
+          if (user && user.name) {
+            name = user.name;
+          } else if (participant.notify) {
+            name = participant.notify;
+          }
+        } catch {
+          name = number;
+        }
+
         vcfData.push(`BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${number}\nEND:VCARD`);
       }
 
@@ -1028,13 +1045,12 @@ ovlcmd(
       const vcfFileName = `contacts_groupe_${groupName}.vcf`;
       const vcfFilePath = `./${vcfFileName}`;
 
-      fs.writeFileSync(vcfFilePath, vcfData.join('\n'));
+      fs.writeFileSync(vcfFilePath, vcfData.join("\n"));
 
       const message = `*TOUS LES CONTACTS DES MEMBRES ENREGISTRÉS*\nGroupe : *${groupName}*\nContacts : *${participants.length}*`;
 
-      const vcfFile = fs.readFileSync(vcfFilePath);
       await ovl.sendMessage(ms_org, {
-        document: vcfFile,
+        document: fs.readFileSync(vcfFilePath),
         mimetype: "text/vcard",
         filename: vcfFileName,
         caption: message,

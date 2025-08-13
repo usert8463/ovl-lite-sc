@@ -16,7 +16,6 @@ const { set_stick_cmd, del_stick_cmd, get_stick_cmd } = require("../DataBase/sti
 const { set_cmd, del_cmd, list_cmd } = require("../DataBase/public_private_cmd");
 const { Plugin } = require('../DataBase/plugin');
 const { extractNpmModules, installModules } = require("../lib/plugin");
-const { Antispam } = require("../DataBase/antispam");
 const { Levelup } = require('../DataBase/rank');
 
 ovlcmd(

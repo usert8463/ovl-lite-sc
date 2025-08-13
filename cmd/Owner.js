@@ -6,7 +6,7 @@ const config = require('../set');
 const axios = require("axios");
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const cheerio = require('cheerio');
-const { WA_CONF } = require('../DataBase/wa_conf');
+const { WA_CONF, WA_CONF2 } = require('../DataBase/wa_conf');
 const { ChatbotConf } = require('../DataBase/chatbot');
 const path = require('path');
 const fs = require("fs");
@@ -184,6 +184,126 @@ ovlcmd(
       console.error("Erreur lors de l'exécution de la commande ban :", error);
       return repondre("Une erreur s'est produite.");
     }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "anticall",
+    classe: "Owner",
+    react: "📵",
+    desc: "Active ou désactive le blocage automatique des appels.",
+  },
+  async (jid, ovl, cmd_options) => {
+    const { repondre, ms, arg, prenium_id } = cmd_options;
+
+    if (!prenium_id) {
+      return ovl.sendMessage(jid, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+    }
+
+    const config = await WA_CONF2.findOne({ where: { id: "1" } });
+    if (!arg[0]) {
+      const status = config && config.anticall === "oui" ? "activé" : "désactivé";
+      return ovl.sendMessage(jid, { text: `Etat actuel de anticall : ${status}\nUsage : anticall on/off` }, { quoted: ms });
+    }
+
+    const val = arg[0].toLowerCase();
+    if (val !== "on" && val !== "off") {
+      return repondre("Merci d'utiliser : anticall on ou anticall off");
+    }
+
+    if (!config) {
+      await WA_CONF2.create({ id: jid, anticall: val === "on" ? "oui" : "non" });
+      return ovl.sendMessage(jid, { text: `anticall est maintenant ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
+    }
+
+    if ((val === "on" && config.anticall === "oui") || (val === "off" && config.anticall === "non")) {
+      return ovl.sendMessage(jid, { text: `anticall est déjà ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
+    }
+
+    config.anticall = val === "on" ? "oui" : "non";
+    await config.save();
+    return ovl.sendMessage(jid, { text: `anticall est maintenant ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "autoreadmsg",
+    classe: "Owner",
+    react: "📖",
+    desc: "Active ou désactive la lecture automatique des messages.",
+  },
+  async (jid, ovl, cmd_options) => {
+    const { repondre, ms, arg, prenium_id } = cmd_options;
+
+    if (!prenium_id) {
+      return ovl.sendMessage(jid, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+    }
+
+    const config = await WA_CONF2.findOne({ where: { id: "1" } });
+    if (!arg[0]) {
+      const status = config && config.autoread_msg === "oui" ? "activé" : "désactivé";
+      return ovl.sendMessage(jid, { text: `Etat actuel de autoreadmsg : ${status}\nUsage : autoreadmsg on/off` }, { quoted: ms });
+    }
+
+    const val = arg[0].toLowerCase();
+    if (val !== "on" && val !== "off") {
+      return repondre("Merci d'utiliser : autoreadmsg on ou autoreadmsg off");
+    }
+
+    if (!config) {
+      await WA_CONF2.create({ id: jid, autoread_msg: val === "on" ? "oui" : "non" });
+      return ovl.sendMessage(jid, { text: `autoreadmsg est maintenant ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
+    }
+
+    if ((val === "on" && config.autoread_msg === "oui") || (val === "off" && config.autoread_msg === "non")) {
+      return ovl.sendMessage(jid, { text: `autoreadmsg est déjà ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
+    }
+
+    config.autoread_msg = val === "on" ? "oui" : "non";
+    await config.save();
+    return ovl.sendMessage(jid, { text: `autoreadmsg est maintenant ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "autoreactmsg",
+    classe: "Owner",
+    react: "🤖",
+    desc: "Active ou désactive la réaction automatique aux messages.",
+  },
+  async (jid, ovl, cmd_options) => {
+    const { repondre, ms, arg, prenium_id } = cmd_options;
+
+    if (!prenium_id) {
+      return ovl.sendMessage(jid, { text: "Vous n'avez pas le droit d'exécuter cette commande." }, { quoted: ms });
+    }
+
+    const config = await WA_CONF2.findOne({ where: { id: "1" } });
+    if (!arg[0]) {
+      const status = config && config.autoreact_msg === "oui" ? "activé" : "désactivé";
+      return ovl.sendMessage(jid, { text: `Etat actuel de autoreactmsg : ${status}\nUsage : autoreactmsg on/off` }, { quoted: ms });
+    }
+
+    const val = arg[0].toLowerCase();
+    if (val !== "on" && val !== "off") {
+      return repondre("Merci d'utiliser : autoreactmsg on ou autoreactmsg off");
+    }
+
+    if (!config) {
+      await WA_CONF2.create({ id: jid, autoreact_msg: val === "on" ? "oui" : "non" });
+      return ovl.sendMessage(jid, { text: `autoreactmsg est maintenant ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
+    }
+
+    if ((val === "on" && config.autoreact_msg === "oui") || (val === "off" && config.autoreact_msg === "non")) {
+      return ovl.sendMessage(jid, { text: `autoreactmsg est déjà ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
+    }
+
+    config.autoreact_msg = val === "on" ? "oui" : "non";
+    await config.save();
+    return ovl.sendMessage(jid, { text: `autoreactmsg est maintenant ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
   }
 );
 

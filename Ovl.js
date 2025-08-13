@@ -21,6 +21,7 @@ const {
   message_upsert,
   group_participants_update,
   connection_update,
+  call,
   dl_save_media_ms,
   recup_msg
 } = require('./Ovl_events');
@@ -74,6 +75,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
   const metadata = await ovl.groupMetadata(data.id);
   setCache(data.id, metadata);
 });
+    ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));
 
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);

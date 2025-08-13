@@ -851,21 +851,24 @@ ovlcmd(
     nom_cmd: "jid",
     classe: "Owner",
     react: "🆔",
-    desc: "fournit le jid d'une personne ou d'un groupe",
-  },  
+    desc: "Fournit le JID d'une personne ou d'un groupe",
+  },
   async (ms_org, ovl, cmd_options) => {
-    const { repondre, auteur_Msg_Repondu, prenium_id, msg_Repondu } = cmd_options;
+    const { repondre, auteur_Msg_Repondu, prenium_id, msg_Repondu, arg, getJid } = cmd_options;
 
     if (!prenium_id) {
       return repondre("Seuls les utilisateurs prenium peuvent utiliser cette commande");
     }
 
-    let jid;
+    let cbl =
+      auteur_Msg_Repondu ||
+      (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`);
 
-    if (!msg_Repondu) {
-      jid = ms_org;
+    let jid;
+    if (cbl) {
+      jid = await getJid(cbl, ms_org, ovl);
     } else {
-      jid = auteur_Msg_Repondu;
+      jid = ms_org;
     }
 
     repondre(jid);
@@ -885,7 +888,7 @@ ovlcmd(
             return ovl.sendMessage(ms_org, { text: "Vous n'avez pas la permission d'utiliser cette commande." }, { quoted: ms });
         }
 
-        await ovl.sendMessage(ms_org, { text: "♻️ Redémarrage du bot en cours..." }, { quoted: ms });
+        await ovl.sendMessage(ms_org, { text: "Redémarrage du bot en cours..." }, { quoted: ms });
 
         exec('pm2 restart all', (err, stdout, stderr) => {
             if (err) {
@@ -1026,23 +1029,26 @@ ovlcmd(
 
 1️⃣ Pour une image, vidéo, audio ou texte avec type spécifié :
 > *setmention type=audio url=https://exemple.com/fichier.opus*
-> *setmention type=video url=https://exemple.com/video.mp4 text=Votre message ici*
-> *setmention type=texte text=Votre message ici*
-> *setmention type=image url=https://exemple.com/image.jpg text=Votre message ici*
+> *setmention type=video url=https://exemple.com/video.mp4 text=Votre_message_ici*
+> *setmention type=texte text=Votre_message_ici*
+> *setmention type=image url=https://exemple.com/image.jpg text=Votre_message_ici*
 
 📌 Les types valides sont : audio, video, texte, image.`
         );
       }
 
-      const parts = joined.split("&").map(p => p.trim());
       let url = "";
       let text = "";
       let type = "";
 
-      for (const part of parts) {
-        if (part.startsWith("url=")) url = part.replace("url=", "").trim();
-        else if (part.startsWith("text=")) text = part.replace("text=", "").trim();
-        else if (part.startsWith("type=")) type = part.replace("type=", "").trim().toLowerCase();
+      const regex = /(type|url|text)=([^\s]+)/gi;
+      let match;
+      while ((match = regex.exec(joined)) !== null) {
+        const key = match[1].toLowerCase();
+        const value = match[2];
+        if (key === "type") type = value.toLowerCase();
+        else if (key === "url") url = value;
+        else if (key === "text") text = value.replace(/_/g, " ");
       }
 
       if (!type) return repondre("❌ Vous devez préciser le type avec 'type=audio', 'type=video', 'type=texte' ou 'type=image'.");

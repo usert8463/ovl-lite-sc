@@ -8,50 +8,51 @@ async function mention(ovl, jid, ms, mtype, verif_Groupe, id_Bot, repondre, ment
         const data = await getMention();
 
         if (data && data.mode === "oui") {
-          const { url, text } = data;
+          const { url, text, type } = data;
 
-          if (!url || url === "" || url === "url") {
-            if (text && text !== "text") {
-              repondre(text);
-            } else {
-              repondre("mention activé mais aucun contenu défini.");
-            }
-          } else {
-            const lowerUrl = url.toLowerCase();
-            const isAudio = lowerUrl.endsWith(".opus") || lowerUrl.endsWith(".ogg") || lowerUrl.endsWith(".mp3") || lowerUrl.endsWith(".m4a") || lowerUrl.endsWith(".aac") || lowerUrl.endsWith(".wav");
-            const isImage = lowerUrl.endsWith(".jpg") || lowerUrl.endsWith(".jpeg") || lowerUrl.endsWith(".png");
-            const isVideo = lowerUrl.endsWith(".mp4");
+          if ((!url || url === "") && (!text || text === "")) {
+            repondre("Mention activée mais aucun contenu défini.");
+            return;
+          }
 
-            if (isAudio) {
+          switch (type) {
+            case "audio":
+              if (!url) return repondre(text || "Aucun contenu audio défini.");
               ovl.sendMessage(jid, {
                 audio: { url },
                 mimetype: "audio/mp4",
                 ptt: true,
               }, { quoted: ms });
-            } else {
-              if (isImage) {
-                ovl.sendMessage(jid, {
-                  image: { url },
-                  caption: (text && text !== "text") ? text : undefined,
-                }, { quoted: ms });
-              } else {
-                if (isVideo) {
-                  ovl.sendMessage(jid, {
-                    video: { url },
-                    caption: (text && text !== "text") ? text : undefined,
-                  }, { quoted: ms });
-                } else {
-                  repondre("Le type de média est inconnu ou non pris en charge.");
-                }
-              }
-            }
+              break;
+
+            case "image":
+              if (!url) return repondre(text || "Aucun contenu image défini.");
+              ovl.sendMessage(jid, {
+                image: { url },
+                caption: text || undefined,
+              }, { quoted: ms });
+              break;
+
+            case "video":
+              if (!url) return repondre(text || "Aucun contenu vidéo défini.");
+              ovl.sendMessage(jid, {
+                video: { url },
+                caption: text || undefined,
+              }, { quoted: ms });
+              break;
+
+            case "texte":
+              return repondre(text || "Aucun message texte défini.");
+
+            default:
+              repondre("Le type de média est inconnu ou non pris en charge.");
           }
         }
       }
     }
   } catch (e) {
     console.error("Erreur dans mention:", e);
-    }
+  }
 }
 
 module.exports = mention;

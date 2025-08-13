@@ -1342,7 +1342,8 @@ const welcomeGoodbyeCmd = (type) => {
 #desc → Description du groupe
 #url=lien → Utilise un média (image, vidéo)
 #pp → Utilise la photo de profil du membre
-#gpp → Utilise la photo de profil du groupe`);
+#gpp → Utilise la photo de profil du groupe
+#audio=url → Utilise un audio`);
         }
 
         if (["on", "off"].includes(sub)) {
@@ -1369,21 +1370,29 @@ const welcomeGoodbyeCmd = (type) => {
           let msg = msgValue;
 
           const mediaMatch = msg.match(/#url=(\S+)/i);
+          const audioMatch = msg.match(/#audio=(\S+)/i);
           const usePP = msg.includes("#pp");
           const useGPP = msg.includes("#gpp");
 
           msg = msg
             .replace(/#url=\S+/i, "")
+            .replace(/#audio=\S+/i, "")
             .replace(/#pp/gi, "")
             .replace(/#gpp/gi, "")
             .replace(/@user/gi, userMention)
             .replace(/#groupe/gi, groupName)
             .replace(/#membre/gi, totalMembers)
             .replace(/#desc/gi, groupDesc)
-            .replace(/#url/gi, "");
+            .replace(/#url/gi, "")
+            .replace(/#audio/gi, "");
+
+          if (audioMatch) {
+            const audioUrl = audioMatch[1];
+            await ovl.sendMessage(ms_org, { audio: { url: audioUrl }, mimetype: "audio/mpeg", caption: msg.trim(), mentions: [auteur_Message] });
+            return;
+          }
 
           let media = null;
-
           if (mediaMatch) {
             const url = mediaMatch[1];
             const ext = url.split(".").pop().toLowerCase();
@@ -1427,10 +1436,11 @@ const welcomeGoodbyeCmd = (type) => {
         if (!newMsg) return repondre("❌ Le message ne peut pas être vide.");
 
         const hasUrl = /#url=/i.test(newMsg);
+        const hasAudio = /#audio=/i.test(newMsg);
         const hasPP = /#pp/i.test(newMsg);
         const hasGPP = /#gpp/i.test(newMsg);
 
-        if (hasUrl) {
+        if (hasUrl || hasAudio) {
           newMsg = newMsg.replace(/#pp/gi, "").replace(/#gpp/gi, "").trim();
         } else if (hasPP && hasGPP) {
           const ppIndex = newMsg.search(/#pp/i);

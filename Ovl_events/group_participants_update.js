@@ -39,14 +39,12 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
     goodbye: eventSettings.goodbye_msg || `👋Au revoir @user #pp`,
   }[type];
 
-  let msg = raw;
+  const audioMatch = raw.match(/#audio=(\S+)/i);
+  const urlMatch = raw.match(/#url=(\S+)/i);
+  const hasPP = raw.includes("#pp");
+  const hasGPP = raw.includes("#gpp");
 
-  const audioMatch = msg.match(/#audio=(\S+)/i);
-  const urlMatch = msg.match(/#url=(\S+)/i);
-  const hasPP = msg.includes("#pp");
-  const hasGPP = msg.includes("#gpp");
-
-  msg = msg
+  let msg = raw
     .replace(/#audio=\S+/i, "")
     .replace(/#url=\S+/i, "")
     .replace(/#pp/gi, "")
@@ -59,11 +57,13 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
   const mentions = [participant];
   const contextInfo = { mentionedJid: mentions };
 
-  await ovl.sendMessage(jid, {
-    text: msg.trim(),
-    mentions,
-    contextInfo
-  }, { quoted: ms_badge });
+  if (msg.trim()) {
+    await ovl.sendMessage(jid, {
+      text: msg.trim(),
+      mentions,
+      contextInfo
+    }, { quoted: ms_badge });
+  }
 
   let mediaType = null;
   let mediaUrl = null;
@@ -75,30 +75,22 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
     else if (["jpg", "jpeg", "png", "webp"].includes(ext)) mediaType = "image";
     else mediaType = "document";
   } else if (hasPP) {
-    try {
-      mediaUrl = await ovl.profilePictureUrl(participant, 'image');
-    } catch {
-      mediaUrl = "https://files.catbox.moe/82g8ey.jpg";
-    }
+    try { mediaUrl = await ovl.profilePictureUrl(participant, 'image'); } catch { mediaUrl = "https://files.catbox.moe/82g8ey.jpg"; }
     mediaType = "image";
   } else if (hasGPP) {
-    try {
-      mediaUrl = await ovl.profilePictureUrl(jid, 'image');
-    } catch {
-      mediaUrl = "https://files.catbox.moe/82g8ey.jpg";
-    }
+    try { mediaUrl = await ovl.profilePictureUrl(jid, 'image'); } catch { mediaUrl = "https://files.catbox.moe/82g8ey.jpg"; }
     mediaType = "image";
   }
 
   if (mediaUrl && mediaType) {
     await ovl.sendMessage(jid, {
       [mediaType]: { url: mediaUrl },
-      caption: msg.trim(),
+      caption: msg.trim() || undefined,
       mentions,
       contextInfo
     }, { quoted: ms_badge });
   }
-
+ 
   if (audioMatch) {
     const audioUrl = audioMatch[1];
     await ovl.sendMessage(jid, {
@@ -114,7 +106,6 @@ async function group_participants_update(data, ovl) {
     setCache(data.id, groupInfo);
 
     const metadata = groupInfo;
-
     const settings = await GroupSettings.findOne({ where: { id: data.id } });
     const eventSettings = await Events2.findOne({ where: { id: data.id } });
     if (!settings) return;
@@ -131,15 +122,11 @@ async function group_participants_update(data, ovl) {
       const contextInfo = { mentionedJid: mentions };
 
       if (data.action === 'add' && welcome === 'oui') {
-        if (eventSettings) {
-          await envoyerWelcomeGoodbye(data.id, participant, "welcome", eventSettings, ovl);
-        }
+        if (eventSettings) await envoyerWelcomeGoodbye(data.id, participant, "welcome", eventSettings, ovl);
       }
 
       if (data.action === 'remove' && goodbye === 'oui') {
-        if (eventSettings) {
-          await envoyerWelcomeGoodbye(data.id, participant, "goodbye", eventSettings, ovl);
-        }
+        if (eventSettings) await envoyerWelcomeGoodbye(data.id, participant, "goodbye", eventSettings, ovl);
       }
 
       if (data.action === 'promote' || data.action === 'demote') {
@@ -155,49 +142,25 @@ async function group_participants_update(data, ovl) {
 
         if (data.action === 'promote') {
           if (antipromote === 'oui' && isExempted) continue;
-
           if (antipromote === 'oui') {
             await ovl.groupParticipantsUpdate(data.id, [participant], "demote");
-            await ovl.sendMessage(data.id, {
-              text: `🚫 *Promotion refusée !*\n${actorMention} n’a pas le droit de promouvoir ${userMention}.`,
-              mentions,
-              contextInfo
-            }, { quoted: ms_badge });
+            await ovl.sendMessage(data.id, { text: `🚫 *Promotion refusée !*\n${actorMention} n’a pas le droit de promouvoir ${userMention}.`, mentions, contextInfo }, { quoted: ms_badge });
           } else if (promoteAlert === 'oui') {
             let pp = "https://files.catbox.moe/82g8ey.jpg";
-            try {
-              pp = await ovl.profilePictureUrl(participant, 'image');
-            } catch {}
-            await ovl.sendMessage(data.id, {
-              image: { url: pp },
-              caption: `🆙 ${userMention} a été promu par ${actorMention}.`,
-              mentions,
-              contextInfo
-            }, { quoted: ms_badge });
+            try { pp = await ovl.profilePictureUrl(participant, 'image'); } catch {}
+            await ovl.sendMessage(data.id, { image: { url: pp }, caption: `🆙 ${userMention} a été promu par ${actorMention}.`, mentions, contextInfo }, { quoted: ms_badge });
           }
         }
 
         if (data.action === 'demote') {
           if (antidemote === 'oui' && isExempted) continue;
-
           if (antidemote === 'oui') {
             await ovl.groupParticipantsUpdate(data.id, [participant], "promote");
-            await ovl.sendMessage(data.id, {
-              text: `🚫 *Rétrogradation refusée !*\n${actorMention} ne peut pas rétrograder ${userMention}.`,
-              mentions,
-              contextInfo
-            }, { quoted: ms_badge });
+            await ovl.sendMessage(data.id, { text: `🚫 *Rétrogradation refusée !*\n${actorMention} ne peut pas rétrograder ${userMention}.`, mentions, contextInfo }, { quoted: ms_badge });
           } else if (demoteAlert === 'oui') {
             let pp = "https://files.catbox.moe/82g8ey.jpg";
-            try {
-              pp = await ovl.profilePictureUrl(participant, 'image');
-            } catch {}
-            await ovl.sendMessage(data.id, {
-              image: { url: pp },
-              caption: `⬇️ ${userMention} a été rétrogradé par ${actorMention}.`,
-              mentions,
-              contextInfo
-            }, { quoted: ms_badge });
+            try { pp = await ovl.profilePictureUrl(participant, 'image'); } catch {}
+            await ovl.sendMessage(data.id, { image: { url: pp }, caption: `⬇️ ${userMention} a été rétrogradé par ${actorMention}.`, mentions, contextInfo }, { quoted: ms_badge });
           }
         }
       }

@@ -17,6 +17,7 @@ const { set_cmd, del_cmd, list_cmd } = require("../DataBase/public_private_cmd")
 const { Plugin } = require('../DataBase/plugin');
 const { extractNpmModules, installModules } = require("../lib/plugin");
 const { Antispam } = require("../DataBase/antispam");
+const { Levelup } = require('../DataBase/rank');
 
 ovlcmd(
   {
@@ -183,6 +184,43 @@ ovlcmd(
     } catch (error) {
       console.error("Erreur lors de l'exécution de la commande ban :", error);
       return repondre("Une erreur s'est produite.");
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "levelup",
+    classe: "Owner",
+    react: "⚙️",
+    desc: "Activer ou désactiver le message de level up",
+  },
+  async (jid, ovl, cmd_options) => {
+    const { repondre, ms, arg } = cmd_options;
+    try {
+      if (!arg[0]) return repondre("Veuillez préciser 'on' ou 'off'.");
+
+      const choix = arg[0].toLowerCase();
+      if (choix !== 'on' && choix !== 'off') {
+        return repondre("Argument invalide, utilisez 'on' ou 'off'.");
+      }
+
+      const niveau = choix === 'on' ? 'oui' : 'non';
+
+      let record = await Levelup.findOne({ where: { id: 1 } });
+      if (!record) {
+        record = await Levelup.create({ id: 1, levelup: niveau });
+      } else {
+        record.levelup = niveau;
+        await record.save();
+      }
+
+      return ovl.sendMessage(jid, {
+        text: `Le message de level up est maintenant ${niveau === 'oui' ? 'activé' : 'désactivé'}.`
+      }, { quoted: ms });
+    } catch (error) {
+      console.error("Erreur commande levelup :", error);
+      return repondre("Une erreur est survenue.");
     }
   }
 );

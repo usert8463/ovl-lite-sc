@@ -93,6 +93,7 @@ const WA_CONF2 = sequelize.define(
 
 (async () => {
   await WA_CONF.sync();
+  await WA_CONF2.sync();
   console.log("WA_CONF synchronisée.");
 
   const rowsToUpdate = await WA_CONF.findAll({ where: { mention: "non" } });
@@ -100,8 +101,7 @@ const WA_CONF2 = sequelize.define(
     row.mention = "1";
     await row.save();
   }
-
-  await WA_CONF2.sync();
+  
 })();
 
 module.exports = { WA_CONF, WA_CONF2 };

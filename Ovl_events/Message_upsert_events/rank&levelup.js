@@ -1,8 +1,8 @@
 const { levels, calculateLevel } = require('../../DataBase/levels');
-const { Ranks } = require('../../DataBase/rank');
+const { Ranks, Levelup } = require('../../DataBase/rank');
 const { changerPseudo, ajouterUtilisateur, getInfosUtilisateur } = require('../../DataBase/economie');
 
-async function rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config) {
+async function rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message) {
   if (!texte || !auteur_Message) return;
 
   try {
@@ -25,16 +25,23 @@ async function rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Mes
       user.name = nom_Auteur_Message || "ovl-user";
       user.messages += 1;
       user.exp += 10;
-      const newLevel = calculateLevel(user.exp);
-      if (newLevel > user.level && config.LEVEL_UP === 'oui') {
-        await ovl.sendMessage(ms_org, {
-          text: `Félicitations @${(userId || '').split('@')[0]}! Vous avez atteint le niveau ${newLevel}! 🎉`,
-          mentions: [userId]
-        });
-      }
-      user.level = newLevel;
-      await user.save();
     }
+
+    const newLevel = calculateLevel(user.exp);
+
+    const levelupConfig = await Levelup.findOne({ where: { id: 1 } });
+    const levelUpEnabled = levelupConfig && levelupConfig.levelup === 'oui';
+
+    if (newLevel > user.level && levelUpEnabled) {
+      await ovl.sendMessage(ms_org, {
+        text: `Félicitations @${(userId || '').split('@')[0]}! Vous avez atteint le niveau ${newLevel}! 🎉`,
+        mentions: [userId]
+      });
+    }
+
+    user.level = newLevel;
+    await user.save();
+
   } catch (err) {
     console.error('Erreur dans rankAndLevelUp:', err);
   }

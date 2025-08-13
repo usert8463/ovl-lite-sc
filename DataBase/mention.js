@@ -41,6 +41,10 @@ const Mention = sequelize.define('Mention', {
     type: DataTypes.TEXT,
     defaultValue: 'text',
   },
+  type: {
+    type: DataTypes.STRING,
+    defaultValue: 'texte',
+  }
 }, {
   tableName: 'mention',
   timestamps: false,
@@ -48,15 +52,25 @@ const Mention = sequelize.define('Mention', {
 
 (async () => {
   await Mention.sync();
+  const queryInterface = sequelize.getQueryInterface();
+  const tableDesc = await queryInterface.describeTable('mention');
+  if (!tableDesc.type) {
+    await queryInterface.addColumn('mention', 'type', {
+      type: DataTypes.STRING,
+      defaultValue: 'texte',
+    });
+  }
+
   console.log("Mention synchronisée.");
 })();
 
-async function setMention({ url = "url", text = "text", mode = "non" }) {
+async function setMention({ url = "url", text = "text", mode = "non", type = "texte" }) {
   await Mention.upsert({
     id: 1,
     url,
     text,
     mode,
+    type,
   });
 }
 

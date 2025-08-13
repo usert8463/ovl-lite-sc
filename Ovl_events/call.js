@@ -6,17 +6,16 @@ async function call(ovl, callEvent) {
     const caller = call?.from;
     const callId = call?.id;
 
-    if (!caller) return;
+    if (!caller || !callId) return;
 
     const config = await WA_CONF2.findOne({ where: { id: "1" } });
     if (!config || config.anticall !== "oui") return;
 
-    await ovl.rejectCall(callId);
-
-    await ovl.sendMessage(ovl.user.id, {
-      text: `Appel de @${caller.split("@")[0]} bloqué.`,
-      mentions: [caller]
+    await ovl.sendMessage(caller, {
+      text: `❌ Les appels ne sont pas autorisés sur ce numéro !`,
     });
+
+    await ovl.rejectCall(callId, caller);
 
   } catch (error) {
     console.error("Erreur lors du traitement de l’appel :", error);

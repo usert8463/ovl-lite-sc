@@ -1,0 +1,36 @@
+const { WA_CONF2 } = require("../../database/wa_conf");
+
+const emojis = [
+  "🎐","👍","❤️","😂","😮","😢","😡","🎉","🔥","🙏",
+  "💯","✨","🎈","🤖","👀","🌟","😎","🤩","💥","🎶",
+  "😄","😆","😉","😊","😋","😜","😝","😛","🤑","🤗",
+  "🤔","😳","😱","😨","😰","😥","😭","😓","😪","😴",
+  "🙄","🤐","😷","🤒","🤕","😵","🤠","😇","🤡","👹",
+  "👺","💀","👻","👽","🤖","💩","😺","😸","😹","😻",
+  "😼","😽","🙀","😿","😾","🙌","👏","🤝","👍","👎",
+  "👊","✊","🤛","🤜","🤞","✌️","🤟","🤘","👌","👈",
+  "👉","👆","👇","☝️","✋","🤚","🖐","🖖","👋","🤙",
+  "💪","🦵","🦶","👂","👃","👣","👁","👀","🧠","🦷",
+  "🦴","👅","👄","💋","👓","🕶","🥽","🥼","🦺","👔"
+];
+
+function getRandomEmoji() {
+  return emojis[Math.floor(Math.random() * emojis.length)];
+}
+
+async function autoread_msg(ovl, key) {
+  const config = await WA_CONF2.findOne({ where: { id: "1" } });
+  if (config && config.autoread_msg === "oui") {
+    await ovl.readMessages([key]);
+  }
+}
+
+async function autoreact_msg(ovl, ms) {
+  const config = await WA_CONF2.findOne({ where: { id: "1" } });
+  if (config && config.autoreact_msg === "oui") {
+    const emoji = getRandomEmoji();
+    await ovl.sendMessage(ms.key.remoteJid, { react: { text: emoji, key: ms.key } });
+  }
+}
+
+module.exports = { autoread_msg, autoreact_msg };

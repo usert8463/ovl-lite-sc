@@ -8,7 +8,7 @@ async function call(ovl, callEvent) {
 
     if (!caller) return;
 
-    const config = await WA_CONF2.findOne({ where: { id: 1 } });
+    const config = await WA_CONF2.findOne({ where: { id: "1" } });
     if (!config || config.anticall !== "oui") return;
 
     await ovl.rejectCall(callId);

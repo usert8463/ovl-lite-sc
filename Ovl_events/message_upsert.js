@@ -1,7 +1,7 @@
 const {
   rankAndLevelUp, lecture_status, like_status, presence,
-  dl_status, antidelete, antitag, antilink, antibot,
-  getJid, mention, eval_exec, antimention, chatbot, antispam
+  dl_status, antidelete, antitag, antilink, antibot,autoread_msg,
+  getJid, mention, eval_exec, antimention, chatbot, antispam, autoreact_msg
 } = require('./Message_upsert_events');
 
 const { Bans, OnlyAdmins } = require("../DataBase/ban");
@@ -179,6 +179,8 @@ async function message_upsert(m, ovl) {
     antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antispam(ovl, ms_org, ms, auteur_Message);
+    autoread_msg(ovl, ms.key); 
+    autoreact_msg(ovl, ms);
 
     for (const cmd of evt.func) {
   try {

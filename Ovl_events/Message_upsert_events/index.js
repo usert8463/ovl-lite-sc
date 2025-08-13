@@ -1,3 +1,5 @@
+const { autoread_msg, autoreact_msg } = require('./auto_react&read_msg');
+
 module.exports = {
   rankAndLevelUp: require('./rank&levelup'),
   lecture_status: require('./lecture_status'),
@@ -13,5 +15,7 @@ module.exports = {
   eval_exec: require('./eval_exec'),
   antimention: require('./antimention'),
   chatbot: require('./chatbot'),
-  antispam: require('./antispam')
+  antispam: require('./antispam'),
+  autoread_msg, 
+  autoreact_msg
 };

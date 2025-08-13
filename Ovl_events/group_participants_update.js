@@ -40,11 +40,14 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
   }[type];
 
   let msg = raw;
-  const urlMatch = raw.match(/#url=(\S+)/i);
-  const hasPP = raw.includes("#pp");
-  const hasGPP = raw.includes("#gpp");
+
+  const audioMatch = msg.match(/#audio=(\S+)/i);
+  const urlMatch = msg.match(/#url=(\S+)/i);
+  const hasPP = msg.includes("#pp");
+  const hasGPP = msg.includes("#gpp");
 
   msg = msg
+    .replace(/#audio=\S+/i, "")
     .replace(/#url=\S+/i, "")
     .replace(/#pp/gi, "")
     .replace(/#gpp/gi, "")
@@ -54,17 +57,23 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
     .replace(/#desc/gi, groupInfo.desc || "");
 
   const mentions = [participant];
+  const contextInfo = { mentionedJid: mentions };
+
+  await ovl.sendMessage(jid, {
+    text: msg.trim(),
+    mentions,
+    contextInfo
+  }, { quoted: ms_badge });
+
   let mediaType = null;
   let mediaUrl = null;
 
   if (urlMatch) {
     mediaUrl = urlMatch[1];
     const ext = mediaUrl.split(".").pop().toLowerCase();
-    mediaType = ["mp4", "mov", "webm"].includes(ext)
-      ? "video"
-      : ["jpg", "jpeg", "png", "webp"].includes(ext)
-      ? "image"
-      : "document";
+    if (["mp4", "mov", "webm"].includes(ext)) mediaType = "video";
+    else if (["jpg", "jpeg", "png", "webp"].includes(ext)) mediaType = "image";
+    else mediaType = "document";
   } else if (hasPP) {
     try {
       mediaUrl = await ovl.profilePictureUrl(participant, 'image');
@@ -88,8 +97,14 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
       mentions,
       contextInfo
     }, { quoted: ms_badge });
-  } else {
-    await ovl.sendMessage(jid, { text: msg.trim(), mentions, contextInfo }, { quoted: ms_badge });
+  }
+
+  if (audioMatch) {
+    const audioUrl = audioMatch[1];
+    await ovl.sendMessage(jid, {
+      audio: { url: audioUrl },
+      mimetype: "audio/mpeg",
+    }, { quoted: ms_badge });
   }
 }
 
@@ -97,7 +112,7 @@ async function group_participants_update(data, ovl) {
   try {
     const groupInfo = await ovl.groupMetadata(data.id);
     setCache(data.id, groupInfo);
-    
+
     const metadata = groupInfo;
 
     const settings = await GroupSettings.findOne({ where: { id: data.id } });
@@ -112,7 +127,8 @@ async function group_participants_update(data, ovl) {
       const actor = data.author;
       const actorMention = actor ? `@${actor.split("@")[0]}` : "quelqu’un";
       const userMention = `@${participant.split("@")[0]}`;
-      const mentions = [participant, actor];
+      const mentions = actor ? [participant, actor] : [participant];
+      const contextInfo = { mentionedJid: mentions };
 
       if (data.action === 'add' && welcome === 'oui') {
         if (eventSettings) {

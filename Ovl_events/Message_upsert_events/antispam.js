@@ -5,14 +5,15 @@ const surveillance = {};
 
 async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
   try {
+    if (!verif_Groupe) return;
+    if (!ms.key?.id) return;
+
     const now = Date.now();
 
     if (!antispamStore[ms_org]) antispamStore[ms_org] = {};
     if (!antispamStore[ms_org][auteur_Message]) antispamStore[ms_org][auteur_Message] = [];
 
-    if (ms.key?.id) {
-      antispamStore[ms_org][auteur_Message].push({ id: ms.key.id, timestamp: now });
-    }
+    antispamStore[ms_org][auteur_Message].push({ id: ms.key.id, timestamp: now });
 
     const recentMsgs = antispamStore[ms_org][auteur_Message];
     while (recentMsgs.length > 20) recentMsgs.shift();
@@ -24,7 +25,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
       remoteJid: ms_org,
       fromMe: false,
       id: ms.key.id,
-      ...(verif_Groupe && { participant: auteur_Message })
+      participant: auteur_Message
     };
 
     const isInSurveillance = surveillance[ms_org]?.[auteur_Message];
@@ -46,7 +47,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
             remoteJid: ms_org,
             fromMe: false,
             id: msg.id,
-            ...(verif_Groupe && { participant: auteur_Message })
+            participant: auteur_Message
           };
 
           try {
@@ -58,72 +59,61 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
 
         const username = `@${auteur_Message.split('@')[0]}`;
 
-        switch (settings.type) {
-          case 'supp':
-            await ovl.sendMessage(ms_org, {
-              text: `${username}, le spam est interdit ici.`,
-              mentions: [auteur_Message]
-            }, { quoted: ms });
-            break;
+        try {
+          switch (settings.type) {
+            case 'supp':
+              await ovl.sendMessage(ms_org, {
+                text: `${username}, le spam est interdit ici.`,
+                mentions: [auteur_Message]
+              }, { quoted: ms });
+              break;
 
-          case 'kick':
-            if (verif_Groupe) {
+            case 'kick':
               await ovl.sendMessage(ms_org, {
                 text: `${username} a été retiré pour spam.`,
                 mentions: [auteur_Message]
               }, { quoted: ms });
               await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
-            } else {
-              await ovl.sendMessage(ms_org, {
-                text: `${username} a été bloqué pour spam.`,
-                mentions: [auteur_Message]
-              }, { quoted: ms });
-              await ovl.updateBlockStatus(auteur_Message, "block");
-            }
-            break;
+              break;
 
-          case 'warn':
-            let warning = await AntispamWarnings.findOne({
-              where: { groupId: ms_org, userId: auteur_Message }
-            });
-
-            if (!warning) {
-              await AntispamWarnings.create({
-                groupId: ms_org,
-                userId: auteur_Message,
-                count: 1
+            case 'warn': {
+              let warning = await AntispamWarnings.findOne({
+                where: { groupId: ms_org, userId: auteur_Message }
               });
-              await ovl.sendMessage(ms_org, {
-                text: `${username}, avertissement 1/3 pour spam.`,
-                mentions: [auteur_Message]
-              }, { quoted: ms });
-            } else {
-              warning.count += 1;
-              await warning.save();
 
-              if (warning.count >= 3) {
-                if (verif_Groupe) {
+              if (!warning) {
+                await AntispamWarnings.create({
+                  groupId: ms_org,
+                  userId: auteur_Message,
+                  count: 1
+                });
+                await ovl.sendMessage(ms_org, {
+                  text: `${username}, avertissement 1/3 pour spam.`,
+                  mentions: [auteur_Message]
+                }, { quoted: ms });
+              } else {
+                warning.count += 1;
+                await warning.save();
+
+                if (warning.count >= 3) {
                   await ovl.sendMessage(ms_org, {
                     text: `${username} retiré après 3 avertissements.`,
                     mentions: [auteur_Message]
                   }, { quoted: ms });
                   await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
+                  await warning.destroy();
                 } else {
                   await ovl.sendMessage(ms_org, {
-                    text: `${username} bloqué après 3 avertissements.`,
+                    text: `${username}, avertissement ${warning.count}/3 pour spam.`,
                     mentions: [auteur_Message]
                   }, { quoted: ms });
-                  await ovl.updateBlockStatus(auteur_Message, "block");
                 }
-                await warning.destroy();
-              } else {
-                await ovl.sendMessage(ms_org, {
-                  text: `${username}, avertissement ${warning.count}/3 pour spam.`,
-                  mentions: [auteur_Message]
-                }, { quoted: ms });
               }
+              break;
             }
-            break;
+          }
+        } catch (err) {
+          console.error("Erreur dans la gestion des sanctions :", err);
         }
 
         surveillance[ms_org] ??= {};

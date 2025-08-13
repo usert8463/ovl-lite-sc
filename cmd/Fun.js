@@ -110,7 +110,6 @@ ovlcmd(
   async (ms_org, ovl, cmd_options) => {
     const { arg, repondre } = cmd_options;
     const prefixe = config.PREFIXE;
-
     if (arg.length === 0) {
       return await repondre(
         `Utilisation :\n` +
@@ -120,18 +119,12 @@ ovlcmd(
         `Exemple pour la liste : ${prefixe}fancy list ovl\n\n`
       );
     }
-
     if (arg[0].toLowerCase() === 'list') {
       const filterName = arg[1] || '';
-      return await repondre(
-        `Liste des styles${filterName ? ` pour "${filterName}"` : ''} :\n` +
-        fancy.list(fancy, filterName)
-      );
+      return await repondre(list(fancy, filterName));
     }
-
     const id = parseInt(arg[0], 10);
     const text = arg.slice(1).join(" ");
-
     if (isNaN(id) || !text) {
       return await repondre(
         `❌ Arguments invalides.\n` +
@@ -139,14 +132,12 @@ ovlcmd(
         `Pour voir la liste des styles : ${prefixe}fancy list`
       );
     }
-
     try {
-      const selectedStyle = fancy[id - 1];
-      if (selectedStyle) {
-        return await repondre(fancy.apply(selectedStyle, text));
-      } else {
-        return await repondre(`_Style introuvable pour l'ID : ${id}_`);
-      }
+      const keys = Object.keys(fancy).filter(k => k.length < 3);
+      const styleKey = keys[id - 1];
+      if (!styleKey) return await repondre(`_Style introuvable pour l'ID : ${id}_`);
+      const selectedStyle = fancy[styleKey];
+      return await repondre(fancy.apply(selectedStyle, text));
     } catch {
       return await repondre("_Une erreur s'est produite :(_");
     }

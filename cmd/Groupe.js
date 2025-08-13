@@ -1462,38 +1462,30 @@ const welcomeGoodbyeCmd = (type) => {
             .replace(/@user/gi, userMention)
             .replace(/#groupe/gi, groupName)
             .replace(/#membre/gi, totalMembers)
-            .replace(/#desc/gi, groupDesc)
-            .replace(/#url/gi, "")
-            .replace(/#audio/gi, "");
-
-          let media = null;
+            .replace(/#desc/gi, groupDesc);
+ 
+          if (msg.trim()) {
+            await ovl.sendMessage(ms_org, { text: msg.trim(), mentions: [auteur_Message] });
+          }
+ 
           if (mediaMatch) {
             const url = mediaMatch[1];
             const ext = url.split(".").pop().toLowerCase();
-            if (["mp4", "mov", "webm"].includes(ext)) {
-              media = { video: { url }, caption: msg.trim(), mentions: [auteur_Message] };
-            } else if (["jpg", "jpeg", "png", "webp"].includes(ext)) {
-              media = { image: { url }, caption: msg.trim(), mentions: [auteur_Message] };
-            }
+            let media = null;
+            if (["mp4", "mov", "webm"].includes(ext)) media = { video: { url }, caption: msg.trim(), mentions: [auteur_Message] };
+            else if (["jpg", "jpeg", "png", "webp"].includes(ext)) media = { image: { url }, caption: msg.trim(), mentions: [auteur_Message] };
+
+            if (media) await ovl.sendMessage(ms_org, media);
           } else if (usePP) {
             const profileUrl = await ovl.profilePictureUrl(auteur_Message, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg");
-            media = { image: { url: profileUrl }, caption: msg.trim(), mentions: [auteur_Message] };
+            await ovl.sendMessage(ms_org, { image: { url: profileUrl }, caption: msg.trim(), mentions: [auteur_Message] });
           } else if (useGPP) {
             let gpp = null;
-            try {
-              gpp = await ovl.profilePictureUrl(ms_org, "image");
-            } catch {
-              gpp = await ovl.profilePictureUrl(auteur_Message, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg");
-            }
-            media = { image: { url: gpp }, caption: msg.trim(), mentions: [auteur_Message] };
+            try { gpp = await ovl.profilePictureUrl(ms_org, "image"); } 
+            catch { gpp = await ovl.profilePictureUrl(auteur_Message, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg"); }
+            await ovl.sendMessage(ms_org, { image: { url: gpp }, caption: msg.trim(), mentions: [auteur_Message] });
           }
-
-          if (media) {
-            await ovl.sendMessage(ms_org, media);
-          } else {
-            await ovl.sendMessage(ms_org, { text: msg.trim(), mentions: [auteur_Message] });
-          }
-
+ 
           if (audioMatch) {
             const audioUrl = audioMatch[1];
             await ovl.sendMessage(ms_org, { audio: { url: audioUrl }, mimetype: "audio/mpeg" });
@@ -1503,35 +1495,13 @@ const welcomeGoodbyeCmd = (type) => {
         }
 
         if (sub === "défaut" || sub === "default") {
-          if (!msgValue) {
-            return repondre(`ℹ️ Aucun message ${isWelcome ? "de bienvenue" : "d’adieu"} n’est actuellement défini.`);
-          }
+          if (!msgValue) return repondre(`ℹ️ Aucun message ${isWelcome ? "de bienvenue" : "d’adieu"} n’est actuellement défini.`);
           eventData[fieldName] = null;
           await eventData.save();
           return repondre(`✅ Message ${isWelcome ? "de bienvenue" : "d’adieu"} réinitialisé aux paramètres par défaut.`);
-        }
-
-        let newMsg = arg.join(" ").trim();
+		}
+        const newMsg = arg.join(" ").trim();
         if (!newMsg) return repondre("❌ Le message ne peut pas être vide.");
-
-        const hasUrl = /#url=/i.test(newMsg);
-        const hasAudio = /#audio=/i.test(newMsg);
-        const hasPP = /#pp/i.test(newMsg);
-        const hasGPP = /#gpp/i.test(newMsg);
-
-        if (hasUrl || hasAudio) {
-          newMsg = newMsg.replace(/#pp/gi, "").replace(/#gpp/gi, "").trim();
-        } else if (hasPP && hasGPP) {
-          const ppIndex = newMsg.search(/#pp/i);
-          const gppIndex = newMsg.search(/#gpp/i);
-          if (ppIndex < gppIndex) {
-            newMsg = newMsg.replace(/#gpp/gi, "").trim();
-          } else {
-            newMsg = newMsg.replace(/#pp/gi, "").trim();
-          }
-        }
-
-        if (!newMsg) return repondre("❌ Le message ne peut pas être vide après nettoyage des variables.");
 
         eventData[fieldName] = newMsg;
         await eventData.save();

@@ -1496,7 +1496,7 @@ const welcomeGoodbyeCmd = (type) => {
 
           if (audioMatch) {
             const audioUrl = audioMatch[1];
-            await ovl.sendMessage(ms_org, { audio: { url: audioUrl }, mimetype: "audio/mpeg" }, { quoted: null });
+            await ovl.sendMessage(ms_org, { audio: { url: audioUrl }, mimetype: "audio/mpeg" });
           }
 
           return;

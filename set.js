@@ -7,10 +7,8 @@ module.exports = {
   NUMERO_OWNER: process.env.NUMERO_OWNER || "22651463203",
   MODE: process.env.MODE || "public",
   SESSION_ID: process.env.SESSION_ID || "ovl",
-  LEVEL_UP: process.env.LEVEL_UP || "non",
-  STICKER_PACK_NAME: process.env.STICKER_PACK_NAME || "Wa-sticker",
-  STICKER_AUTHOR_NAME: process.env.STICKER_AUTHOR_NAME || "OVL-MD",
+  STICKER_PACK_NAME: process.env.STICKER_PACK_NAME || "ᴀɪɴᴢ🔅✨",
+  STICKER_AUTHOR_NAME: process.env.STICKER_AUTHOR_NAME || "ᴏᴠʟ-ᴍᴅ-ᴠ𝟸",
   DATABASE: process.env.DATABASE,
   RENDER_API_KEY: process.env.RENDER_API_KEY,
-  LANGUE: process.env.OVL_LANGUE || 'fr'
 };

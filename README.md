@@ -1,7 +1,7 @@
 <h1 align="center">OVL-MD-V2</h1>
 
 <p align="center">
-    <img alt="OVL" src="https://files.catbox.moe/82g8ey.jpg">
+    <img alt="OVL" src="https://files.catbox.moe/gxcb9p.jpg">
 </p>
 
 <p align="center">
@@ -227,15 +227,13 @@ jobs:
   <summary>🔐 Exemple de fichier .env</summary>
 
 ```env
-PREFIXE=🗿
+PREFIXE=.
 NOM_OWNER=Ainz
 NUMERO_OWNER=226xxxxxxxx
 MODE=public
-SESSION_ID=ovl
-DATABASE=
-LEVEL_UP=non
-STICKER_PACK_NAME=Wa-sticker
-STICKER_AUTHOR_NAME=OVL-MD
+SESSION_ID=
+STICKER_PACK_NAME=ᴀɪɴᴢ🔅✨
+STICKER_AUTHOR_NAME=ᴏᴠʟ-ᴍᴅ-ᴠ𝟸
 RENDER_API_KEY=
 ```
 

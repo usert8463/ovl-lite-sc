@@ -1386,12 +1386,6 @@ const welcomeGoodbyeCmd = (type) => {
             .replace(/#url/gi, "")
             .replace(/#audio/gi, "");
 
-          if (audioMatch) {
-            const audioUrl = audioMatch[1];
-            await ovl.sendMessage(ms_org, { audio: { url: audioUrl }, mimetype: "audio/mpeg", caption: msg.trim(), mentions: [auteur_Message] });
-            return;
-          }
-
           let media = null;
           if (mediaMatch) {
             const url = mediaMatch[1];
@@ -1418,6 +1412,11 @@ const welcomeGoodbyeCmd = (type) => {
             await ovl.sendMessage(ms_org, media);
           } else {
             await ovl.sendMessage(ms_org, { text: msg.trim(), mentions: [auteur_Message] });
+          }
+
+          if (audioMatch) {
+            const audioUrl = audioMatch[1];
+            await ovl.sendMessage(ms_org, { audio: { url: audioUrl }, mimetype: "audio/mpeg" }, { quoted: null });
           }
 
           return;

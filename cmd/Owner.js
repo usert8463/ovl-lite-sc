@@ -1084,53 +1084,32 @@ ovlcmd(
         return repondre(
           `🛠️ Utilisation de la commande *setmention* :
 
-1️⃣ Pour une image ou vidéo avec texte :
-> *setmention url=https://exemple.com/fichier.jpg & text=Votre message ici*
+1️⃣ Pour une image, vidéo, audio ou texte avec type spécifié :
+> *setmention type=audio url=https://exemple.com/fichier.opus*
+> *setmention type=video url=https://exemple.com/video.mp4 text=Votre message ici*
+> *setmention type=texte text=Votre message ici*
+> *setmention type=image url=https://exemple.com/image.jpg text=Votre message ici*
 
-2️⃣ Pour un audio (.opus uniquement) :
-> *setmention url=https://exemple.com/audio.opus*
-
-3️⃣ Pour un message texte seulement (pas de média) :
-> *setmention text=Votre message ici*
-
-📌 Extensions supportées : .jpg, .jpeg, .png, .mp4, .opus, .ogg, .mp3, .m4a, .aac, .wav
-⚠️ Le texte n’est pas autorisé avec l'audio.
-✅Veuillez utuliser la commande *url* pour obtenir l'URL.`
+📌 Les types valides sont : audio, video, texte, image.`
         );
       }
 
       const parts = joined.split("&").map(p => p.trim());
-      let url = "url";
-      let text = "text";
+      let url = "";
+      let text = "";
+      let type = "";
 
       for (const part of parts) {
         if (part.startsWith("url=")) url = part.replace("url=", "").trim();
         else if (part.startsWith("text=")) text = part.replace("text=", "").trim();
+        else if (part.startsWith("type=")) type = part.replace("type=", "").trim().toLowerCase();
       }
 
-      const lowerUrl = url.toLowerCase();
+      if (!type) return repondre("❌ Vous devez préciser le type avec 'type=audio', 'type=video', 'type=texte' ou 'type=image'.");
 
-      const isAudio = lowerUrl.endsWith(".opus") || lowerUrl.endsWith(".ogg") || lowerUrl.endsWith(".mp3") || lowerUrl.endsWith(".m4a") || lowerUrl.endsWith(".aac") || lowerUrl.endsWith(".wav");
-      const isImage = lowerUrl.endsWith(".jpg") || lowerUrl.endsWith(".jpeg") || lowerUrl.endsWith(".png");
-      const isVideo = lowerUrl.endsWith(".mp4");
+      await setMention({ url, text, type, mode: "oui" });
 
-      if (url === "url" && text !== "text") {
-        await setMention({ url: "", text, mode: "oui" });
-        return repondre("✅ Message texte configuré avec succès pour l'antimention.");
-      }
-
-      if (isAudio) {
-        if (text !== "text" && text !== "") return repondre("❌ Le texte n'est pas autorisé pour un message audio (.opus).");
-        await setMention({ url, text: "", mode: "oui" });
-        return repondre("✅ Mention audio enregistrée.");
-      }
-
-      if (isImage || isVideo) {
-        await setMention({ url, text, mode: "oui" });
-        return repondre(`✅ Mention ${isImage ? "image" : "vidéo"} enregistrée avec succès.`);
-      }
-
-      return repondre("Format de fichier non supporté. Extensions valides : .jpg, .jpeg, .png, .mp4, .opus");
+      return repondre(`✅ Mention de type '${type}' enregistrée avec succès.`);
     } catch (e) {
       console.error("Erreur dans setmention:", e);
       repondre("Une erreur s'est produite lors de la configuration.");
@@ -1179,47 +1158,44 @@ ovlcmd(
         return repondre("ℹ️ Antimention désactivé ou non configuré.");
       }
 
-      const { mode, url, text } = data;
+      const { mode, url, text, type } = data;
 
-      if (!url || url === "" || url === "url") {
-        if (!text || text === "text") {
-          return repondre("ℹ️ Antimention activé mais aucun contenu défini.");
-        }
-        return repondre(text);
+      if ((!url || url === "") && (!text || text === "")) {
+        return repondre("ℹ️ Antimention activé mais aucun contenu défini.");
       }
 
-      const lowerUrl = url.toLowerCase();
-      const isAudio = lowerUrl.endsWith(".opus") || lowerUrl.endsWith(".ogg") || lowerUrl.endsWith(".mp3") || lowerUrl.endsWith(".m4a") || lowerUrl.endsWith(".aac") || lowerUrl.endsWith(".wav");
-      const isImage = lowerUrl.endsWith(".jpg") || lowerUrl.endsWith(".jpeg") || lowerUrl.endsWith(".png");
-      const isVideo = lowerUrl.endsWith(".mp4");
+      switch (type) {
+        case "audio":
+          if (!url) return repondre(text || "Aucun contenu audio défini.");
+          return await ovl.sendMessage(jid, {
+            audio: { url },
+            mimetype: 'audio/mp4',
+            ptt: true,
+          }, { quoted: null });
 
-      const type = isAudio ? "audio" : isImage ? "image" : isVideo ? "video" : "document";
- 
-      if (isAudio) {
-        return await ovl.sendMessage(jid, {
-          audio: { url },
-          mimetype: 'audio/mp4',
-          ptt: true,
-        }, { quoted: null });
+        case "image":
+          if (!url) return repondre(text || "Aucun contenu image défini.");
+          return await ovl.sendMessage(jid, {
+            image: { url },
+            caption: text || undefined,
+          }, { quoted: null });
+
+        case "video":
+          if (!url) return repondre(text || "Aucun contenu vidéo défini.");
+          return await ovl.sendMessage(jid, {
+            video: { url },
+            caption: text || undefined,
+          }, { quoted: null });
+
+        case "texte":
+          return repondre(text || "Aucun message texte défini.");
+
+        default:
+          return repondre("Le type de média est inconnu ou non pris en charge.");
       }
 
-      if (isImage) {
-        return await ovl.sendMessage(jid, {
-          image: { url },
-          caption: (text && text !== "text") ? text : undefined,
-        }, { quoted: null });
-      }
-
-      if (isVideo) {
-        return await ovl.sendMessage(jid, {
-          video: { url },
-          caption: (text && text !== "text") ? text : undefined,
-        }, { quoted: null });
-      }
-
-      return repondre("Le type de média est inconnu ou non pris en charge.");
     } catch (e) {
-      console.error("Erreur dans gmention:", e);
+      console.error("Erreur dans getmention:", e);
       repondre("Impossible d'afficher la configuration.");
     }
   }

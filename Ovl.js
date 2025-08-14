@@ -200,22 +200,33 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
+
+let publicURL = null;
+if (process.env.RENDER_EXTERNAL_URL) {
+    publicURL = process.env.RENDER_EXTERNAL_URL;
+} else if (process.env.KOYEB_PUBLIC_DOMAIN) {
+    publicURL = `https://${process.env.KOYEB_PUBLIC_DOMAIN}`;
+} else {
+    publicURL = `http://localhost:${port}`;
+}
+
 app.listen(port, () => {
-  console.log('Listening on port: ' + port);
-  setupAutoPing(`http://localhost:${port}/`);
+    console.log(`Listening on port: ${port}`);
+    setupAutoPing(publicURL);
 });
 
 function setupAutoPing(url) {
-  setInterval(async () => {
-    try {
-      const res = await axios.get(url);
-      if (res.data) {
-        console.log(`Ping: OVL-MD-V2✅`);
-      }
-    } catch (err) {
-      console.error('Erreur lors du ping', err.message);
-    }
-  }, 30000);
+    console.log(`Auto-ping activé sur: ${url}`);
+    setInterval(async () => {
+        try {
+            const res = await axios.get(url);
+            if (res.data) {
+                console.log(`Ping: OVL-MD-V2 ✅`);
+            }
+        } catch (err) {
+            console.error('Erreur lors du ping ❌', err.message);
+        }
+    }, 30000);
 }
 
 process.on('uncaughtException', async (e) => {

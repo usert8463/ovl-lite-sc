@@ -280,3 +280,80 @@ rankMessage += `╰────────────────────�
         await ovl.sendMessage(ms_org, { text: rankMessage }, { quoted: cmd_options.ms });
     }
 );
+
+ovlcmd(
+  {
+    nom_cmd: "profile",
+    classe: "Utilisateur",
+    react: "👤",
+    desc: "Affiche le nom, le numéro et la bio d'un utilisateur"
+  },
+  async (ms_org, ovl, { msg_Repondu, ms, auteur_Message, arg, getJid, auteur_Msg_Repondu }) => {
+    const userIdl = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Msg_Repondu || auteur_Message;
+    const userId = await getJid(userIdl, ms_org, ovl);
+
+    let pp;
+    try {
+      pp = await ovl.profilePictureUrl(userId, 'image');
+    } catch {
+      pp = 'https://files.catbox.moe/ulwqtr.jpg';
+    }
+
+    const user = await Ranks.findOne({ where: { id: userId } });
+    const name = user?.name || "Inconnu";
+    const number = userId.split('@')[0];
+
+    let bio = "Pas de bio";
+    try {
+      const statusArray = await ovl.fetchStatus(userId);
+      if (statusArray.length > 0 && statusArray[0].status) {
+        const statusObj = statusArray[0];
+        const date = statusObj.setAt ? new Date(statusObj.setAt).toLocaleDateString() : null;
+        bio = statusObj.status + (date ? `\n🗓 Mis à jour le: ${date}` : '');
+      }
+    } catch {}
+
+    const infoText = `👤 Nom: ${name}\n📱 Numéro: ${number}\n💬 Bio: ${bio}`;
+
+    await ovl.sendMessage(ms_org, {
+      image: { url: pp },
+      caption: infoText
+    }, { quoted: ms });
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "fake",
+    classe: "Utilitaire",
+    react: "📝",
+    desc: "Envoie un message fake comme si un autre utilisateur l'avait envoyé"
+  },
+  async (ms_org, ovl, { msg_Repondu, ms, auteur_Message, arg, getJid }) => {
+    if (!arg[0] || !arg[1]) {
+      return ovl.sendMessage(ms_org, { text: "❌ Usage: fake @userId message..." }, { quoted: ms });
+    }
+
+    const targetIdl = `${arg[0].replace("@", "")}@lid`;
+    const userId = await getJid(targetIdl, ms_org, ovl);
+    const fakeMsgText = arg.slice(1).join(" ");
+
+    const fakeQuoted = {
+      key: {
+        fromMe: false,
+        participant: userId,
+        remoteJid: userId,
+      },
+      message: {
+        extendedTextMessage: {
+          text: fakeMsgText,
+          contextInfo: {
+            mentionedJid: [],
+          },
+        },
+      }
+    };
+
+    await ovl.sendMessage(ms_org, { text: fakeMsgText }, { quoted: fakeQuoted });
+  }
+);

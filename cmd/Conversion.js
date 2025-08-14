@@ -11,6 +11,7 @@ const { readFileSync } = require('fs');
 const sharp = require('sharp');
 const { Ranks } = require('../DataBase/rank');
 const os = require('os');
+let fusionCache = {};
 
 async function uploadToCatbox(filePath) {
   try {
@@ -1066,3 +1067,85 @@ ovlcmd(
     }
   }
 );
+
+ovlcmd(
+  {
+    nom_cmd: "fusion",
+    classe: "Conversion",
+    react: "🎬",
+    desc: "Fusionne un audio et une vidéo en une seule vidéo animée"
+  },
+  async (ms_org, ovl, { msg_Repondu, ms, auteur_Message, args }) => {
+    const userId = auteur_Message.id;
+
+    if (args[0] && args[0].toLowerCase() === "result") {
+      if (!fusionCache[userId] || !fusionCache[userId].audioPath || !fusionCache[userId].videoPath) {
+        return ovl.sendMessage(ms_org, { text: "❌ Vous n'avez pas enregistré à la fois un audio et une vidéo." }, { quoted: ms });
+      }
+
+      const { audioPath, videoPath } = fusionCache[userId];
+      const output = path.join(path.dirname(audioPath), `fusion_${Date.now()}.mp4`);
+
+      try {
+        await new Promise((resolve, reject) => {
+          const ffmpeg = spawn('ffmpeg', [
+            '-y',
+            '-i', videoPath,
+            '-i', audioPath,
+            '-filter_complex', '[0:a][1:a]amix=inputs=2:duration=longest[a]',
+            '-map', '0:v',
+            '-map', '[a]',
+            '-c:v', 'copy',
+            '-c:a', 'aac',
+            output
+          ]);
+          ffmpeg.stderr.on('data', () => {});
+          ffmpeg.on('close', code => code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`)));
+        });
+
+        await ovl.sendMessage(ms_org, { video: fs.readFileSync(output) }, { quoted: ms });
+        fs.unlinkSync(fusionCache[userId].audioPath);
+        fs.unlinkSync(fusionCache[userId].videoPath);
+        fs.unlinkSync(output);
+        delete fusionCache[userId];
+
+      } catch (err) {
+        return ovl.sendMessage(ms_org, { text: `❌ Erreur lors de la fusion : ${err.message}` }, { quoted: ms });
+      }
+      return;
+    }
+
+    if (msg_Repondu?.audioMessage) {
+      const audioPath = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
+      fusionCache[userId] = fusionCache[userId] || {};
+      fusionCache[userId].audioPath = audioPath;
+
+      setTimeout(() => {
+        if (fusionCache[userId]?.audioPath && !fusionCache[userId]?.videoPath) {
+          fs.unlinkSync(fusionCache[userId].audioPath);
+          delete fusionCache[userId];
+        }
+      }, 5 * 60 * 1000);
+
+      return ovl.sendMessage(ms_org, { text: "✅ Audio enregistré pour fusion. Répondez maintenant à une vidéo." }, { quoted: ms });
+    }
+
+    if (msg_Repondu?.videoMessage) {
+      const videoPath = await ovl.dl_save_media_ms(msg_Repondu.videoMessage);
+      fusionCache[userId] = fusionCache[userId] || {};
+      fusionCache[userId].videoPath = videoPath;
+
+      setTimeout(() => {
+        if (fusionCache[userId]?.videoPath && !fusionCache[userId]?.audioPath) {
+          fs.unlinkSync(fusionCache[userId].videoPath);
+          delete fusionCache[userId];
+        }
+      }, 5 * 60 * 1000);
+
+      return ovl.sendMessage(ms_org, { text: "✅ Vidéo enregistrée pour fusion. Répondez maintenant à un audio." }, { quoted: ms });
+    }
+
+    return ovl.sendMessage(ms_org, { text: "❌ Répondez à un *audio* ou une *vidéo* pour l'enregistrer." }, { quoted: ms });
+  }
+);
+

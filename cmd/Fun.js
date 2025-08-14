@@ -120,7 +120,7 @@ ovlcmd(
       );
     }
     if (arg[0].toLowerCase() === 'list') {
-      const filterName = arg[1] || '';
+      const filterName = arg[1] || 'OVL-MD-V2';
       return await repondre(fancy.list(filterName, fancy));
     }
     const id = parseInt(arg[0], 10);

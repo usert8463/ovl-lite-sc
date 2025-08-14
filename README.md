@@ -234,7 +234,6 @@ MODE=public
 SESSION_ID=
 STICKER_PACK_NAME=ᴀɪɴᴢ🔅✨
 STICKER_AUTHOR_NAME=ᴏᴠʟ-ᴍᴅ-ᴠ𝟸
-RENDER_API_KEY=
 ```
 
 </details>

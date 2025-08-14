@@ -10,5 +10,4 @@ module.exports = {
   STICKER_PACK_NAME: process.env.STICKER_PACK_NAME || "ᴀɪɴᴢ🔅✨",
   STICKER_AUTHOR_NAME: process.env.STICKER_AUTHOR_NAME || "ᴏᴠʟ-ᴍᴅ-ᴠ𝟸",
   DATABASE: process.env.DATABASE,
-  RENDER_API_KEY: process.env.RENDER_API_KEY,
 };

@@ -216,7 +216,6 @@ app.listen(port, () => {
 });
 
 function setupAutoPing(url) {
-    console.log(`Auto-ping activé sur: ${url}`);
     setInterval(async () => {
         try {
             const res = await axios.get(url);

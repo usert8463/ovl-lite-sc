@@ -47,7 +47,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 ╰──────────────⬣`;
 
       console.log(start_msg + "\n");
- delay(5000);
+await delay(5000);
         await ovl.sendMessage(ovl.user.id, {
   text: start_msg,
   contextInfo: {

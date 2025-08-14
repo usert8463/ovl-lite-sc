@@ -11,7 +11,7 @@ const JavaScriptObfuscator = require('javascript-obfuscator');
 const { exec } = require('child_process');
 const AdmZip = require('adm-zip');
 const os = require('os');
-
+const pkg = require('../package');
 
 function stylize(text) {
     const normal = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -345,7 +345,7 @@ ovlcmd(
 ├ ߷ Heure    : ${heureStr}
 ├ ߷ Plateforme  : ${platform}
 ├ ߷ Développeur : AINZ
-├ ߷ Version        : 2.0.0
+├ ߷ Version        : ${pkg.version}
 ╰──────────────────╯\n\n`;
 
         menu += "╭───⟪ Catégories ⟫───╮\n";
@@ -474,7 +474,7 @@ ovlcmd(
 ├ ߷ Heure   : ${heureStr}
 ├ ߷ Plateforme  : ${platform}
 ├ ߷ Développeur : AINZ
-├ ߷ Version        : 2.0.0
+├ ߷ Version        : ${pkg.version}
 ╰──────────────────╯\n\n`;
 
       for (const classe of classesSorted) {
@@ -842,7 +842,7 @@ ovlcmd(
             `💾 *Mémoire Totale*: ${totalMemory} GB\n` +
             `🆓 *Mémoire Libre*: ${freeMemory} GB\n` +
             `🌐 *Nom de l'Hôte*: ${hostname}\n` +
-            `🎉 *Version*: OVL-MD 2.0.0`
+            `🎉 *Version*: OVL-MD ${pkg.version}`
     }, { quoted: cmd_options.ms });
   }
 );

@@ -1,211 +1,87 @@
-const axios = require("axios");
 const { ovlcmd } = require("../lib/ovlcmd");
 const config = require('../set');
-const os = require('os');
-const { execSync } = require("child_process");
-const RENDER_API_KEY = config.RENDER_API_KEY;
-const host = os.hostname();
-const SERVICE_ID = host.split("-hibernate")[0]; 
+const { updateEnvFile } = require("../lib/manage_env");
+const fs = require("fs");
+const path = require("path");
+const { exec } = require("child_process"); 
 const simpleGit = require("simple-git");
-const { exec } = require("child_process");
 
 const git = simpleGit();
 
+const ENV_FILE = path.join(process.cwd(), ".env");
+const CONFIG_ENV_FILE = path.join(process.cwd(), "config_env.json");
 
-const headers = {
-  Authorization: `Bearer ${RENDER_API_KEY}`,
-  "Content-Type": "application/json",
-};
-
-function checkConfig() {
-  if (!RENDER_API_KEY) {
-    return "*Erreur :* La variable `RENDER_API_KEY` doivent être définies dans la configuration.";
-  }
-  return null;
-}
-
-async function manageEnvVar(action, key, value = null) {
-  const configError = checkConfig();
-  if (configError) return configError;
-
-  try {
-    const response = await axios.get(
-      `https://api.render.com/v1/services/${SERVICE_ID}/env-vars`,
-      { headers }
-    );
-    let envVars = response.data.map((v) => ({ key: v.envVar.key, value: v.envVar.value }));
-
-    if (action === "setvar") {
-      const existingVar = envVars.find((v) => v.key === key);
-
-      if (existingVar) {
-        existingVar.value = value;
-      } else {
-        envVars.push({ key, value });
-      }
-
-      await axios.put(
-        `https://api.render.com/v1/services/${SERVICE_ID}/env-vars`,
-        envVars,
-        { headers }
-      );
-      return `✨ *Variable définie avec succès !*\n📌 *Clé :* \`${key}\`\n📥 *Valeur :* \`${value}\``;
-
-    } else if (action === "delvar") {
-      envVars = envVars.filter((v) => v.key !== key);
-
-      await axios.put(
-        `https://api.render.com/v1/services/${SERVICE_ID}/env-vars`,
-        envVars,
-        { headers }
-      );
-      return `✅ *Variable supprimée avec succès !*\n📌 *Clé :* \`${key}\``;
-
-    } else if (action === "getvar") {
-      if (key === "all") {
-        if (envVars.length === 0) return "📭 *Aucune variable disponible.*";
-
-        const allVars = envVars
-          .map((v) => `📌 *${v.key}* : \`${v.value}\``)
-          .join("\n");
-        return `✨ *Liste des variables d'environnement :*\n\n${allVars}`;
-      }
-
-      const envVar = envVars.find((v) => v.key === key);
-      return envVar
-        ? `📌 *${key}* : \`${envVar.value}\``
-        : `*Variable introuvable :* \`${key}\``;
-    }
-  } catch (error) {
-    console.error(error);
-    return `*Erreur :* ${error.response?.data?.message || error.message}`;
-  }
-}
-
-async function restartRenderService() {
-  const configError = checkConfig();
-  if (configError) return configError;
-
-  try {
-    await axios.post(
-        `https://api.render.com/v1/services/${SERVICE_ID}/deploys`,
-        {},
-        { headers }
-      );
-    return "✅ Le service a été redémarré avec succès !";
-  } catch (error) {
-    console.error(error);
-    return `*Erreur :* ${error.response?.data?.message || error.message}`;
-  }
-}
-
-ovlcmd(
-  {
+ovlcmd({
     nom_cmd: "setvar",
-    classe: "Render_config",
-    desc: "Définit ou met à jour une variable d'environnement sur Render.",
-  },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, prenium_id } = cmd_options;
-    if (!prenium_id) {
-      return ovl.sendMessage(ms_org, {
-        text: "Cette commande est réservée aux utilisateurs premium",
-        }, { quoted: ms });
+    classe: "Système",
+    react: "⚙️",
+    desc: "Définit ou modifie une variable d'environnement. Usage: setvar KEY = value",
+}, async (ms_org, ovl, { repondre, prenium_id }) => {
+    if (!prenium_id) return repondre("⛔ Vous n'avez pas le droit d'exécuter cette commande.");
+    try {
+        let text = ms_org.text || "";
+        let [_, key, ...valArr] = text.split(/\s+/);
+        key = key?.toUpperCase();
+        if (!key || valArr.length === 0 || valArr[0] !== "=") return repondre("❌ **Usage :** `setvar KEY = value`\n**Exemple :** `setvar MODE = private`");
+        const value = valArr.slice(1).join(" ");
+        updateEnvFile(ENV_FILE, key, value);
+        let configEnv = fs.existsSync(CONFIG_ENV_FILE) ? JSON.parse(fs.readFileSync(CONFIG_ENV_FILE, "utf8")) : {};
+        configEnv[key] = value;
+        fs.writeFileSync(CONFIG_ENV_FILE, JSON.stringify(configEnv, null, 2), "utf8");
+        config[key] = value;
+        repondre(`✅ **Variable mise à jour !**\n\`${key} = ${value}\``);
+    } catch (e) {
+        console.error(e);
+        repondre("❌ Une erreur est survenue lors de la mise à jour de la variable.");
     }
-    const configError = checkConfig();
-    if (configError) {
-      return ovl.sendMessage(ms_org, {
-        text: configError,
-        }, { quoted: ms });
-    }
-    if (!arg[0] || !arg.includes("=")) {
-      return ovl.sendMessage(ms_org, {
-        text: "*Utilisation :* `setvar clé = valeur`",
-        }, { quoted: ms });
-    }
-    const [key, ...valueParts] = arg.join(" ").split("=");
-    const value = valueParts.join("=").trim();
-    const result = await manageEnvVar("setvar", key.trim(), value);
-    await ovl.sendMessage(ms_org, {
-      text: result,
-      }, { quoted: ms });
-    const restartResult = await restartRenderService();
-    await ovl.sendMessage(ms_org, {
-      text: restartResult,
-       }, { quoted: ms });
-    return;
-  }
-);
+});
 
-ovlcmd(
-  {
-    nom_cmd: "getvar",
-    classe: "Render_config",
-    desc: "Récupère la valeur d'une variable d'environnement sur Render.",
-  },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, prenium_id } = cmd_options;
-    if (!prenium_id) {
-      return ovl.sendMessage(ms_org, {
-        text: "Cette commande est réservée aux utilisateurs premium",
-       }, { quoted: ms });
-    }
-    const configError = checkConfig();
-    if (configError) {
-      return ovl.sendMessage(ms_org, {
-        text: configError,
-        }, { quoted: ms });
-    }
-    if (!arg[0]) {
-      return ovl.sendMessage(ms_org, {
-        text: "*Utilisation :* `getvar clé` ou `getvar all` pour obtenir toutes les variables",
-      }, { quoted: ms });
-    }
-    const key = arg[0];
-    const result = await manageEnvVar("getvar", key);
-    return ovl.sendMessage(ms_org, {
-      text: result
-    }, { quoted: ms });
-  }
-);
-
-ovlcmd(
-  {
+ovlcmd({
     nom_cmd: "delvar",
-    classe: "Render_config",
-    desc: "Supprime une variable d'environnement sur Render.",
-  },
-  async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, prenium_id } = cmd_options;
-    if (!prenium_id) {
-      return ovl.sendMessage(ms_org, {
-        text: "Cette commande est réservée aux utilisateurs premium",
-      }, { quoted: ms });
+    classe: "Système",
+    react: "🗑️",
+    desc: "Supprime une variable d'environnement. Usage: delvar KEY",
+}, async (ms_org, ovl, { repondre, prenium_id }) => {
+    if (!prenium_id) return repondre("⛔ Vous n'avez pas le droit d'exécuter cette commande.");
+    try {
+        let text = ms_org.text || "";
+        const key = text.split(/\s+/)[1]?.toUpperCase();
+        if (!key) return repondre("❌ **Usage :** `delvar KEY`\n**Exemple :** `delvar MODE`");
+        updateEnvFile(ENV_FILE, key, null);
+        let configEnv = fs.existsSync(CONFIG_ENV_FILE) ? JSON.parse(fs.readFileSync(CONFIG_ENV_FILE, "utf8")) : {};
+        delete configEnv[key];
+        fs.writeFileSync(CONFIG_ENV_FILE, JSON.stringify(configEnv, null, 2), "utf8");
+        delete config[key];
+        repondre(`✅ **Variable supprimée !**\n\`${key}\``);
+    } catch (e) {
+        console.error(e);
+        repondre("❌ Une erreur est survenue lors de la suppression de la variable.");
     }
-    const configError = checkConfig();
-    if (configError) {
-      return ovl.sendMessage(ms_org, {
-        text: configError
-    }, { quoted: ms });
+});
+
+ovlcmd({
+    nom_cmd: "getvar",
+    classe: "Système",
+    react: "📄",
+    desc: "Affiche la valeur d'une variable ou toutes les variables. Usage: getvar KEY ou getvar all",
+}, async (ms_org, ovl, { repondre }) => {
+    try {
+        let text = ms_org.text || "";
+        const args = text.split(/\s+/);
+        const target = args[1]?.toUpperCase();
+        if (!target) return repondre("❌ **Usage :** `getvar KEY` ou `getvar all`");
+        if (target === "ALL") {
+            const allVars = Object.keys(config).map(k => `\`${k} = ${config[k]}\``).join("\n");
+            return repondre(`📄 **Toutes les variables d'environnement :**\n\n${allVars}`);
+        } else {
+            if (config[target] === undefined) return repondre(`❌ La variable \`${target}\` n'existe pas.`);
+            return repondre(`📄 **Variable :**\n\`${target} = ${config[target]}\``);
+        }
+    } catch (e) {
+        console.error(e);
+        repondre("❌ Une erreur est survenue lors de la récupération de la variable.");
     }
-      
-    if (!arg[0]) {
-      return ovl.sendMessage(ms_org, {
-        text: "*Utilisation :* `delvar clé`"
-      }, { quoted: ms });
-    }
-    const key = arg[0];
-    const result = await manageEnvVar("delvar", key);
-    await ovl.sendMessage(ms_org, {
-      text: result
-       }, { quoted: ms });
-    const restartResult = await restartRenderService();
-    await ovl.sendMessage(ms_org, {
-      text: restartResult
-    }, { quoted: ms });
-    return;
-  }
-);
+});
 
 function formatDateGMTFr(dateStr) {
   const d = new Date(dateStr);

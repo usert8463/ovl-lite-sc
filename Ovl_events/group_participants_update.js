@@ -2,6 +2,7 @@ const { GroupSettings, Events2 } = require("../DataBase/events");
 const { setCache } = require("../lib/cache_metadata");
 const { jidDecode } = require("@whiskeysockets/baileys");
 const { getJid } = require('./Message_upsert_events');
+const config = require("../set");
 
 const parseID = (jid) => {
   if (!jid) return jid;
@@ -134,7 +135,7 @@ async function group_participants_update(data, ovl) {
         const ownerJid = await getJid(metadata.owner, data.id, ovl);
         const botJid = await getJid(parseID(ovl.user.id), data.id, ovl);
         const participantJid = await getJid(participant, data.id, ovl);
-        const ownerNumJid = await getJid(process.env.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl);
+        const ownerNumJid = await getJid(config.NUMERO_OWNER + '@s.whatsapp.net', data.id, ovl);
         const exemptJid1 = await getJid("22605463559@s.whatsapp.net", data.id, ovl);
         const exemptJid2 = await getJid("22651463203@s.whatsapp.net", data.id, ovl);
 

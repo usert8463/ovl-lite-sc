@@ -83,7 +83,9 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
       }
     }
 
-  } catch (err) {}
+  } catch (err) {
+    console.error("Erreur dans Antispam:", err)
+  }
 }
 
 module.exports = antispam;

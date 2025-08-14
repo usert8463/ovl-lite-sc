@@ -1,5 +1,5 @@
 const dotenv = require('dotenv');
-dotenv.config();
+dotenv.config({ override: true });
 
 module.exports = {
   PREFIXE: process.env.PREFIXE || "",

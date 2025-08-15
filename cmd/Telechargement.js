@@ -196,7 +196,7 @@ ovlcmd(
   }
 );
 
-ovlcmd(
+/*ovlcmd(
   {
     nom_cmd: "ttdl",
     classe: "Telechargement",
@@ -259,7 +259,56 @@ ovlcmd(
       ovl.sendMessage(ms_org, { text: "Erreur lors du téléchargement des images." }, { quoted: ms });
     }
   }
-);
+);*/
+
+ovlcmd(
+{
+    nom_cmd: "ttdl",
+    classe: "Telechargement",
+    react: "📥",
+    desc: "Télécharger un média depuis TikTok"
+},
+async (ms_org, ovl, cmd_options) => {
+    const { arg, ms, auteur_Message } = cmd_options;
+    const videoLink = arg.join(" ");
+    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok, par exemple : ttdl https://vm.tiktok.com/..." }, { quoted: ms });
+    try {
+        const links = await ttdl(videoLink);
+        const options = [];
+        if (links.noWatermark) options.push({ type: "video", label: "Vidéo sans filigrane", url: links.noWatermark });
+        if (links.mp3) options.push({ type: "audio", label: "Audio (MP3)", url: links.mp3 });
+        if (links.slides.length > 0) options.push({ type: "images", label: "Images (slides)", urls: links.slides });
+        if (options.length === 0) return ovl.sendMessage(ms_org, { text: "Aucun fichier téléchargeable trouvé." }, { quoted: ms });
+
+        let msg = "📥 Options disponibles :\n";
+        options.forEach((opt, idx) => msg += `${idx + 1}. ${opt.label}\n`);
+        msg += "\nRépondez avec le numéro de l'option à télécharger.";
+        await ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
+
+        const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
+        const reponse = rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "";
+        const choix = parseInt(reponse.trim(), 10);
+        if (isNaN(choix) || choix < 1 || choix > options.length) return ovl.sendMessage(ms_org, { text: "Choix invalide." }, { quoted: ms });
+
+        const selection = options[choix - 1];
+        if (selection.type === "video") {
+            const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
+            return ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
+        } else if (selection.type === "audio") {
+            const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
+            return ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
+        } else if (selection.type === "images") {
+            for (const imgUrl of selection.urls) {
+                const file = await axios.get(imgUrl, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
+                await ovl.sendMessage(ms_org, { image: Buffer.from(file.data) }, { quoted: ms });
+            }
+            return;
+        }
+    } catch (error) {
+        ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
+        console.error('Error:', error);
+    }
+});
 
 ovlcmd(
   {
@@ -340,68 +389,62 @@ ovlcmd(
 );
 
 ovlcmd(
-  {
-    nom_cmd: "apk",
-    classe: "Telechargement",
-    react: "📥",
-    desc: "Télécharger une application depuis Aptoide",
-  },
-  async (ms_org, ovl, { repondre, arg, ms }) => {
-    try {
-      const appName = arg.join(' ');
-      if (!appName) return repondre("*Entrer le nom de l'application à rechercher*");
+{
+  nom_cmd: "apk",
+  classe: "Telechargement",
+  react: "📥",
+  desc: "Télécharger une application depuis Aptoide",
+},
+async (ms_org, ovl, { repondre, arg, ms }) => {
+  try {
+    const appName = arg.join(' ');
+    if (!appName) return repondre("*Entrer le nom de l'application à rechercher*");
 
-      const searchResults = await apkdl(appName);
-      if (!Array.isArray(searchResults) || searchResults.length === 0) {
-        return repondre("*Application non existante, veuillez entrer un autre nom*");
-      }
+    const searchResults = await apkdl(appName);
+    if (!Array.isArray(searchResults) || searchResults.length === 0) return repondre("*Application non existante*");
 
-      const appData = searchResults[0];
-      if (!appData.dllink || !appData.size) {
-        return repondre("*Impossible de récupérer le lien de téléchargement*");
-      }
+    const appData = searchResults[0];
+    if (!appData.dllink || !appData.size) return repondre("*Impossible de récupérer le lien*");
 
-      const fileSizeMB = parseFloat(appData.size.replace(/[^\d\.]/g, '')) || 0;
-      if (fileSizeMB > 300) {
-        return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");
-      }
+    const fileSizeMB = parseFloat(appData.size.replace(/[^\d\.]/g, '')) || 0;
+    if (fileSizeMB > 300) return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");
 
-      const tmpDir = path.join(process.cwd(), 'temp');
-      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+    const tmpDir = path.join(process.cwd(), 'temp');
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
-      const apkFileName = (appData.name || "Downloader") + ".apk";
-      const tempFilePath = path.join(tmpDir, apkFileName);
+    const apkFileName = (appData.name || "Downloader") + ".apk";
+    const tempFilePath = path.join(tmpDir, apkFileName);
 
-      const apkResponse = await axios.get(appData.dllink, { responseType: 'arraybuffer' });
-      fs.writeFileSync(tempFilePath, apkResponse.data);
+    const response = await axios.get(appData.dllink, { responseType: 'stream' });
+    const writer = fs.createWriteStream(tempFilePath);
+    response.data.pipe(writer);
+    await new Promise((resolve, reject) => { writer.on('finish', resolve); writer.on('error', reject); });
 
-      let thumbBuffer = null;
-      try {
-        thumbBuffer = (await axios.get(appData.icon, { responseType: 'arraybuffer' })).data;
-      } catch {}
+    let thumbBuffer = null;
+    try { thumbBuffer = (await axios.get(appData.icon, { responseType: 'arraybuffer' })).data; } catch {}
 
-      const fileBuffer = fs.readFileSync(tempFilePath);
+    const fileBuffer = fs.readFileSync(tempFilePath);
 
-      await ovl.sendMessage(ms_org, {
-        document: fileBuffer,
-        mimetype: 'application/vnd.android.package-archive',
-        fileName: apkFileName,
-        contextInfo: {
-          externalAdReply: {
-            title: appData.name,
-            body: appData.size,
-            mediaUrl: appData.icon || '',
-            mediaType: 2,
-            thumbnail: thumbBuffer,
-            sourceUrl: appData.icon || ''
-          }
+    await ovl.sendMessage(ms_org, {
+      document: fileBuffer,
+      mimetype: 'application/vnd.android.package-archive',
+      fileName: apkFileName,
+      contextInfo: {
+        externalAdReply: {
+          title: appData.name,
+          body: appData.size,
+          mediaUrl: appData.icon || '',
+          mediaType: 2,
+          thumbnail: thumbBuffer,
+          sourceUrl: appData.icon || ''
         }
-      }, { quoted: ms });
+      }
+    }, { quoted: ms });
 
-      fs.unlinkSync(tempFilePath);
+    fs.unlinkSync(tempFilePath);
 
-    } catch {
-      repondre("*Erreur lors du traitement de la commande apk*");
-    }
+  } catch (error) {
+    console.error('Erreur apk:', error);
+    repondre("*Erreur lors du traitement de la commande apk*");
   }
-);
+});

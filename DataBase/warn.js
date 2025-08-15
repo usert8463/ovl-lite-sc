@@ -92,4 +92,4 @@ async function setLimit(newLimit) {
   }
 }
 
-module.exports = { WarnConfig, delWarn, setWarn, getLimit, setLimit };
+module.exports = { WarnConfig, delWarn, setWarn, getWarn, getLimit, setLimit };

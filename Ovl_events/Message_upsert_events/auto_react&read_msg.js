@@ -44,7 +44,7 @@ async function autoread_msg(ovl, key) {
   const config = await WA_CONF2.findOne({ where: { id: "1" } });
   if (config && config.autoread_msg === "oui") {
     try {
-      await ovl.readMessages([key);;
+      await ovl.readMessages([key);
     } catch (e) {
       console.error("Erreur autoread_msg:", e);
     }

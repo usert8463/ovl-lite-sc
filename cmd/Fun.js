@@ -284,7 +284,7 @@ rankMessage += `╰────────────────────�
 ovlcmd(
   {
     nom_cmd: "profile",
-    classe: "Utilisateur",
+    classe: "Fun",
     react: "👤",
     desc: "Affiche le nom, le numéro et la bio d'un utilisateur"
   },
@@ -308,8 +308,12 @@ ovlcmd(
       const statusArray = await ovl.fetchStatus(userId);
       if (statusArray.length > 0 && statusArray[0].status) {
         const statusObj = statusArray[0];
+        let statusText = typeof statusObj.status === 'string'
+          ? statusObj.status
+          : JSON.stringify(statusObj.status, null, 2);
+
         const date = statusObj.setAt ? new Date(statusObj.setAt).toLocaleDateString() : null;
-        bio = statusObj.status + (date ? `\n🗓 Mis à jour le: ${date}` : '');
+        bio = statusText + (date ? `\n🗓 Mis à jour le: ${date}` : '');
       }
     } catch {}
 
@@ -325,18 +329,20 @@ ovlcmd(
 ovlcmd(
   {
     nom_cmd: "fake",
-    classe: "Utilitaire",
+    classe: "Fun",
     react: "📝",
     desc: "Envoie un message fake comme si un autre utilisateur l'avait envoyé"
   },
-  async (ms_org, ovl, { msg_Repondu, ms, auteur_Message, arg, getJid }) => {
-    if (!arg[0] || !arg[1]) {
-      return ovl.sendMessage(ms_org, { text: "❌ Usage: fake @userId message..." }, { quoted: ms });
+  async (ms_org, ovl, { ms, arg, getJid }) => {
+    if (!arg[0] || !arg.join(" ").includes("/")) {
+      return ovl.sendMessage(ms_org, { text: "❌ Usage: fake @user fake_message / bot_message" }, { quoted: ms });
     }
 
     const targetIdl = `${arg[0].replace("@", "")}@lid`;
     const userId = await getJid(targetIdl, ms_org, ovl);
-    const fakeMsgText = arg.slice(1).join(" ");
+
+    const fullText = arg.slice(1).join(" ");
+    const [fakeMsgText, realMsgText] = fullText.split("/").map(t => t.trim());
 
     const fakeQuoted = {
       key: {
@@ -347,13 +353,11 @@ ovlcmd(
       message: {
         extendedTextMessage: {
           text: fakeMsgText,
-          contextInfo: {
-            mentionedJid: [],
-          },
+          contextInfo: { mentionedJid: [] },
         },
       }
     };
 
-    await ovl.sendMessage(ms_org, { text: fakeMsgText }, { quoted: fakeQuoted });
+    await ovl.sendMessage(ms_org, { text: realMsgText }, { quoted: fakeQuoted });
   }
 );

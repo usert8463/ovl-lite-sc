@@ -65,6 +65,16 @@ async function getLimit() {
   return config ? config.limit : 3;
 }
 
+async function setLimit(newLimit) {
+  const config = await WarnConfig.findOne();
+  if (config) {
+    config.limit = newLimit;
+    await config.save();
+  } else {
+    await WarnConfig.create({ limit: newLimit });
+  }
+}
+
 async function setWarn(userId) {
   const [warn, created] = await Warn.findOrCreate({
     where: { userId },
@@ -79,4 +89,9 @@ async function setWarn(userId) {
   return warn;
 }
 
-module.exports = { WarnConfig, delWarn, setWarn, getLimit, setLimit };
+module.exports = { delWarn, setWarn, getLimit, setLimit };
+
+
+
+
+

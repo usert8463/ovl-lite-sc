@@ -289,7 +289,7 @@ ovlcmd(
     desc: "Affiche le nom, le numéro et la bio d'un utilisateur"
   },
   async (ms_org, ovl, { msg_Repondu, ms, auteur_Message, arg, getJid, auteur_Msg_Repondu }) => {
-    const userIdl = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@lid`) || auteur_Msg_Repondu || auteur_Message;
+    const userIdl = (arg[0]?.includes("@") && `${arg[0].replace("@", "")}@s.whatsapp.net`) || auteur_Msg_Repondu || auteur_Message;
     const userId = await getJid(userIdl, ms_org, ovl);
 
     let pp;
@@ -307,13 +307,9 @@ ovlcmd(
     try {
       const statusArray = await ovl.fetchStatus(userId);
       if (statusArray.length > 0 && statusArray[0].status) {
-        const statusObj = statusArray[0];
-        let statusText = typeof statusObj.status === 'string'
-          ? statusObj.status
-          : JSON.stringify(statusObj.status, null, 2);
-
-        const date = statusObj.setAt ? new Date(statusObj.setAt).toLocaleDateString() : null;
-        bio = statusText + (date ? `\n🗓 Mis à jour le: ${date}` : '');
+        bio = typeof statusArray[0].status === 'string'
+          ? statusArray[0].status
+          : statusArray[0].status.status || "Pas de bio";
       }
     } catch {}
 

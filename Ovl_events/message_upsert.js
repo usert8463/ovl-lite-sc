@@ -11,7 +11,6 @@ const { jidDecode, getContentType } = require("@whiskeysockets/baileys");
 
 const evt = require("../lib/ovlcmd");
 const config = require("../set");
-const prefixe = config.PREFIXE || "";
 
 const { get_stick_cmd } = require("../DataBase/stick_cmd");
 const { list_cmd } = require('../DataBase/public_private_cmd');
@@ -92,8 +91,8 @@ async function message_upsert(m, ovl) {
       }
     }
 
-    const isCmd = texte.startsWith(prefixe);
-    const cmdName = isCmd ? texte.slice(prefixe.length).trim().split(/ +/)[0].toLowerCase() : "";
+    const isCmd = texte.startsWith(config.PREFIXE);
+    const cmdName = isCmd ? texte.slice(config.PREFIXE.length).trim().split(/ +/)[0].toLowerCase() : "";
 
     const Ainz = '22651463203';
     const Ainzbot = '22605463559';

@@ -40,23 +40,23 @@ function getRandomEmoji() {
   return emojis[Math.floor(Math.random() * emojis.length)];
 }
 
-async function autoread_msg(sock, key) {
+async function autoread_msg(ovl, key) {
   const config = await WA_CONF2.findOne({ where: { id: "1" } });
   if (config && config.autoread_msg === "oui") {
     try {
-      await sock.sendReadReceipt(key.remoteJid, key.participant || key.remoteJid, [key.id]);
+      await ovl.readMessages([key);;
     } catch (e) {
       console.error("Erreur autoread_msg:", e);
     }
   }
 }
 
-async function autoreact_msg(sock, message) {
+async function autoreact_msg(ovl, message) {
   const config = await WA_CONF2.findOne({ where: { id: "1" } });
   if (config && config.autoreact_msg === "oui") {
     const emoji = getRandomEmoji();
     try {
-      await sock.sendMessage(message.key.remoteJid, {
+      await ovl.sendMessage(message.key.remoteJid, {
         react: { text: emoji, key: message.key }
       });
     } catch (e) {

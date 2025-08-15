@@ -1073,14 +1073,14 @@ ovlcmd(
     nom_cmd: "fusion",
     classe: "Conversion",
     react: "🎬",
-    desc: "Fusionne un audio et une vidéo en une seule vidéo animée"
+    desc: "Fusionne un audio et une vidéo"
   },
   async (ms_org, ovl, { msg_Repondu, ms, auteur_Message, arg }) => {
     const userId = auteur_Message;
 
     if (arg[0] && arg[0].toLowerCase() === "result") {
-      if (!fusionCache[userId] || !fusionCache[userId].audioPath || !fusionCache[userId].videoPath) {
-        return ovl.sendMessage(ms_org, { text: "❌ Vous n'avez pas enregistré à la fois un audio et une vidéo." }, { quoted: ms });
+      if (!fusionCache[userId]?.audioPath || !fusionCache[userId]?.videoPath) {
+        return ovl.sendMessage(ms_org, { text: "❌ Vous devez avoir enregistré un audio et une vidéo." }, { quoted: ms });
       }
 
       const { audioPath, videoPath } = fusionCache[userId];
@@ -1088,28 +1088,33 @@ ovlcmd(
 
       try {
         await new Promise((resolve, reject) => {
-          const ffmpeg = spawn('ffmpeg', [
-            '-y',
-            '-i', videoPath,
-            '-i', audioPath,
-            '-filter_complex', '[0:a][1:a]amix=inputs=2:duration=longest[a]',
-            '-map', '0:v',
-            '-map', '[a]',
-            '-c:v', 'copy',
-            '-c:a', 'aac',
+          const ffmpeg = spawn("ffmpeg", [
+            "-y",
+            "-i", videoPath,
+            "-i", audioPath,
+            "-map", "0:v",
+            "-map", "1:a",
+            "-c:v", "copy",
+            "-c:a", "aac",
             output
           ]);
-          ffmpeg.stderr.on('data', () => {});
-          ffmpeg.on('close', code => code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`)));
+
+          ffmpeg.stderr.on("data", data => {
+            console.log("FFmpeg:", data.toString());
+          });
+
+          ffmpeg.on("close", code => {
+            code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
+          });
         });
 
         await ovl.sendMessage(ms_org, { video: fs.readFileSync(output) }, { quoted: ms });
-        fs.unlinkSync(fusionCache[userId].audioPath);
-        fs.unlinkSync(fusionCache[userId].videoPath);
+        fs.unlinkSync(audioPath);
+        fs.unlinkSync(videoPath);
         fs.unlinkSync(output);
         delete fusionCache[userId];
-
       } catch (err) {
+        console.error("Erreur FFmpeg:", err);
         return ovl.sendMessage(ms_org, { text: `❌ Erreur lors de la fusion : ${err.message}` }, { quoted: ms });
       }
       return;
@@ -1127,7 +1132,7 @@ ovlcmd(
         }
       }, 5 * 60 * 1000);
 
-      return ovl.sendMessage(ms_org, { text: "✅ Audio enregistré pour fusion. Répondez maintenant à une vidéo." }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: "✅ Audio enregistré. Répondez maintenant à une vidéo." }, { quoted: ms });
     }
 
     if (msg_Repondu?.videoMessage) {
@@ -1142,10 +1147,9 @@ ovlcmd(
         }
       }, 5 * 60 * 1000);
 
-      return ovl.sendMessage(ms_org, { text: "✅ Vidéo enregistrée pour fusion. Répondez maintenant à un audio." }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { text: "✅ Vidéo enregistrée. Répondez maintenant à un audio." }, { quoted: ms });
     }
 
-    return ovl.sendMessage(ms_org, { text: "❌ Répondez à un *audio* ou une *vidéo* pour l'enregistrer." }, { quoted: ms });
+    return ovl.sendMessage(ms_org, { text: "❌ Répondez à un *audio* ou une *vidéo*." }, { quoted: ms });
   }
 );
-

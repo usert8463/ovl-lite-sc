@@ -1075,10 +1075,10 @@ ovlcmd(
     react: "🎬",
     desc: "Fusionne un audio et une vidéo en une seule vidéo animée"
   },
-  async (ms_org, ovl, { msg_Repondu, ms, auteur_Message, args }) => {
-    const userId = auteur_Message.id;
+  async (ms_org, ovl, { msg_Repondu, ms, auteur_Message, arg }) => {
+    const userId = auteur_Message;
 
-    if (args[0] && args[0].toLowerCase() === "result") {
+    if (arg[0] && arg[0].toLowerCase() === "result") {
       if (!fusionCache[userId] || !fusionCache[userId].audioPath || !fusionCache[userId].videoPath) {
         return ovl.sendMessage(ms_org, { text: "❌ Vous n'avez pas enregistré à la fois un audio et une vidéo." }, { quoted: ms });
       }

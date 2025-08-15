@@ -12,7 +12,7 @@ const {
 } = require('@whiskeysockets/baileys');
 
 const { getMessage } = require('./lib/store');
-const { getCache } = require("./lib/cache_metadata");
+const { getCache, setCache } = require("./lib/cache_metadata");
 const get_session = require('./DataBase/session');
 const config = require('./set');
 const { useSQLiteAuthState, WAAuth } = require('./lib/OvlAuth');
@@ -107,7 +107,7 @@ async function stopSession(numero) {
 }
 
 async function startPrincipalSession() {
-//  await delay(45000);
+  await delay(45000);
   const sess = config.SESSION_ID || '';
   if (!(sess && sess.startsWith('Ovl-MD_') && sess.endsWith('_SESSION-ID'))) return;
   const ovlPrincipale = await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: sess });

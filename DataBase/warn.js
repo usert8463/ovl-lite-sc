@@ -60,36 +60,23 @@ async function delWarn(userId) {
   return await Warn.destroy({ where: { userId } });
 }
 
-async function setWarn(userId, count) {
-  const [warn, created] = await Warn.findOrCreate({
-    where: { userId },
-    defaults: { count }
-  });
-  if (!created) {
-    warn.count = count;
-    await warn.save();
-  }
-  return warn;
-}
-
-async function getWarn(userId) {
-  const warn = await Warn.findOne({ where: { userId } });
-  return warn ? warn.count : 0;
-}
-
 async function getLimit() {
   const config = await WarnConfig.findOne();
   return config ? config.limit : 3;
 }
 
-async function setLimit(newLimit) {
-  const config = await WarnConfig.findOne();
-  if (config) {
-    config.limit = newLimit;
-    await config.save();
-  } else {
-    await WarnConfig.create({ limit: newLimit });
+async function setWarn(userId) {
+  const [warn, created] = await Warn.findOrCreate({
+    where: { userId },
+    defaults: { count: 1 }
+  });
+
+  if (!created) {
+    warn.count += 1;
+    await warn.save();
   }
+
+  return warn;
 }
 
-module.exports = { WarnConfig, delWarn, setWarn, getWarn, getLimit, setLimit };
+module.exports = { WarnConfig, delWarn, setWarn, getLimit, setLimit };

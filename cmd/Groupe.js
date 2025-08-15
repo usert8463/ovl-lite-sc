@@ -5,7 +5,7 @@ const { Antitag } = require("../DataBase/antitag");
 const { Antibot } = require("../DataBase/antibot");
 const { GroupSettings, Events2 } = require("../DataBase/events");
 const fs = require("fs");
-const { setWarn, delWarn, getWarn, getLimit, setLimit } = require("../DataBase/warn");
+const { setWarn, delWarn, getLimit, setLimit } = require("../DataBase/warn");
 const { Antimention } = require('../DataBase/antimention');
 const { Ranks } = require('../DataBase/rank');
 const { Antispam } = require("../DataBase/antispam");
@@ -990,9 +990,7 @@ ovlcmd(
       return repondre("Impossible d'avertir un développeur.");
 
     const limit = await getLimit();
-    const currentWarn = await getWarn(membre);
-    const newCount = currentWarn ? currentWarn.count + 1 : 1;
-    const warnData = await setWarn(membre, newCount);
+    const warnData = await setWarn(membre);
     const dateWarn = new Date().toLocaleString("fr-FR");
 
     await ovl.sendMessage(ms_org, {

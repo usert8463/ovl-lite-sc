@@ -8,7 +8,6 @@ const { Bans, OnlyAdmins } = require("../DataBase/ban");
 const { Sudo } = require('../DataBase/sudo');
 const { getMessage, addMessage } = require('../lib/store');
 const { jidDecode, getContentType } = require("@whiskeysockets/baileys");
-const { setCache } = require("../lib/cache_metadata");
 
 const evt = require("../lib/ovlcmd");
 const config = require("../set");
@@ -65,9 +64,6 @@ async function message_upsert(m, ovl) {
 
     const verif_Groupe = ms_org.endsWith("@g.us");
     const infos_Groupe = verif_Groupe ? await ovl.groupMetadata(ms_org) : {};
-    if(verif_Groupe) {
-    await setCache(ms_org, infos_Groupe, false)
-    }
     const nom_Groupe = infos_Groupe.subject || "";
     const mbre_membre = verif_Groupe ? infos_Groupe.participants : [];
     const groupe_Admin = mbre_membre.filter(p => p.admin).map(p => p.jid);

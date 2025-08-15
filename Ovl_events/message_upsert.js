@@ -115,7 +115,7 @@ async function message_upsert(m, ovl) {
       verif_Groupe, mbre_membre, membre_Groupe: auteur_Message, verif_Admin,
       infos_Groupe, nom_Groupe, auteur_Message, nom_Auteur_Message, mtype,
       id_Bot, prenium_id, dev_id, dev_num, id_Bot_N, verif_Ovl_Admin,
-      prefixe, arg, repondre, groupe_Admin: () => groupe_Admin,
+      prefixe: config.PREFIXE, arg, repondre, groupe_Admin: () => groupe_Admin,
       msg_Repondu, auteur_Msg_Repondu, ms, ms_org, texte, getJid, quote
     };
 

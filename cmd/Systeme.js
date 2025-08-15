@@ -16,23 +16,27 @@ ovlcmd({
     classe: "Système",
     react: "⚙️",
     desc: "Définit ou modifie une variable d'environnement. Usage: setvar KEY = value",
-}, async (ms_org, ovl, { repondre, prenium_id }) => {
-    if (!prenium_id) return repondre("⛔ Vous n'avez pas le droit d'exécuter cette commande.");
+}, async (ms_org, ovl, { repondre, prenium_id, arg }) => {
+    if (!prenium_id) return repondre("Vous n'avez pas le droit d'exécuter cette commande.");
     try {
-        let text = ms_org.text || "";
-        let [_, key, ...valArr] = text.split(/\s+/);
+        let [key, ...valArr] = arg;
         key = key?.toUpperCase();
-        if (!key || valArr.length === 0 || valArr[0] !== "=") return repondre("❌ **Usage :** `setvar KEY = value`\n**Exemple :** `setvar MODE = private`");
+        if (!key || valArr.length === 0 || valArr[0] !== "=") 
+            return repondre("Usage correct : setvar KEY = value\nExemple : setvar MODE = private");
+
         const value = valArr.slice(1).join(" ");
         updateEnvFile(ENV_FILE, key, value);
+
         let configEnv = fs.existsSync(CONFIG_ENV_FILE) ? JSON.parse(fs.readFileSync(CONFIG_ENV_FILE, "utf8")) : {};
         configEnv[key] = value;
         fs.writeFileSync(CONFIG_ENV_FILE, JSON.stringify(configEnv, null, 2), "utf8");
+
         config[key] = value;
-        repondre(`✅ **Variable mise à jour !**\n\`${key} = ${value}\``);
+
+        repondre(`Variable mise à jour : ${key} = ${value}`);
     } catch (e) {
         console.error(e);
-        repondre("❌ Une erreur est survenue lors de la mise à jour de la variable.");
+        repondre("Une erreur est survenue lors de la mise à jour de la variable.");
     }
 });
 
@@ -41,21 +45,24 @@ ovlcmd({
     classe: "Système",
     react: "🗑️",
     desc: "Supprime une variable d'environnement. Usage: delvar KEY",
-}, async (ms_org, ovl, { repondre, prenium_id }) => {
-    if (!prenium_id) return repondre("⛔ Vous n'avez pas le droit d'exécuter cette commande.");
+}, async (ms_org, ovl, { repondre, prenium_id, arg }) => {
+    if (!prenium_id) return repondre("Vous n'avez pas le droit d'exécuter cette commande.");
     try {
-        let text = ms_org.text || "";
-        const key = text.split(/\s+/)[1]?.toUpperCase();
-        if (!key) return repondre("❌ **Usage :** `delvar KEY`\n**Exemple :** `delvar MODE`");
+        const key = arg[0]?.toUpperCase();
+        if (!key) return repondre("Usage correct : delvar KEY\nExemple : delvar MODE");
+
         updateEnvFile(ENV_FILE, key, null);
+
         let configEnv = fs.existsSync(CONFIG_ENV_FILE) ? JSON.parse(fs.readFileSync(CONFIG_ENV_FILE, "utf8")) : {};
         delete configEnv[key];
         fs.writeFileSync(CONFIG_ENV_FILE, JSON.stringify(configEnv, null, 2), "utf8");
+
         delete config[key];
-        repondre(`✅ **Variable supprimée !**\n\`${key}\``);
+
+        repondre(`Variable supprimée : ${key}`);
     } catch (e) {
         console.error(e);
-        repondre("❌ Une erreur est survenue lors de la suppression de la variable.");
+        repondre("Une erreur est survenue lors de la suppression de la variable.");
     }
 });
 
@@ -64,22 +71,26 @@ ovlcmd({
     classe: "Système",
     react: "📄",
     desc: "Affiche la valeur d'une variable ou toutes les variables. Usage: getvar KEY ou getvar all",
-}, async (ms_org, ovl, { repondre }) => {
+}, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
+    if (!prenium_id) return repondre("Vous n'avez pas le droit d'exécuter cette commande.");
     try {
-        let text = ms_org.text || "";
-        const args = text.split(/\s+/);
-        const target = args[1]?.toUpperCase();
-        if (!target) return repondre("❌ **Usage :** `getvar KEY` ou `getvar all`");
+        const target = arg[0]?.toUpperCase();
+        if (!target) return repondre("Usage : getvar KEY ou getvar all");
+
         if (target === "ALL") {
-            const allVars = Object.keys(config).map(k => `\`${k} = ${config[k]}\``).join("\n");
-            return repondre(`📄 **Toutes les variables d'environnement :**\n\n${allVars}`);
+            if (Object.keys(config).length === 0) return repondre("Aucune variable définie.");
+            
+            const allVars = Object.entries(config)
+                .map(([k, v]) => `• ${k} = ${v}`)
+                .join("\n");
+            return repondre("Liste des variables :\n" + allVars);
         } else {
-            if (config[target] === undefined) return repondre(`❌ La variable \`${target}\` n'existe pas.`);
-            return repondre(`📄 **Variable :**\n\`${target} = ${config[target]}\``);
+            if (config[target] === undefined) return repondre(`La variable ${target} n'existe pas.`);
+            return repondre(`${target} = ${config[target]}`);
         }
     } catch (e) {
         console.error(e);
-        repondre("❌ Une erreur est survenue lors de la récupération de la variable.");
+        repondre("Une erreur est survenue lors de la récupération de la variable.");
     }
 });
 

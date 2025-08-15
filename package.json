@@ -12,7 +12,6 @@
   "author": "Ainz-devs",
   "license": "MIT",
   "dependencies": {
-    "@distube/ytsr": "^2.0.4",
     "@vitalets/google-translate-api": "^9.2.1",
     "@whiskeysockets/baileys": "github:Ainz-devs/Baileys",
     "adm-zip": "^0.5.16",

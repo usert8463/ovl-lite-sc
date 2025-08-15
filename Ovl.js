@@ -109,9 +109,8 @@ async function stopSession(numero) {
 
 async function startPrincipalSession() {
   await delay(45000);
-  const sess = config.SESSION_ID || '';
-  if (!(sess && sess.startsWith('Ovl-MD_') && sess.endsWith('_SESSION-ID'))) return;
-  const ovlPrincipale = await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: sess });
+  if (!(config.SESSION_ID && config.SESSION_ID.startsWith('Ovl-MD_') && config.SESSION_ID.endsWith('_SESSION-ID'))) return;
+  const ovlPrincipale = await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: config.SESSION_ID });
   if (ovlPrincipale) instancesSessions.set('principale', ovlPrincipale);
   await startSecondarySessions();
   console.log(`🤖 Session principale + secondaires démarrées : ${sessionsActives.size}/${MAX_SESSIONS}`);

@@ -343,24 +343,57 @@ ovlcmd(
   },
   async (ms_org, ovl, cmd_options) => {
     const { repondre, arg, ms } = cmd_options;
+
     try {
       const appName = arg.join(' ');
       if (!appName) return repondre("*Entrer le nom de l'application à rechercher*");
+
       const searchResults = await apkdl(appName);
-      if (searchResults.length === 0) return repondre("*Application non existante, veuillez entrer un autre nom*");
+      console.log("Résultats recherche:", searchResults);
+
+      if (!Array.isArray(searchResults) || searchResults.length === 0) {
+        return repondre("*Application non existante, veuillez entrer un autre nom*");
+      }
+
       const appData = searchResults[0];
+      console.log("Application sélectionnée:", appData);
+
+      if (!appData.dllink || !appData.size) {
+        return repondre("*Impossible de récupérer le lien de téléchargement*");
+      }
+
       const fileSizeMB = parseFloat(appData.size.replace(/[^\d\.]/g, '')) || 0;
-      if (fileSizeMB > 300) return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");
+      if (fileSizeMB > 300) {
+        return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");
+      }
+
+      const tmpDir = path.join(process.cwd(), 'temp');
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+
       const apkFileName = (appData.name || "Downloader") + ".apk";
-      const tempFilePath = path.join('/tmp', apkFileName);
+      const tempFilePath = path.join(tmpDir, apkFileName);
+
+      console.log("Téléchargement depuis:", appData.dllink);
       const apkResponse = await axios.get(appData.dllink, { responseType: 'stream' });
       const writer = fs.createWriteStream(tempFilePath);
       apkResponse.data.pipe(writer);
+
       await new Promise((resolve, reject) => {
         writer.on('finish', resolve);
         writer.on('error', reject);
       });
-      const thumbBuffer = (await axios.get(appData.icon, { responseType: 'arraybuffer' })).data;
+
+      console.log("Fichier APK téléchargé:", tempFilePath);
+
+      let thumbBuffer = null;
+      try {
+        thumbBuffer = (await axios.get(appData.icon, { responseType: 'arraybuffer' })).data;
+      } catch {
+        console.log("Impossible de récupérer l'icône.");
+      }
+
       await ovl.sendMessage(ms_org, {
         document: fs.createReadStream(tempFilePath),
         mimetype: 'application/vnd.android.package-archive',
@@ -369,15 +402,19 @@ ovlcmd(
           externalAdReply: {
             title: appData.name,
             body: appData.size,
-            mediaUrl: appData.icon,
+            mediaUrl: appData.icon || '',
             mediaType: 2,
             thumbnail: thumbBuffer,
-            sourceUrl: appData.icon
+            sourceUrl: appData.icon || ''
           }
         }
       }, { quoted: ms });
+
       fs.unlinkSync(tempFilePath);
+      console.log("Fichier temporaire supprimé.");
+
     } catch (error) {
+      console.error("Erreur APK:", error);
       repondre("*Erreur lors du traitement de la commande apk*");
     }
   }

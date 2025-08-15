@@ -5,7 +5,6 @@ const wiki = require('wikipedia');
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const config = require('../set');
 const { translate } = require('@vitalets/google-translate-api');
-const ytsr = require('@distube/ytsr');
 const FormData = require('form-data');
 
 ovlcmd(
@@ -389,56 +388,6 @@ ovlcmd(
     } catch (error) {
         console.error(error);
       ovl.sendMessage(ms_org, { text: 'Une erreur est survenue lors de la récupération des informations de l\'anime.' }, { quoted: cmd_options.ms });
-    }
-  }
-);
-
-ovlcmd(
-  {
-    nom_cmd: "ytsearch",
-    classe: "Search",
-    react: "🎵",
-    desc: "Recherche une chanson depuis YouTube avec un terme de recherche",
-    alias: ['yts']
-  },
-  async (ms_org, ovl, { arg, ms }) => {
-    if (!arg.length) {
-      return ovl.sendMessage(ms_org, {
-        text: "❌ Veuillez spécifier un terme de recherche.",
-      }, { quoted: ms });
-    }
-
-    const query = arg.join(" ");
-    const max = 5;
-
-    try {
-      const searchResults = await ytsr(query, { limit: max });
-
-      if (!searchResults.items || searchResults.items.length === 0) {
-        return ovl.sendMessage(ms_org, {
-          text: "🔍 Aucun résultat trouvé.",
-        }, { quoted: ms });
-      }
-
-      const results = searchResults.items
-        .filter(item => item.type === 'video')
-        .slice(0, max)
-        .map((song, i) => {
-          return `📌 *${i + 1}. ${song.name}*
-🔗 ${song.url}
-👁️ ${song.views} | ⏱️ ${song.duration}`;
-        })
-        .join("\n\n");
-
-      return ovl.sendMessage(ms_org, {
-        text: `🎶 *Résultats pour:* _"${query}"_\n\n${results}\n──────\n📽️ _OVL-MD YouTube Search_`,
-      }, { quoted: ms });
-
-    } catch (err) {
-      console.error("Erreur YTSearch:", err);
-      return ovl.sendMessage(ms_org, {
-        text: "❌ Une erreur est survenue lors de la recherche.",
-      }, { quoted: ms });
     }
   }
 );

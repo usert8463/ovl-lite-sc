@@ -79,7 +79,7 @@ async function recup_msg({ ovl, auteur, ms_org, temps = 30000 } = {}) {
     if (temps > 0) {
       timer = setTimeout(() => {
         ovl.ev.off("messages.upsert", listener);
-        reject(new Error("Temps écoulé, aucun message reçu."));
+        reject(new Error("Timeout"));
       }, temps);
     }
   });

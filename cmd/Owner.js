@@ -250,7 +250,7 @@ ovlcmd(
     }
 
     if (!config) {
-      await WA_CONF2.create({ id: jid, anticall: val === "on" ? "oui" : "non" });
+      await WA_CONF2.create({ id: " 1", anticall: val === "on" ? "oui" : "non" });
       return ovl.sendMessage(jid, { text: `anticall est maintenant ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
     }
 
@@ -266,7 +266,7 @@ ovlcmd(
 
 ovlcmd(
   {
-    nom_cmd: "autoreadmsg",
+    nom_cmd: "lecture_msg",
     classe: "Owner",
     react: "📖",
     desc: "Active ou désactive la lecture automatique des messages.",
@@ -290,7 +290,7 @@ ovlcmd(
     }
 
     if (!config) {
-      await WA_CONF2.create({ id: jid, autoread_msg: val === "on" ? "oui" : "non" });
+      await WA_CONF2.create({ id: "1", autoread_msg: val === "on" ? "oui" : "non" });
       return ovl.sendMessage(jid, { text: `autoreadmsg est maintenant ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
     }
 
@@ -306,7 +306,7 @@ ovlcmd(
 
 ovlcmd(
   {
-    nom_cmd: "autoreactmsg",
+    nom_cmd: "react_msg",
     classe: "Owner",
     react: "🤖",
     desc: "Active ou désactive la réaction automatique aux messages.",
@@ -330,7 +330,7 @@ ovlcmd(
     }
 
     if (!config) {
-      await WA_CONF2.create({ id: jid, autoreact_msg: val === "on" ? "oui" : "non" });
+      await WA_CONF2.create({ id: "1", autoreact_msg: val === "on" ? "oui" : "non" });
       return ovl.sendMessage(jid, { text: `autoreactmsg est maintenant ${val === "on" ? "activé" : "désactivé"}.` }, { quoted: ms });
     }
 

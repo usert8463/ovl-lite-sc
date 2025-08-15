@@ -3,5 +3,5 @@ node_modules/
 .env
 *.db
 store_msg.json
-cache_metadata.js
+config_env.json
 cache_jid.js

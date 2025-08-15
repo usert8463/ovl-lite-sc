@@ -53,13 +53,14 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true,
-      cachedGroupMetadata: async (jid) => getCache(jid),
       getMessage: async (key) => {
         const msg = getMessage(key.id);
         return msg?.message || undefined;
       }
     });
 
+    ovl.cachedGroupMetadata = async (jid) => getCache(jid, ovl);
+    
     ovl.ev.on('messages.upsert', async (m) => message_upsert(m, ovl));
     ovl.ev.on('group-participants.update', async (data) => group_participants_update(data, ovl));
     ovl.ev.on('connection.update', async (con) => {

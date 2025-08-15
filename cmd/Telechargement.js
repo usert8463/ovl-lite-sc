@@ -197,63 +197,68 @@ ovlcmd(
 );
 
 ovlcmd(
-    {
-        nom_cmd: "ttdl",
-        classe: "Telechargement",
-        react: "📥",
-        desc: "Télécharger un média depuis TikTok"
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const { arg, ms, auteur_Message } = cmd_options;
-        const videoLink = arg.join(" ");
-        if (!videoLink) {
-            return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok, par exemple : ttdl https://vm.tiktok.com/..." }, { quoted: ms });
-        }
-        try {
-            const links = await ttdl(videoLink);
-            const options = [];
-            if (links.hdVideo) options.push({ type: "video", label: "Vidéo HD", url: links.hdVideo });
-            if (links.noWatermark) options.push({ type: "video", label: "Vidéo sans filigrane", url: links.noWatermark });
-            if (links.mp3) options.push({ type: "audio", label: "Audio (MP3)", url: links.mp3 });
-            if (links.slides.length > 0) options.push({ type: "images", label: "Images (slides)", urls: links.slides });
-            if (options.length === 0) {
-                return ovl.sendMessage(ms_org, { text: "Aucun fichier téléchargeable trouvé." }, { quoted: ms });
-            }
-            let msg = "📥 Options disponibles :\n";
-            options.forEach((opt, idx) => {
-                msg += `${idx + 1}. ${opt.label}\n`;
-            });
-            msg += "\nRépondez avec le numéro de l'option à télécharger.";
-            await ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
-            const rep = await ovl.recup_msg({
-                auteur: auteur_Message,
-                ms_org,
-                temps: 60000
-            });
-            const reponse = rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "";
-            const choix = parseInt(reponse.trim(), 10);
-            if (isNaN(choix) || choix < 1 || choix > options.length) {
-                return ovl.sendMessage(ms_org, { text: "Choix invalide." }, { quoted: ms });
-            }
-            const selection = options[choix - 1];
-            if (selection.type === "video") {
-                const file = await axios.get(selection.url, { responseType: "arraybuffer" });
-                return ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
-            } else if (selection.type === "audio") {
-                const file = await axios.get(selection.url, { responseType: "arraybuffer" });
-                return ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
-            } else if (selection.type === "images") {
-                for (const imgUrl of selection.urls) {
-                    const file = await axios.get(imgUrl, { responseType: "arraybuffer" });
-                    await ovl.sendMessage(ms_org, { image: Buffer.from(file.data) }, { quoted: ms });
-                }
-                return;
-            }
-        } catch (error) {
-            ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
-            console.error('Error:', error);
-        }
+  {
+    nom_cmd: "ttdl",
+    classe: "Telechargement",
+    react: "📥",
+    desc: "Télécharger une vidéo depuis TikTok (sans filigrane)"
+  },
+  async (ms_org, ovl, { arg, ms }) => {
+    const videoLink = arg.join(" ");
+    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok." }, { quoted: ms });
+    try {
+      const links = await ttdl(videoLink);
+      if (!links.noWatermark) return ovl.sendMessage(ms_org, { text: "Vidéo sans filigrane introuvable." }, { quoted: ms });
+      const file = await axios.get(links.noWatermark, { responseType: "arraybuffer" });
+      await ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
+    } catch {
+      ovl.sendMessage(ms_org, { text: "Erreur lors du téléchargement de la vidéo." }, { quoted: ms });
     }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "ttaudio",
+    classe: "Telechargement",
+    react: "🎵",
+    desc: "Télécharger l'audio (MP3) d'une vidéo TikTok"
+  },
+  async (ms_org, ovl, { arg, ms }) => {
+    const videoLink = arg.join(" ");
+    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok." }, { quoted: ms });
+    try {
+      const links = await ttdl(videoLink);
+      if (!links.mp3) return ovl.sendMessage(ms_org, { text: "Audio introuvable pour cette vidéo." }, { quoted: ms });
+      const file = await axios.get(links.mp3, { responseType: "arraybuffer" });
+      await ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
+    } catch {
+      ovl.sendMessage(ms_org, { text: "Erreur lors du téléchargement de l'audio." }, { quoted: ms });
+    }
+  }
+);
+
+ovlcmd(
+  {
+    nom_cmd: "ttslide",
+    classe: "Telechargement",
+    react: "🖼️",
+    desc: "Télécharger les images (slides) d'une vidéo TikTok"
+  },
+  async (ms_org, ovl, { arg, ms }) => {
+    const videoLink = arg.join(" ");
+    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok." }, { quoted: ms });
+    try {
+      const links = await ttdl(videoLink);
+      if (!links.slides || links.slides.length === 0) return ovl.sendMessage(ms_org, { text: "Aucune image trouvée pour cette vidéo." }, { quoted: ms });
+      for (const imgUrl of links.slides) {
+        const file = await axios.get(imgUrl, { responseType: "arraybuffer" });
+        await ovl.sendMessage(ms_org, { image: Buffer.from(file.data) }, { quoted: ms });
+      }
+    } catch {
+      ovl.sendMessage(ms_org, { text: "Erreur lors du téléchargement des images." }, { quoted: ms });
+    }
+  }
 );
 
 ovlcmd(
@@ -341,23 +346,17 @@ ovlcmd(
     react: "📥",
     desc: "Télécharger une application depuis Aptoide",
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { repondre, arg, ms } = cmd_options;
-
+  async (ms_org, ovl, { repondre, arg, ms }) => {
     try {
       const appName = arg.join(' ');
       if (!appName) return repondre("*Entrer le nom de l'application à rechercher*");
 
       const searchResults = await apkdl(appName);
-      console.log("Résultats recherche:", searchResults);
-
       if (!Array.isArray(searchResults) || searchResults.length === 0) {
         return repondre("*Application non existante, veuillez entrer un autre nom*");
       }
 
       const appData = searchResults[0];
-      console.log("Application sélectionnée:", appData);
-
       if (!appData.dllink || !appData.size) {
         return repondre("*Impossible de récupérer le lien de téléchargement*");
       }
@@ -368,34 +367,23 @@ ovlcmd(
       }
 
       const tmpDir = path.join(process.cwd(), 'temp');
-      if (!fs.existsSync(tmpDir)) {
-        fs.mkdirSync(tmpDir, { recursive: true });
-      }
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
       const apkFileName = (appData.name || "Downloader") + ".apk";
       const tempFilePath = path.join(tmpDir, apkFileName);
 
-      console.log("Téléchargement depuis:", appData.dllink);
-      const apkResponse = await axios.get(appData.dllink, { responseType: 'stream' });
-      const writer = fs.createWriteStream(tempFilePath);
-      apkResponse.data.pipe(writer);
-
-      await new Promise((resolve, reject) => {
-        writer.on('finish', resolve);
-        writer.on('error', reject);
-      });
-
-      console.log("Fichier APK téléchargé:", tempFilePath);
+      const apkResponse = await axios.get(appData.dllink, { responseType: 'arraybuffer' });
+      fs.writeFileSync(tempFilePath, apkResponse.data);
 
       let thumbBuffer = null;
       try {
         thumbBuffer = (await axios.get(appData.icon, { responseType: 'arraybuffer' })).data;
-      } catch {
-        console.log("Impossible de récupérer l'icône.");
-      }
+      } catch {}
+
+      const fileBuffer = fs.readFileSync(tempFilePath);
 
       await ovl.sendMessage(ms_org, {
-        document: fs.createReadStream(tempFilePath),
+        document: fileBuffer,
         mimetype: 'application/vnd.android.package-archive',
         fileName: apkFileName,
         contextInfo: {
@@ -411,10 +399,8 @@ ovlcmd(
       }, { quoted: ms });
 
       fs.unlinkSync(tempFilePath);
-      console.log("Fichier temporaire supprimé.");
 
-    } catch (error) {
-      console.error("Erreur APK:", error);
+    } catch {
       repondre("*Erreur lors du traitement de la commande apk*");
     }
   }

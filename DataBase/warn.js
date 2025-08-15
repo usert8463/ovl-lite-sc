@@ -72,6 +72,11 @@ async function setWarn(userId, count) {
   return warn;
 }
 
+async function getWarn(userId) {
+  const warn = await Warn.findOne({ where: { userId } });
+  return warn ? warn.count : 0;
+}
+
 async function getLimit() {
   const config = await WarnConfig.findOne();
   return config ? config.limit : 3;

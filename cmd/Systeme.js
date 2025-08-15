@@ -78,18 +78,16 @@ ovlcmd({
         if (!target) return repondre("Usage : getvar KEY ou getvar all");
 
         if (target === "ALL") {
-            if (Object.keys(config).length === 0) return repondre("Aucune variable définie.");
+            const definedVars = Object.entries(config).filter(([k, v]) => v !== undefined);
+            if (definedVars.length === 0) return repondre("Aucune variable définie.");
             
-            const allVars = Object.entries(config)
-                .map(([k, v]) => `• ${k} = ${v}`)
-                .join("\n");
+            const allVars = definedVars.map(([k, v]) => `• ${k} = ${v}`).join("\n");
             return repondre("Liste des variables :\n" + allVars);
         } else {
             if (config[target] === undefined) return repondre(`La variable ${target} n'existe pas.`);
             return repondre(`${target} = ${config[target]}`);
         }
     } catch (e) {
-        console.error(e);
         repondre("Une erreur est survenue lors de la récupération de la variable.");
     }
 });

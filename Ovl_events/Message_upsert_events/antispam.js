@@ -24,11 +24,10 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
     }
 
     userMsgs.push({ id: ms.key.id, timestamp: now });
-
     if (userMsgs.length > 5) userMsgs.shift();
 
     const settings = await Antispam.findOne({ where: { id: ms_org } });
-    if (!settings || settings.mode !== "oui") return;
+    if (!settings || settings.mode?.toLowerCase() !== "oui") return;
 
     if (userMsgs.length === 5) {
       const timeDiff = userMsgs[4].timestamp - userMsgs[0].timestamp;
@@ -42,7 +41,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
             await ovl.sendMessage(ms_org, {
               delete: { remoteJid: ms_org, fromMe: false, id: msg.id, participant: auteur_Message }
             });
-          } catch (err) {}
+          } catch {}
         }
 
         const username = `@${auteur_Message.split("@")[0]}`;
@@ -75,16 +74,15 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
               break;
             }
           }
-        } catch (err) {}
+        } catch {}
 
-        messageStore[ms_org][auteur_Message] = [userMsgs[4]];
+        messageStore[ms_org][auteur_Message] = userMsgs.slice(-1);
       } else {
-        messageStore[ms_org][auteur_Message] = [userMsgs[4]];
+        messageStore[ms_org][auteur_Message] = userMsgs.slice(-1);
       }
     }
-
   } catch (err) {
-    console.error("Erreur dans Antispam:", err)
+    console.error("Erreur dans Antispam:", err);
   }
 }
 

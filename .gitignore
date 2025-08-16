@@ -1,7 +1,4 @@
 node_modules/
-.vscode/
 .env
 *.db
-store_msg.json
 config_env.json
-cache_jid.js

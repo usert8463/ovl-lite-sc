@@ -195,8 +195,10 @@ ovlcmd(
 },
 async (ms_org, ovl, cmd_options) => {
     const { arg, ms, auteur_Message } = cmd_options;
+
     const videoLink = arg.join(" ");
     if (!videoLink) return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok, par exemple : ttdl https://vm.tiktok.com/..." }, { quoted: ms });
+
     try {
         const links = await ttdl(videoLink);
         const options = [];
@@ -205,30 +207,40 @@ async (ms_org, ovl, cmd_options) => {
         if (links.slides.length > 0) options.push({ type: "images", label: "Images (slides)", urls: links.slides });
         if (options.length === 0) return ovl.sendMessage(ms_org, { text: "Aucun fichier téléchargeable trouvé." }, { quoted: ms });
 
-        let msg = "📥 Options disponibles :\n";
-        options.forEach((opt, idx) => msg += `${idx + 1}. ${opt.label}\n`);
-        msg += "\nRépondez avec le numéro de l'option à télécharger.";
-        await ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
+        let choixValide = false;
+        let selection;
 
-        const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-        const reponse = rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "";
-        const choix = parseInt(reponse.trim(), 10);
-        if (isNaN(choix) || choix < 1 || choix > options.length) return ovl.sendMessage(ms_org, { text: "Choix invalide." }, { quoted: ms });
+        while (!choixValide) {
+            let msg = "📥 Options disponibles :\n";
+            options.forEach((opt, idx) => msg += `${idx + 1}. ${opt.label}\n`);
+            msg += "\nRépondez avec le numéro de l'option à télécharger.";
+            await ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
 
-        const selection = options[choix - 1];
+            const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
+            const reponse = rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "";
+            const choix = parseInt(reponse.trim(), 10);
+
+            if (!isNaN(choix) && choix >= 1 && choix <= options.length) {
+                selection = options[choix - 1];
+                choixValide = true;
+            } else {
+                await ovl.sendMessage(ms_org, { text: "Choix invalide, veuillez réessayer." }, { quoted: ms });
+            }
+        }
+
         if (selection.type === "video") {
             const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
-            return ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
+            await ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
         } else if (selection.type === "audio") {
             const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
-            return ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
+            await ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
         } else if (selection.type === "images") {
             for (const imgUrl of selection.urls) {
                 const file = await axios.get(imgUrl, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
                 await ovl.sendMessage(ms_org, { image: Buffer.from(file.data) }, { quoted: ms });
             }
-            return;
         }
+
     } catch (error) {
         ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
         console.error('Error:', error);
@@ -348,10 +360,8 @@ async (ms_org, ovl, { repondre, arg, ms }) => {
     let thumbBuffer = null;
     try { thumbBuffer = (await axios.get(appData.icon, { responseType: 'arraybuffer' })).data; } catch {}
 
-    const fileBuffer = fs.readFileSync(tempFilePath);
-
     await ovl.sendMessage(ms_org, {
-      document: fileBuffer,
+      document: fs.createReadStream(tempFilePath),
       mimetype: 'application/vnd.android.package-archive',
       fileName: apkFileName,
       contextInfo: {

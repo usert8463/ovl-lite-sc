@@ -16,7 +16,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe, verif_Adm
     const userMsgs = messageStore[ms_org][auteur_Message];
 
     const inAdvanced = advancedSurveillance[ms_org]?.[auteur_Message];
-    if (inAdvanced && now - inAdvanced < 8000) {
+    if (inAdvanced && now - inAdvanced < 2500) {
       try {
         await ovl.sendMessage(ms_org, { delete: { remoteJid: ms_org, fromMe: false, id: ms.key.id, participant: auteur_Message } });
       } catch(e){ console.error(e); }
@@ -34,7 +34,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe, verif_Adm
       const last = userMsgs[i + 4];
       const timeDiff = last.timestamp - first.timestamp;
 
-      if (timeDiff < 25000) {
+      if (timeDiff < 15000) {
         advancedSurveillance[ms_org] ??= {};
         advancedSurveillance[ms_org][auteur_Message] = now;
 

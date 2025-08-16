@@ -18,10 +18,8 @@ ovlcmd(
     try {
       const query = arg.join(" ");
       const info = await ytdl(query, "audio");
-      const audio = info?.ytdl;
-
-      if (!audio?.download) return repondre("Aucun lien audio disponible.");
-
+      const audio = info.yts[0];
+		
       const caption = `*AUDIO* 𝙊𝙑𝙇-𝙈𝘿\n\n` +
         `🎼 *Titre* : ${audio.title}\n` +
         `🕐 *Durée* : ${audio.duration}\n` +
@@ -34,7 +32,7 @@ ovlcmd(
         caption,
       }, { quoted: ms });
 
-      const { data } = await axios.get(audio.download, { responseType: "arraybuffer" });
+      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer" });
 
       await ovl.sendMessage(ms_org, {
         audio: Buffer.from(data),
@@ -62,9 +60,7 @@ ovlcmd(
     try {
       const query = arg.join(" ");
       const info = await ytdl(query, "video");
-      const video = info?.ytdl;
-
-      if (!video?.download) return repondre("Aucun lien vidéo disponible.");
+      const video = info.yts[0];
 
       const caption = `*VIDÉO* 𝙊𝙑𝙇-𝙈𝘿\n\n` +
         `🎼 *Titre* : ${video.title}\n` +
@@ -78,7 +74,7 @@ ovlcmd(
         caption,
       }, { quoted: ms });
 
-      const { data } = await axios.get(video.download, { responseType: "arraybuffer" });
+      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer" });
 
       await ovl.sendMessage(ms_org, {
         video: Buffer.from(data),
@@ -107,11 +103,8 @@ ovlcmd(
 
     try {
       const info = await ytdl(link, "audio");
-      const audio = info?.ytdl;
 
-      if (!audio?.download) return repondre("Lien audio non disponible.");
-
-      const { data } = await axios.get(audio.download, { responseType: "arraybuffer" });
+      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer" });
 
       await ovl.sendMessage(ms_org, {
         audio: Buffer.from(data),
@@ -140,11 +133,8 @@ ovlcmd(
 
     try {
       const info = await ytdl(link, "video");
-      const video = info?.ytdl;
-
-      if (!video?.download) return repondre("Lien vidéo non disponible.");
-
-      const { data } = await axios.get(video.download, { responseType: "arraybuffer" });
+		
+      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer" });
 
       await ovl.sendMessage(ms_org, {
         video: Buffer.from(data),

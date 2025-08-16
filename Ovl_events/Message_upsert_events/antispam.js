@@ -5,21 +5,17 @@ const advancedSurveillance = {};
 
 async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
   try {
-    if (!verif_Groupe) return;
-    if (!auteur_Message) return;
+    if (!verif_Groupe || !auteur_Message) return;
 
     const now = Date.now();
 
     if (!messageStore[ms_org]) messageStore[ms_org] = {};
     if (!messageStore[ms_org][auteur_Message]) messageStore[ms_org][auteur_Message] = [];
-
     const userMsgs = messageStore[ms_org][auteur_Message];
 
     const inAdvanced = advancedSurveillance[ms_org]?.[auteur_Message];
     if (inAdvanced && now - inAdvanced < 5000) {
-      await ovl.sendMessage(ms_org, {
-        delete: { remoteJid: ms_org, fromMe: false, id: ms.key.id, participant: auteur_Message }
-      });
+      await ovl.sendMessage(ms_org, { delete: { remoteJid: ms_org, fromMe: false, id: ms.key.id, participant: auteur_Message } });
       return;
     }
 
@@ -37,11 +33,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
         advancedSurveillance[ms_org][auteur_Message] = now;
 
         for (const msg of userMsgs) {
-          try {
-            await ovl.sendMessage(ms_org, {
-              delete: { remoteJid: ms_org, fromMe: false, id: msg.id, participant: auteur_Message }
-            });
-          } catch {}
+          try { await ovl.sendMessage(ms_org, { delete: { remoteJid: ms_org, fromMe: false, id: msg.id, participant: auteur_Message } }); } catch(e){ console.error(e); }
         }
 
         const username = `@${auteur_Message.split("@")[0]}`;
@@ -55,7 +47,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
               await ovl.sendMessage(ms_org, { text: `${username} a été retiré pour spam.`, mentions: [auteur_Message] }, { quoted: ms });
               await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
               break;
-            case "warn": {
+            case "warn":
               let warning = await AntispamWarnings.findOne({ where: { groupId: ms_org, userId: auteur_Message } });
               if (!warning) {
                 await AntispamWarnings.create({ groupId: ms_org, userId: auteur_Message, count: 1 });
@@ -72,15 +64,13 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
                 }
               }
               break;
-            }
           }
-        } catch {}
+        } catch(e){ console.error(e); }
 
-        messageStore[ms_org][auteur_Message] = userMsgs.slice(-1);
-      } else {
         messageStore[ms_org][auteur_Message] = userMsgs.slice(-1);
       }
     }
+
   } catch (err) {
     console.error("Erreur dans Antispam:", err);
   }

@@ -59,7 +59,8 @@
 
 #### <img src="https://img.shields.io/badge/Koyeb-000000?style=for-the-badge&logo=koyeb&logoColor=white" height="28" />
 - Créez un compte : [Lien Koyeb](https://app.koyeb.com/auth/signup)
-- Déploiement rapide : [Déployer sur Koyeb](https://app.koyeb.com/deploy?type=git&name=ovl-md&repository=https%3A%2F%2Fgithub.com%2FAinz-devs%2FOVL-MD-V2&branch=main&builder=dockerfile&env%5BPREFIXE%5D=%F0%9F%97%BF&env%5BNOM_OWNER%5D=Ainz&env%5BNUMERO_OWNER%5D=226xxxxxxxx&env%5BMODE%5D=public&env%5BSESSION_ID%5D=ovl&env%5BDATABASE%5D=&env%5BLEVEL_UP%5D=non&env%5BSTICKER_PACK_NAME%5D=Wa-sticker&env%5BSTICKER_AUTHOR_NAME%5D=OVL-MD&instance_type=free)
+- Déploiement rapide : [Déployer sur Koyeb](https://app.koyeb.com/deploy?type=git&name=ovl-md&repository=https%3A%2F%2Fgithub.com%2FAinz-devs%2FOVL-MD-V2&branch=main&builder=dockerfile&env%5BPREFIXE%5D=.&env%5BNOM_OWNER%5D=Ainz&env%5BNUMERO_OWNER%5D=226xxxxxxxx&env%5BMODE%5D=public&env%5BSESSION_ID%5D=&env%5BSTICKER_PACK_NAME%5D=%E1%B4%8F%E1%B4%97%E1%B4%91-%E1%B4%9E%E1%B4%96-%E1%B5%B0%E1%B4%B2&env%5BSTICKER_AUTHOR_NAME%5D=%E1%B4%A2%E1%B4%88%E1%B4%AE%E2%9C%85%E2%9C%A8&instance_type=free
+)
 
 #### <img src="https://img.shields.io/badge/Panel-grey?style=for-the-badge&logo=windows-terminal&logoColor=white" height="28" />
 - Créez un serveur
@@ -232,8 +233,8 @@ NOM_OWNER=Ainz
 NUMERO_OWNER=226xxxxxxxx
 MODE=public
 SESSION_ID=
-STICKER_PACK_NAME=ᴀɪɴᴢ🔅✨
-STICKER_AUTHOR_NAME=ᴏᴠʟ-ᴍᴅ-ᴠ𝟸
+STICKER_PACK_NAME=ᴏᴠʟ-ᴍᴅ-ᴠ𝟸
+STICKER_AUTHOR_NAME=ᴀɪɴᴢ🔅✨
 ```
 
 </details>

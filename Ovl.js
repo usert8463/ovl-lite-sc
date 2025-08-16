@@ -58,8 +58,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
         return msg?.message || undefined;
       }
     });
-
-    ovl.cachedGroupMetadata = async (jid) => await getCache(jid, ovl);
     
     ovl.ev.on('messages.upsert', async (m) => message_upsert(m, ovl));
     ovl.ev.on('group-participants.update', async (data) => group_participants_update(data, ovl));
@@ -73,7 +71,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     });
     ovl.ev.on('creds.update', saveCreds);
     ovl.ev.on('groups.update', async (data) => {
-  const metadata = await ovl.groupMetadata(data.id);
+  const metadata = await getCache(data.id, ovl);
   await setCache(data.id, metadata);
 });
     ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));

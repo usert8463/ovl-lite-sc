@@ -86,7 +86,6 @@ const Events2 = sequelize.define(
 (async () => {
   await GroupSettings.sync();
   await Events2.sync();
-  console.log("Events ynchronisées.");
 })();
 
 module.exports = {

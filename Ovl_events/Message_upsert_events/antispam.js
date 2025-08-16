@@ -5,7 +5,7 @@ const advancedSurveillance = {};
 
 async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
   try {
-    if (!verif_Groupe || !auteur_Message) return;
+    if (!verif_Groupe || !auteur_Message || !ms.key?.id) return;
 
     const now = Date.now();
 
@@ -14,31 +14,31 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
     const userMsgs = messageStore[ms_org][auteur_Message];
 
     const inAdvanced = advancedSurveillance[ms_org]?.[auteur_Message];
-    if (inAdvanced && now - inAdvanced < 5000) {
+    if (inAdvanced && now - inAdvanced < 8000) {
       try {
-        await ovl.sendMessage(ms_org, { delete: { remoteJid: ms_org, fromMe: false, id: ms.key?.id, participant: auteur_Message } });
+        await ovl.sendMessage(ms_org, { delete: { remoteJid: ms_org, fromMe: false, id: ms.key.id, participant: auteur_Message } });
       } catch(e){ console.error(e); }
       return;
     }
 
-    if (ms.key?.id) {
-      userMsgs.push({ id: ms.key.id, timestamp: now });
-      if (userMsgs.length > 5) userMsgs.shift();
-    }
+    userMsgs.push({ id: ms.key.id, timestamp: now });
+    if (userMsgs.length > 10) userMsgs.shift();
 
     const settings = await Antispam.findOne({ where: { id: ms_org } });
     if (!settings || settings.mode?.toLowerCase() !== "oui") return;
 
-    if (userMsgs.length === 5) {
-      const timeDiff = userMsgs[4].timestamp - userMsgs[0].timestamp;
+    for (let i = 0; i <= userMsgs.length - 5; i++) {
+      const first = userMsgs[i];
+      const last = userMsgs[i + 4];
+      const timeDiff = last.timestamp - first.timestamp;
 
       if (timeDiff < 25000) {
         advancedSurveillance[ms_org] ??= {};
         advancedSurveillance[ms_org][auteur_Message] = now;
 
-        for (const msg of userMsgs) {
+        for (let j = i; j <= i + 4; j++) {
           try {
-            await ovl.sendMessage(ms_org, { delete: { remoteJid: ms_org, fromMe: false, id: msg.id, participant: auteur_Message } });
+            await ovl.sendMessage(ms_org, { delete: { remoteJid: ms_org, fromMe: false, id: userMsgs[j].id, participant: auteur_Message } });
           } catch(e){ console.error(e); }
         }
 
@@ -49,12 +49,10 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
             case "supp":
               await ovl.sendMessage(ms_org, { text: `${username}, le spam est interdit ici.`, mentions: [auteur_Message] }, { quoted: ms });
               break;
-
             case "kick":
               await ovl.sendMessage(ms_org, { text: `${username} a été retiré pour spam.`, mentions: [auteur_Message] }, { quoted: ms });
               await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
               break;
-
             case "warn":
               let warning = await AntispamWarnings.findOne({ where: { groupId: ms_org, userId: auteur_Message } });
               if (!warning) {
@@ -76,6 +74,7 @@ async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
         } catch(e){ console.error(e); }
 
         messageStore[ms_org][auteur_Message] = userMsgs.slice(-1);
+        break;
       }
     }
 

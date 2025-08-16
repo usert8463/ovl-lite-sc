@@ -29,7 +29,7 @@ ovlcmd(
         caption,
       }, { quoted: ms });
       const stream = await axios.get(
-        `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(audio.url)}&format=audio`,
+        `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
         { responseType: "stream" }
       );
       await ovl.sendMessage(ms_org, {
@@ -68,7 +68,7 @@ ovlcmd(
         caption,
       }, { quoted: ms });
       const stream = await axios.get(
-        `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(video.url)}&format=video`,
+        `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
         { responseType: "stream" }
       );
       await ovl.sendMessage(ms_org, {
@@ -95,8 +95,9 @@ ovlcmd(
     const link = arg.join(" ");
     if (!link) return repondre("Exemple : *yta https://youtube.com/watch?v=xyz*");
     try {
+	  const info = await ytdl(link, "audio");
       const stream = await axios.get(
-        `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(link)}&format=audio`,
+        `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
         { responseType: "stream" }
       );
       await ovl.sendMessage(ms_org, {
@@ -123,8 +124,9 @@ ovlcmd(
     const link = arg.join(" ");
     if (!link) return repondre("Exemple : *ytv https://youtube.com/watch?v=xyz*");
     try {
+      const info = await ytdl(link, "video");
       const stream = await axios.get(
-        `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(link)}&format=video`,
+        `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
         { responseType: "stream" }
       );
       await ovl.sendMessage(ms_org, {

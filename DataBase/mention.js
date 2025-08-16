@@ -60,8 +60,6 @@ const Mention = sequelize.define('Mention', {
       defaultValue: 'texte',
     });
   }
-
-  console.log("Mention synchronisée.");
 })();
 
 async function setMention({ url = "url", text = "text", mode = "non", type = "texte" }) {

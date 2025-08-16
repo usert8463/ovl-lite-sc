@@ -1,5 +1,5 @@
 const { GroupSettings, Events2 } = require("../DataBase/events");
-const { setCache } = require("../lib/cache_metadata");
+const { getCache, setCache } = require("../lib/cache_metadata");
 const { jidDecode } = require("@whiskeysockets/baileys");
 const { getJid } = require('./Message_upsert_events');
 const config = require("../set");
@@ -30,7 +30,7 @@ const ms_badge = {
 };
 
 async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl) {
-  const groupInfo = await ovl.groupMetadata(jid);
+  const groupInfo = await getCache(jid, ovl);
   const groupName = groupInfo.subject || "Groupe";
   const totalMembers = groupInfo.participants.length;
   const userMention = `@${participant.split("@")[0]}`;
@@ -103,7 +103,7 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
 
 async function group_participants_update(data, ovl) {
   try {
-    const groupInfo = await ovl.groupMetadata(data.id);
+    const groupInfo = await getCache(data.id, ovl);
     await setCache(data.id, groupInfo);
 
     const metadata = groupInfo;

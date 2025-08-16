@@ -1,14 +1,13 @@
 const { Antilink, Antilink_warnings } = require("../../DataBase/antilink");
 
 function containsLink(text) {
-    const linkRegex = /(?:https?:\/\/|www\.|[a-z0-9-]+\.[a-z]{2,})(\/\S*)?/i;
+    const linkRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/i;
     return linkRegex.test(text);
 }
 
 async function antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message) {
-    try {
-        const isForwardedFromChannel = ms.message?.extendedTextMessage?.contextInfo?.forwardedNewsletterMessageInfo !== undefined;
-        if (containsLink(texte) || isForwardedFromChannel) {
+    try { 
+        if (containsLink(texte)) {
             const settings = await Antilink.findOne({ where: { id: ms_org } });
             if (verif_Groupe && settings && settings.mode === 'oui') {
                 if (!verif_Admin && verif_Ovl_Admin) {

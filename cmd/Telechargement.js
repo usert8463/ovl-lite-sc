@@ -18,25 +18,15 @@ ovlcmd(
       const query = arg.join(" ");
       const info = await ytdl(query, "audio");
       const audio = info.yts[0];
-      const caption = `*AUDIO* 𝙊𝙑𝙇-𝙈𝘿\n\n` +
-        `🎼 *Titre* : ${audio.title}\n` +
-        `🕐 *Durée* : ${audio.duration}\n` +
-        `👁️ *Vues* : ${audio.views}\n` +
-        `🔗 *Lien* : ${audio.url}\n\n` +
-        `🔊 *Powered by OVL-MD-V2*`;
-      await ovl.sendMessage(ms_org, {
-        image: { url: audio.thumbnail },
-        caption,
-      }, { quoted: ms });
-      const stream = await axios.get(
+      const caption = `*AUDIO* 𝙊𝙑𝙇-𝙈𝘿\n\n🎼 *Titre* : ${audio.title}\n🕐 *Durée* : ${audio.duration}\n👁️ *Vues* : ${audio.views}\n🔗 *Lien* : ${audio.url}\n\n🔊 *Powered by OVL-MD-V2*`;
+      await ovl.sendMessage(ms_org, { image: { url: audio.thumbnail }, caption }, { quoted: ms });
+
+      const response = await axios.get(
         `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
-        { responseType: "stream" }
+        { responseType: "arraybuffer" }
       );
-      await ovl.sendMessage(ms_org, {
-        audio: stream.data,
-        mimetype: "audio/mpeg",
-        caption: "```Powered by OVL-MD-V2```"
-      }, { quoted: ms });
+      const audioBuffer = Buffer.from(response.data);
+      await ovl.sendMessage(ms_org, { audio: audioBuffer, mimetype: "audio/mpeg", caption: "```Powered by OVL-MD-V2```" }, { quoted: ms });
     } catch (e) {
       console.error(e);
       repondre("❌ Erreur lors du téléchargement de la chanson.");
@@ -57,25 +47,15 @@ ovlcmd(
       const query = arg.join(" ");
       const info = await ytdl(query, "video");
       const video = info.yts[0];
-      const caption = `*VIDÉO* 𝙊𝙑𝙇-𝙈𝘿\n\n` +
-        `🎼 *Titre* : ${video.title}\n` +
-        `🕐 *Durée* : ${video.duration}\n` +
-        `👁️ *Vues* : ${video.views}\n` +
-        `🔗 *Lien* : ${video.url}\n\n` +
-        `🎬 *Powered by OVL-MD-V2*`;
-      await ovl.sendMessage(ms_org, {
-        image: { url: video.thumbnail },
-        caption,
-      }, { quoted: ms });
-      const stream = await axios.get(
+      const caption = `*VIDÉO* 𝙊𝙑𝙇-𝙈𝘿\n\n🎼 *Titre* : ${video.title}\n🕐 *Durée* : ${video.duration}\n👁️ *Vues* : ${video.views}\n🔗 *Lien* : ${video.url}\n\n🎬 *Powered by OVL-MD-V2*`;
+      await ovl.sendMessage(ms_org, { image: { url: video.thumbnail }, caption }, { quoted: ms });
+
+      const response = await axios.get(
         `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
-        { responseType: "stream" }
+        { responseType: "arraybuffer" }
       );
-      await ovl.sendMessage(ms_org, {
-        video: stream.data,
-        mimetype: "video/mp4",
-        caption: "```Powered by OVL-MD-V2```"
-      }, { quoted: ms });
+      const videoBuffer = Buffer.from(response.data);
+      await ovl.sendMessage(ms_org, { video: videoBuffer, mimetype: "video/mp4", caption: "```Powered by OVL-MD-V2```" }, { quoted: ms });
     } catch (e) {
       console.error(e);
       repondre("❌ Erreur lors du téléchargement de la vidéo.");
@@ -95,16 +75,13 @@ ovlcmd(
     const link = arg.join(" ");
     if (!link) return repondre("Exemple : *yta https://youtube.com/watch?v=xyz*");
     try {
-	  const info = await ytdl(link, "audio");
-      const stream = await axios.get(
+      const info = await ytdl(link, "audio");
+      const response = await axios.get(
         `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
-        { responseType: "stream" }
+        { responseType: "arraybuffer" }
       );
-      await ovl.sendMessage(ms_org, {
-        audio: stream.data,
-        mimetype: "audio/mpeg",
-        caption: "```Powered by OVL-MD-V2```"
-      }, { quoted: ms });
+      const audioBuffer = Buffer.from(response.data);
+      await ovl.sendMessage(ms_org, { audio: audioBuffer, mimetype: "audio/mpeg", caption: "```Powered by OVL-MD-V2```" }, { quoted: ms });
     } catch (e) {
       console.error(e);
       repondre("Impossible de télécharger l'audio.");
@@ -125,15 +102,12 @@ ovlcmd(
     if (!link) return repondre("Exemple : *ytv https://youtube.com/watch?v=xyz*");
     try {
       const info = await ytdl(link, "video");
-      const stream = await axios.get(
+      const response = await axios.get(
         `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
-        { responseType: "stream" }
+        { responseType: "arraybuffer" }
       );
-      await ovl.sendMessage(ms_org, {
-        video: stream.data,
-        mimetype: "video/mp4",
-        caption: "```Powered by OVL-MD-V2```"
-      }, { quoted: ms });
+      const videoBuffer = Buffer.from(response.data);
+      await ovl.sendMessage(ms_org, { video: videoBuffer, mimetype: "video/mp4", caption: "```Powered by OVL-MD-V2```" }, { quoted: ms });
     } catch (e) {
       console.error(e);
       repondre("Impossible de télécharger la vidéo.");

@@ -29,17 +29,17 @@
     },
     "SESSION_ID": {
       "description": "Identifiant de session",
-      "value": "ovl",
+      "value": "",
       "required": true
     },
     "STICKER_PACK_NAME": {
       "description": "Nom du pack de stickers",
-      "value": "Wa-sticker",
+      "value": "ᴏᴠʟ-ᴍᴅ-ᴠ𝟸",
       "required": false
     },
     "STICKER_AUTHOR_NAME": {
       "description": "Auteur du sticker",
-      "value": "ᴏᴠʟ-ᴍᴅ-ᴠ𝟸",
+      "value": "ᴀɪɴᴢ🔅✨",
       "required": false
     }
   },

@@ -54,7 +54,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true,
       getMessage: async (key) => {
-        const msg = getMessage(key.id);
+        const msg = await getMessage(key.id);
         return msg?.message || undefined;
       }
     });

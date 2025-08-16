@@ -61,8 +61,6 @@ const Antimention_warnings = sequelize.define('Antimention_warnings', {
 
 (async () => {
   await Antimention.sync();
-  console.log("Antimention synchronisée.");
-
   await Antimention_warnings.sync();
 })();
 

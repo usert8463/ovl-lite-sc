@@ -48,7 +48,6 @@ const ChatbotConf = sequelize.define('ChatbotConf', {
 
 (async () => {
   await ChatbotConf.sync();
-  console.log("chatbot_config synchronisée.");
 })();
 
 module.exports = { ChatbotConf };

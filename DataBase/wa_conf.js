@@ -94,7 +94,6 @@ const WA_CONF2 = sequelize.define(
 (async () => {
   await WA_CONF.sync();
   await WA_CONF2.sync();
-  console.log("WA_CONF synchronisée.");
 
   const rowsToUpdate = await WA_CONF.findAll({ where: { mention: "non" } });
   for (const row of rowsToUpdate) {

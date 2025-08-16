@@ -23,14 +23,14 @@ async function antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif
                             await ovl.sendMessage(ms_org, {
                                 text: `@${username}, les liens ne sont pas autorisés ici.`,
                                 mentions: [auteur_Message]
-                            }, { quoted: ms });
+                            });
                             await ovl.sendMessage(ms_org, { delete: key });
                             break;
                         case 'kick':
                             await ovl.sendMessage(ms_org, {
                                 text: `@${username} a été retiré pour avoir envoyé un lien.`,
                                 mentions: [auteur_Message]
-                            }, { quoted: ms });
+                            });
                             await ovl.sendMessage(ms_org, { delete: key });
                             await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
                             break;
@@ -44,7 +44,7 @@ async function antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif
                                 await ovl.sendMessage(ms_org, {
                                     text: `@${username}, avertissement 1/3 pour avoir envoyé un lien.`,
                                     mentions: [auteur_Message]
-                                }, { quoted: ms });
+                                });
                             } else {
                                 warning.count += 1;
                                 await warning.save();
@@ -52,7 +52,7 @@ async function antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif
                                     await ovl.sendMessage(ms_org, {
                                         text: `@${username} a été retiré après 3 avertissements.`,
                                         mentions: [auteur_Message]
-                                    }, { quoted: ms });
+                                    });
                                     await ovl.sendMessage(ms_org, { delete: key });
                                     await ovl.groupParticipantsUpdate(ms_org, [auteur_Message], "remove");
                                     await warning.destroy();
@@ -61,7 +61,7 @@ async function antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif
                                     await ovl.sendMessage(ms_org, {
                                         text: `@${username}, avertissement ${warning.count}/3 pour avoir envoyé un lien.`,
                                         mentions: [auteur_Message]
-                                    }, { quoted: ms });
+                                    });
                                 }
                             }
                             break;

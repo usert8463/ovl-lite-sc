@@ -68,8 +68,6 @@ const Levelup = sequelize.define('Levelup', {
 (async () => {
   await Ranks.sync();
   await Levelup.sync();
-  console.log("Ranks synchronisée.");
-  console.log("Levelup synchronisée.");
 })();
 
 module.exports = { Ranks, Levelup };

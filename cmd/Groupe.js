@@ -97,7 +97,7 @@ ovlcmd(
 
     },
     async (dest, ovl, cmd_options) => {
-        const { repondre, msg_Repondu, verif_Groupe, arg, verif_Admin, ms } = cmd_options;
+        const { repondre, msg_Repondu, verif_Groupe, infos_Groupe, arg, verif_Admin, ms } = cmd_options;
 
         if (!verif_Groupe) {
             repondre("Cette commande ne fonctionne que dans les groupes");
@@ -105,7 +105,7 @@ ovlcmd(
         }
 
         if (verif_Admin) {
-            let metadata_groupe = await ovl.groupMetadata(dest);
+            let metadata_groupe = infos_Groupe;
             let membres_Groupe = metadata_groupe.participants.map(participant => participant.id);
             let contenu_msg;
 

@@ -41,7 +41,6 @@ const Connect = sequelize.define("Connect", {
 
 (async () => {
   await Connect.sync();
-  console.log("connect synchronisée.");
 })();
 
 async function saveSecondSession(session_id) {

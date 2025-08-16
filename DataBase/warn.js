@@ -53,7 +53,6 @@ const WarnConfig = sequelize.define('WarnConfig', {
   await Warn.sync();
   await WarnConfig.sync();
 
-  console.log("Table Warn synchronisée.");
 })();
 
 async function delWarn(userId) {

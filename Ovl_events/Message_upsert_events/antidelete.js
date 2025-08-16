@@ -14,7 +14,7 @@ async function antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org) {
       const deletedMsgKey = ms.message.protocolMessage;
       if (!deletedMsgKey?.key?.id) return;
 
-      const deletedMsg = getMessage(deletedMsgKey.key.id);
+      const deletedMsg = await getMessage(deletedMsgKey.key.id);
       if (!deletedMsg) return;
 
       const jid = deletedMsg.key.remoteJid;

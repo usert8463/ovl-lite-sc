@@ -37,7 +37,6 @@ const Session = sequelize.define('Session', {
 
 (async () => {
   await Session.sync();
-  console.log("Session sysynchronisée.");
 })();
 
 async function get_session(id) {

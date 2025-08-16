@@ -3,9 +3,11 @@ const { Antispam, AntispamWarnings } = require("../../DataBase/antispam");
 const messageStore = {};
 const advancedSurveillance = {};
 
-async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
+async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe, verif_Admin, verif_Ovl_Admin) {
   try {
     if (!verif_Groupe || !auteur_Message || !ms.key?.id) return;
+
+    if (verif_Admin || !verif_Ovl_Admin) return;
 
     const now = Date.now();
 

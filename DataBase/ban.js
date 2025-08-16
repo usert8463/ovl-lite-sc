@@ -50,7 +50,6 @@ const OnlyAdmins = sequelize.define('OnlyAdmins', {
 (async () => {
   await Bans.sync();
   await OnlyAdmins.sync();
-  console.log("Bans synchronisée.");
 })();
 
 module.exports = { Bans, OnlyAdmins };

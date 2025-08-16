@@ -32,7 +32,7 @@ ovlcmd(
         caption,
       }, { quoted: ms });
 
-      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer" });
+      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
 
       await ovl.sendMessage(ms_org, {
         audio: Buffer.from(data),
@@ -74,7 +74,7 @@ ovlcmd(
         caption,
       }, { quoted: ms });
 
-      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer" });
+      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
 
       await ovl.sendMessage(ms_org, {
         video: Buffer.from(data),
@@ -104,7 +104,7 @@ ovlcmd(
     try {
       const info = await ytdl(link, "audio");
 
-      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer" });
+      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
 
       await ovl.sendMessage(ms_org, {
         audio: Buffer.from(data),
@@ -134,7 +134,7 @@ ovlcmd(
     try {
       const info = await ytdl(link, "video");
 		
-      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer" });
+      const { data } = await axios.get(info.ytdl.download, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
 
       await ovl.sendMessage(ms_org, {
         video: Buffer.from(data),

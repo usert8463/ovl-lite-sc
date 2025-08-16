@@ -6,7 +6,7 @@ const advancedSurveillance = {};
 async function antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe) {
   try {
     if (!verif_Groupe) return;
-    if (!ms.key?.id || !auteur_Message) return;
+    if (!auteur_Message) return;
 
     const now = Date.now();
 

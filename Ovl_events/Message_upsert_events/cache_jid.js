@@ -1,4 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
+const { getCache } = require("../../lib/cache_metadata");
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
@@ -36,7 +37,7 @@ async function getJid(lid, ms_org, ovl, attempt = 0) {
     const record = await JidCache.findByPk(lid);
     if (record) return record.jid;
 
-    const metadata = await ovl.groupMetadata(ms_org);
+    const metadata = await getCache(ms_org, ovl);
     if (!metadata || !Array.isArray(metadata.participants)) return null;
 
     const participant = metadata.participants.find(p => p.id === lid);

@@ -76,12 +76,18 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
   }
 
   if (mediaUrl && mediaType) {
-    await ovl.sendMessage(jid, {
-      [mediaType]: { url: mediaUrl },
-      caption: msg.trim() || undefined,
-      mentions,
-      contextInfo
-    }, { quoted: ms_badge });
+  const message = {
+    [mediaType]: { url: mediaUrl },
+    caption: msg.trim() || undefined,
+    mentions,
+    contextInfo
+  };
+
+  if (mediaType === "video") {
+    message.video.gifPlayback = true;
+  }
+
+  await ovl.sendMessage(jid, message, { quoted: ms_badge });
   } else if (msg.trim()) {
     await ovl.sendMessage(jid, {
       text: msg.trim(),

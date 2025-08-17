@@ -1478,32 +1478,41 @@ const welcomeGoodbyeCmd = (type) => {
             .replace(/#groupe/gi, groupName)
             .replace(/#membre/gi, totalMembers)
             .replace(/#desc/gi, groupDesc);
- 
-          if (msg.trim()) {
-            await ovl.sendMessage(ms_org, { text: msg.trim(), mentions: [auteur_Message] });
-          }
- 
+
+          let sent = false;
+
           if (mediaMatch) {
             const url = mediaMatch[1];
             const ext = url.split(".").pop().toLowerCase();
             let media = null;
-            if (["mp4", "mov", "webm"].includes(ext)) media = { video: { url }, caption: msg.trim(), mentions: [auteur_Message] };
+            if (["mp4", "mov", "webm"].includes(ext)) media = { video: { url }, caption: msg.trim(), gifPlayback: true, mentions: [auteur_Message] };
             else if (["jpg", "jpeg", "png", "webp"].includes(ext)) media = { image: { url }, caption: msg.trim(), mentions: [auteur_Message] };
-
-            if (media) await ovl.sendMessage(ms_org, media);
+            if (media) {
+              await ovl.sendMessage(ms_org, media);
+              sent = true;
+            }
           } else if (usePP) {
-            const profileUrl = await ovl.profilePictureUrl(auteur_Message, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg");
-            await ovl.sendMessage(ms_org, { image: { url: profileUrl }, caption: msg.trim(), mentions: [auteur_Message] });
+            try {
+              const profileUrl = await ovl.profilePictureUrl(auteur_Message, "image");
+              await ovl.sendMessage(ms_org, { image: { url: profileUrl }, caption: msg.trim(), mentions: [auteur_Message] });
+              sent = true;
+            } catch {}
           } else if (useGPP) {
-            let gpp = null;
-            try { gpp = await ovl.profilePictureUrl(ms_org, "image"); } 
-            catch { gpp = await ovl.profilePictureUrl(auteur_Message, "image").catch(() => "https://wallpapercave.com/uwp/uwp4820694.jpeg"); }
-            await ovl.sendMessage(ms_org, { image: { url: gpp }, caption: msg.trim(), mentions: [auteur_Message] });
+            try {
+              const gpp = await ovl.profilePictureUrl(ms_org, "image");
+              await ovl.sendMessage(ms_org, { image: { url: gpp }, caption: msg.trim(), mentions: [auteur_Message] });
+              sent = true;
+            } catch {}
           }
- 
+
           if (audioMatch) {
             const audioUrl = audioMatch[1];
             await ovl.sendMessage(ms_org, { audio: { url: audioUrl }, mimetype: "audio/mpeg" });
+            sent = true;
+          }
+
+          if (!sent && msg.trim()) {
+            await ovl.sendMessage(ms_org, { text: msg.trim(), mentions: [auteur_Message] });
           }
 
           return;
@@ -1514,7 +1523,8 @@ const welcomeGoodbyeCmd = (type) => {
           eventData[fieldName] = null;
           await eventData.save();
           return repondre(`✅ Message ${isWelcome ? "de bienvenue" : "d’adieu"} réinitialisé aux paramètres par défaut.`);
-		}
+        }
+
         const newMsg = arg.join(" ").trim();
         if (!newMsg) return repondre("❌ Le message ne peut pas être vide.");
 

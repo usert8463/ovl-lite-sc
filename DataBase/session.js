@@ -47,9 +47,9 @@ async function get_session(id) {
   await session.save();
 
   return {
-  creds: session.content,
-  keys: session.keys,
-};
+    creds: JSON.parse(session.content),
+    keys: JSON.parse(session.keys),
+  };
 }
 
 module.exports = get_session;

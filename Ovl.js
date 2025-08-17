@@ -12,7 +12,7 @@ const {
 } = require('@whiskeysockets/baileys');
 
 const { getMessage } = require('./lib/store');
-const { getCache, setCache } = require("./lib/cache_metadata");
+const { setCache } = require("./lib/cache_metadata");
 const get_session = require('./DataBase/session');
 const config = require('./set');
 const { useSQLiteAuthState, WAAuth } = require('./lib/OvlAuth');
@@ -71,7 +71,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     });
     ovl.ev.on('creds.update', saveCreds);
     ovl.ev.on('groups.update', async (data) => {
-  const metadata = await getCache(data.id, ovl);
+  const metadata = await ovl.groupMetadata(data.id);
   await setCache(data.id, metadata);
 });
     ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));

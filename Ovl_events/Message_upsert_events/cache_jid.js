@@ -5,7 +5,7 @@ const { getCache } = require("../../lib/cache_metadata");
 const filePath = path.join(__dirname, "../cache_jid.json");
 
 if (!fs.existsSync(filePath)) {
-  fs.writeFileSync(filePath, JSON.stringify({}));
+  fs.writeFileSync(filePath, JSON.stringify({}, null, 2));
 }
 
 function readCache() {
@@ -14,7 +14,7 @@ function readCache() {
 }
 
 function writeCache(cache) {
-  fs.writeFileSync(filePath, JSON.stringify(cache));
+  fs.writeFileSync(filePath, JSON.stringify(cache, null, 2));
 }
 
 async function getJid(lid, ms_org, ovl, attempt = 0) {
@@ -28,10 +28,10 @@ async function getJid(lid, ms_org, ovl, attempt = 0) {
     const metadata = await getCache(ms_org, ovl);
     if (!metadata || !Array.isArray(metadata.participants)) return null;
 
-    const participant = metadata.participants.find(p => p.id === lid);
+    const participant = metadata.participants.find(p => p.id == lid);
     if (!participant) return null;
 
-    const jid = participant.jid || participant.id; 
+    const jid = participant.jid || participant.id;
     cache[lid] = jid;
     writeCache(cache);
 

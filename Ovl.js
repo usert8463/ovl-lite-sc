@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const pino = require('pino');
 const axios = require('axios');
-
 const {
   default: makeWASocket,
   makeCacheableSignalKeyStore,
@@ -38,10 +37,23 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     const sessionData = await get_session(sessionId);
 
     await WAAuth.upsert({ key: `creds--${instanceId}`, value: sessionData.creds || null });
-    await WAAuth.upsert({ key: `keys--${instanceId}`, value: sessionData.keys || null });
+
+    if (sessionData.keys) {
+      for (const type in sessionData.keys) {
+        for (const id in sessionData.keys[type]) {
+          const value = sessionData.keys[type][id];
+          const keyName = `key--${instanceId}--${type}--${id}`;
+          if (value) {
+            await WAAuth.upsert({ key: keyName, value: JSON.stringify(value, BufferJSON.replacer) });
+          } else {
+            await WAAuth.destroy({ where: { key: keyName } });
+          }
+        }
+      }
+    }
 
     const { state, saveCreds } = await useSQLiteAuthState(instanceId);
-    
+
     const ovl = makeWASocket({
       auth: {
         creds: state.creds,
@@ -58,7 +70,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
         return msg?.message || undefined;
       }
     });
-    
+
     ovl.ev.on('messages.upsert', async (m) => message_upsert(m, ovl));
     ovl.ev.on('group-participants.update', async (data) => group_participants_update(data, ovl));
     ovl.ev.on('connection.update', async (con) => {
@@ -71,9 +83,9 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     });
     ovl.ev.on('creds.update', saveCreds);
     ovl.ev.on('groups.update', async (data) => {
-  const metadata = await ovl.groupMetadata(data.id);
-  await setCache(data.id, metadata);
-});
+      const metadata = await ovl.groupMetadata(data.id);
+      await setCache(data.id, metadata);
+    });
     ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));
 
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
@@ -127,10 +139,7 @@ async function startSecondarySessions() {
   }
 
   for (const { numero, session_id } of sessions) {
-    if (sessionsActives.size >= MAX_SESSIONS) {
-      console.log(`❌ Limite de sessions atteinte (${sessionsActives.size}/${MAX_SESSIONS}).`);
-      break;
-    }
+    if (sessionsActives.size >= MAX_SESSIONS) break;
 
     if (!sessionsActives.has(numero)) {
       try {
@@ -143,7 +152,6 @@ async function startSecondarySessions() {
         if (ovl) {
           sessionsActives.add(numero);
           instancesSessions.set(numero, ovl);
-          console.log(`✅ Démarrage terminé — Sessions actives : ${sessionsActives.size}/${MAX_SESSIONS}`);
         }
       } catch (err) {
         console.error(`❌ Échec du démarrage de la session ${numero} :`, err);
@@ -166,8 +174,8 @@ startPrincipalSession().catch((err) => {
   console.error('❌ Erreur inattendue :', err.message || err);
 });
 
-const express = require('express');
-const app = express();
+const expressApp = require('express');
+const app = expressApp();
 const port = process.env.PORT || 3000;
 
 let dernierPingRecu = Date.now();
@@ -198,19 +206,11 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
-
-let publicURL = null;
-if (process.env.RENDER_EXTERNAL_URL) {
-    publicURL = process.env.RENDER_EXTERNAL_URL;
-} else if (process.env.KOYEB_PUBLIC_DOMAIN) {
-    publicURL = `https://${process.env.KOYEB_PUBLIC_DOMAIN}`;
-} else {
-    publicURL = `http://localhost:${port}`;
-}
+let publicURL = process.env.RENDER_EXTERNAL_URL || process.env.KOYEB_PUBLIC_DOMAIN ? `https://${process.env.KOYEB_PUBLIC_DOMAIN}` : `http://localhost:${port}`;
 
 app.listen(port, () => {
-    console.log(`Listening on port: ${port}`);
-    setupAutoPing(publicURL);
+  console.log(`Listening on port: ${port}`);
+  setupAutoPing(publicURL);
 });
 
 function setupAutoPing(url) {

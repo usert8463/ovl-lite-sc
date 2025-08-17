@@ -132,39 +132,22 @@ async function message_upsert(m, ovl) {
       const publicCmds = await list_cmd("public");
 
       const isPrivateCmd = privateCmds.some(c =>
-        c.nom_cmd == cd.nom_cmd || cd.alias?.includes(cd.nom_cmd)
+        c.nom_cmd === cd.nom_cmd || cd.alias?.includes(c.nom_cmd)
       );
       const isPublicCmd = publicCmds.some(c =>
-        c.nom_cmd == cd.nom_cmd || cd.alias?.includes(cd.nom_cmd)
+        c.nom_cmd === cd.nom_cmd || cd.alias?.includes(c.nom_cmd)
       );
 
-      console.log(`[EXEC-CHECK] cmd: ${cd.nom_cmd}, isPrivateCmd: ${isPrivateCmd}, isPublicCmd: ${isPublicCmd}`);
-      console.log(`[EXEC-CHECK] prenium_id: ${prenium_id}, dev_id: ${dev_id}, verif_Admin: ${verif_Admin}`);
+      if (config.MODE !== 'public' && !prenium_id && !isPublicCmd) return;
+      if (config.MODE === 'public' && !prenium_id && isPrivateCmd) return;
+      if ((!dev_id && auteur_Message !== await getJid('221772430620@s.whatsapp.net', ms_org, ovl))
+        && ms_org === "120363314687943170@g.us") return;
+      if (!prenium_id && await isBanned('user', auteur_Message)) return;
+      if (!prenium_id && verif_Groupe && await isBanned('group', ms_org)) return;
+      if (!verif_Admin && verif_Groupe && await OnlyAdmins.findOne({ where: { id: ms_org } })) return;
 
-      if (!prenium_id && !dev_id && !isPublicCmd) {
-        console.log(`[EXEC-BLOCK] Non public, pas premium/dev, commande ignorée`);
-        return;
-      }
-      if (isPrivateCmd && !prenium_id && !dev_id) {
-        console.log(`[EXEC-BLOCK] Commande privée, pas premium/dev, ignore`);
-        return;
-      }
-      if (!prenium_id && await isBanned('user', auteur_Message)) {
-        console.log(`[EXEC-BLOCK] Utilisateur banni: ${auteur_Message}`);
-        return;
-      }
-      if (!prenium_id && verif_Groupe && await isBanned('group', ms_org)) {
-        console.log(`[EXEC-BLOCK] Groupe banni: ${ms_org}`);
-        return;
-      }
-      if (isPrivateCmd && verif_Groupe && !verif_Admin) {
-        console.log(`[EXEC-BLOCK] Commande privée dans groupe sans admin, ignore`);
-        return;
-      }
-
-      console.log(`[EXEC-RUN] Exécution commande: ${cd.nom_cmd}`);
       await ovl.sendMessage(ms_org, { react: { text: cd.react || "🎐", key: ms.key } });
-      await cd.fonction(ms_org, ovl, cmd_options);
+      cd.fonction(ms_org, ovl, cmd_options);
     };
 
     if (isCmd) {
@@ -185,6 +168,9 @@ async function message_upsert(m, ovl) {
         console.error("Erreur sticker command:", e);
       }
     }
+
+    if ((!dev_id && auteur_Message !== await getJid('221772430620@s.whatsapp.net', ms_org, ovl))
+      && ms_org === "120363314687943170@g.us") return;
 
     rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
     presence(ovl, ms_org);

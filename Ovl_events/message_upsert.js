@@ -1,6 +1,6 @@
 const {
   rankAndLevelUp, lecture_status, like_status, presence,
-  dl_status, antidelete, antitag, antilink, antibot,autoread_msg,
+  dl_status, antidelete, antitag, antilink, antibot, autoread_msg,
   getJid, mention, eval_exec, antimention, chatbot, antispam, autoreact_msg
 } = require('./Message_upsert_events');
 
@@ -9,10 +9,8 @@ const { Sudo } = require('../DataBase/sudo');
 const { getMessage, addMessage } = require('../lib/store');
 const { jidDecode, getContentType } = require("@whiskeysockets/baileys");
 const { getCache } = require("../lib/cache_metadata");
-
 const evt = require("../lib/ovlcmd");
 const config = require("../set");
-
 const { get_stick_cmd } = require("../DataBase/stick_cmd");
 const { list_cmd } = require('../DataBase/public_private_cmd');
 
@@ -83,7 +81,6 @@ async function message_upsert(m, ovl) {
     const mention_JID = await Promise.all(mentionnes.map(j => getJid(j, ms_org, ovl)));
 
     const nom_Auteur_Message = ms.pushName;
-
     let arg = texte.trim().split(/ +/).slice(1);
     if (arg.length === 0 && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
@@ -108,10 +105,20 @@ async function message_upsert(m, ovl) {
     const verif_Admin = verif_Groupe && (groupe_Admin.includes(auteur_Message) || prenium_id);
 
     const repondre = (msg, jid) => {
-    const cible = jid || ms_org;
+      const cible = jid || ms_org;
       return ovl.sendMessage(cible, { text: msg }, { quoted: ms });
     };
-    
+
+    const provenance = verif_Groupe ? `👥 ${nom_Groupe}` : `💬 Privé`;
+    console.log(
+      `\n━━━━━━━[ OVL-LOG-MSG ]━━━━━━\n` +
+      `👤 Auteur  : ${nom_Auteur_Message} (${auteur_Message})\n` +
+      `🏷️ Source  : ${provenance}\n` +
+      `📩 Type    : ${mtype}\n` +
+      (texte && texte.trim() !== "" ? `📝 Texte   : ${texte}\n` : "") +
+      `━━━━━━━━━━━━━━━━━━━━━━━\n`
+    );
+
     const cmd_options = {
       verif_Groupe, mbre_membre, membre_Groupe: auteur_Message, verif_Admin,
       infos_Groupe, nom_Groupe, auteur_Message, nom_Auteur_Message, mtype,
@@ -179,16 +186,17 @@ async function message_upsert(m, ovl) {
     antilink(ovl, ms_org, ms, texte, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe, verif_Admin, verif_Ovl_Admin);
-    autoread_msg(ovl, ms.key); 
+    autoread_msg(ovl, ms.key);
     autoreact_msg(ovl, ms);
 
     for (const cmd of evt.func) {
-  try {
-    await cmd.fonction(ms_org, ovl, cmd_options);
-  } catch (err) {
-    console.error(`Erreur dans la fonction isfunc '${cmd.nom_cmd}':`, err);
-  }
- }
+      try {
+        await cmd.fonction(ms_org, ovl, cmd_options);
+      } catch (err) {
+        console.error(`Erreur dans la fonction isfunc '${cmd.nom_cmd}':`, err);
+      }
+    }
+
   } catch (e) {
     console.error("❌ Erreur(message.upsert):", e);
   }

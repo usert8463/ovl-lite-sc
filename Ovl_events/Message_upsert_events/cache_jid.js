@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { getCache } = require("../../lib/cache_metadata");
 
-const filePath = path.join(__dirname, "../cache_jid.json");
+const filePath = path.join(__dirname, "../../lib/cache_jid.json");
 
 if (!fs.existsSync(filePath)) {
   fs.writeFileSync(filePath, JSON.stringify({}, null, 2));

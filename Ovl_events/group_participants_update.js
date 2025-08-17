@@ -58,14 +58,6 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
   const mentions = [participant];
   const contextInfo = { mentionedJid: mentions };
 
-  if (msg.trim()) {
-    await ovl.sendMessage(jid, {
-      text: msg.trim(),
-      mentions,
-      contextInfo
-    }, { quoted: ms_badge });
-  }
-
   let mediaType = null;
   let mediaUrl = null;
 
@@ -90,8 +82,14 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
       mentions,
       contextInfo
     }, { quoted: ms_badge });
+  } else if (msg.trim()) {
+    await ovl.sendMessage(jid, {
+      text: msg.trim(),
+      mentions,
+      contextInfo
+    }, { quoted: ms_badge });
   }
- 
+
   if (audioMatch) {
     const audioUrl = audioMatch[1];
     await ovl.sendMessage(jid, {
@@ -103,7 +101,7 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
 
 async function group_participants_update(data, ovl) {
   try {
-    const groupInfo = await getCache(data.id, ovl);
+    const groupInfo = await ovl.groupMetadata(data.id);
     await setCache(data.id, groupInfo);
 
     const metadata = groupInfo;

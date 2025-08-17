@@ -1,41 +1,29 @@
-const { Sequelize, DataTypes } = require('sequelize');
+const fs = require("fs");
+const path = require("path");
 const { getCache } = require("../../lib/cache_metadata");
 
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: './database.db',
-  logging: false,
-});
+const filePath = path.join(__dirname, "../../cache_jid.json");
 
-const JidCache = sequelize.define(
-  'jid_cache',
-  {
-    lid: {
-      type: DataTypes.TEXT,
-      primaryKey: true,
-    },
-    jid: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-  },
-  {
-    tableName: 'jid_cache',
-    timestamps: false,
-  }
-);
+if (!fs.existsSync(filePath)) {
+  fs.writeFileSync(filePath, JSON.stringify({}));
+}
 
-(async () => {
-  await JidCache.sync();
-})();
+function readCache() {
+  const data = fs.readFileSync(filePath, "utf-8");
+  return JSON.parse(data);
+}
+
+function writeCache(cache) {
+  fs.writeFileSync(filePath, JSON.stringify(cache));
+}
 
 async function getJid(lid, ms_org, ovl, attempt = 0) {
   try {
     if (!lid || typeof lid !== "string") return null;
     if (lid.endsWith("@s.whatsapp.net")) return lid;
 
-    const record = await JidCache.findByPk(lid);
-    if (record) return record.jid;
+    const cache = readCache();
+    if (cache[lid]) return cache[lid];
 
     const metadata = await getCache(ms_org, ovl);
     if (!metadata || !Array.isArray(metadata.participants)) return null;
@@ -43,8 +31,10 @@ async function getJid(lid, ms_org, ovl, attempt = 0) {
     const participant = metadata.participants.find(p => p.id === lid);
     if (!participant) return null;
 
-    const jid = participant.jid;
-    await JidCache.create({ lid, jid });
+    const jid = participant.jid || participant.id; 
+    cache[lid] = jid;
+    writeCache(cache);
+
     return jid;
 
   } catch (e) {

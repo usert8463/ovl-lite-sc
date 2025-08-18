@@ -334,7 +334,7 @@ ovlcmd(
       const lid = reponse?.key?.participant || reponse?.key?.remoteJid;
       const jid = await getJid(lid, ms_org, ovl);
 
-      if (txt === "stop" && [createur, ...dev_num].includes(jid)) {
+      if (txt === "stop" && [createur, id_Bot, ...dev_num].includes(jid)) {
         stopKick = true;
         await ovl.sendMessage(ms_org, { text: "⛔ Kickall annulé !" }, { quoted: ms });
         break;

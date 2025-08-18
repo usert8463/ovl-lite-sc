@@ -23,7 +23,7 @@ if (!db) {
   });
 }
 
-const StickCmd = sequelize.define('StickCmd', {
+const StickCmd = sequelize.define('StickCmds', {
   no_cmd: {
     type: DataTypes.STRING,
     primaryKey: true,

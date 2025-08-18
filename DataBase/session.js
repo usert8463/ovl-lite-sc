@@ -48,7 +48,7 @@ async function get_session(id) {
 
   return {
     creds: session.content,
-    keys: session.keys,
+    keys: JSON.parse(session.keys),
   };
 }
 

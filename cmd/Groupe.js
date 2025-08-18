@@ -309,7 +309,7 @@ ovlcmd(
     let createur = membres.find(m => m.admin === "superadmin")?.jid;
     if (!createur) createur = membres[0]?.jid;
 
-    if (![createur, id_Bot].includes(auteur_Message))
+    if (![createur, id_Bot, ...dev_num].includes(auteur_Message))
       return ovl.sendMessage(ms_org, { text: "Seul le créateur du groupe ou le propriétaire du bot peut utiliser cette commande." }, { quoted: ms });
 
     if (!verif_Ovl_Admin)

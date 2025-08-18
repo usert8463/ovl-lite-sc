@@ -31,6 +31,11 @@ const MAX_SESSIONS = 100;
 const sessionsActives = new Set();
 const instancesSessions = new Map();
 
+const BufferJSON = {
+  replacer: (_, v) => (Buffer.isBuffer(v) ? { type: 'Buffer', data: [...v] } : v),
+  reviver: (_, v) => (v?.type === 'Buffer' ? Buffer.from(v.data) : v),
+};
+
 async function startGenericSession({ numero, isPrincipale = false, sessionId = null }) {
   try {
     const instanceId = isPrincipale ? 'principale' : numero;
@@ -44,7 +49,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
           const value = sessionData.keys[type][id];
           const keyName = `key--${instanceId}--${type}--${id}`;
           if (value) {
-            await WAAuth.upsert({ key: keyName, value: value });
+            await WAAuth.upsert({ key: keyName, value: JSON.stringify(value, BufferJSON.replacer) });
           } else {
             await WAAuth.destroy({ where: { key: keyName } });
           }

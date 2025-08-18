@@ -44,7 +44,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
           const value = sessionData.keys[type][id];
           const keyName = `key--${instanceId}--${type}--${id}`;
           if (value) {
-            await WAAuth.upsert({ key: keyName, value: JSON.stringify(value, BufferJSON.replacer) });
+            await WAAuth.upsert({ key: keyName, value: value });
           } else {
             await WAAuth.destroy({ where: { key: keyName } });
           }

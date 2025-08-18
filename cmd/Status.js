@@ -10,11 +10,15 @@ ovlcmd(
         desc: "Télécharge un statut WhatsApp",
     },
     async (ms_org, ovl, _cmd_options) => {
-        const { ms, msg_Repondu, repondre } = _cmd_options;
-         
+        const { ms, msg_Repondu, repondre, quote } = _cmd_options;
+
         try {
+            if (!msg_Repondu || !quote?.contextInfo?.remoteJid || quote.contextInfo.remoteJid !== "status@broadcast") {
+                return repondre("Merci de répondre à un statut WhatsApp.");
+            }
+
             let media, options = { quoted: ms };
-            
+
             if (msg_Repondu.extendedTextMessage) {
                 await ovl.sendMessage(ovl.user.id, { text: msg_Repondu.extendedTextMessage.text }, options);
             } else if (msg_Repondu.imageMessage) {
@@ -25,7 +29,7 @@ ovlcmd(
                 await ovl.sendMessage(ovl.user.id, { video: { url: media }, caption: msg_Repondu.videoMessage.caption }, options);
             } else if (msg_Repondu.audioMessage) {
                 media = await ovl.dl_save_media_ms(msg_Repondu.audioMessage);
-                await ovl.sendMessage(id_Bot, { audio: { url: media }, mimetype: "audio/mp4", ptt: false }, options);
+                await ovl.sendMessage(ovl.user.id, { audio: { url: media }, mimetype: "audio/mp4", ptt: false }, options);
             } else {
                 return repondre("Ce type de statut n'est pas pris en charge.");
             }
@@ -43,13 +47,15 @@ ovlcmd(
     desc: "Renvoie un statut mentionné par l'utilisateur",
   },
   async (ms_org, ovl, _cmd_options) => {
-    const { ms, msg_Repondu, repondre } = _cmd_options;
+    const { ms, msg_Repondu, repondre, quote } = _cmd_options;
 
     try {
+      if (!msg_Repondu || !quote?.contextInfo?.remoteJid || quote.contextInfo.remoteJid !== "status@broadcast") {
+        return repondre("❌ Réponds à un statut WhatsApp pour l'envoyer ici.");
+      }
+
       let media;
       const options = { quoted: ms };
-
-      if (!msg_Repondu) return repondre("❌ Réponds à un statut pour l'envoyer ici.");
 
       if (msg_Repondu.extendedTextMessage) {
         const texte = msg_Repondu.extendedTextMessage.text;
@@ -193,8 +199,7 @@ ovlcmd(
         where: { id: '1' },
         defaults: { id: '1', like_status: 'non' },
       });
-
-      // Fonction pour afficher le message d'aide
+        
       const afficherAide = () => {
         return repondre(
           `🔧 *Paramètres des Likes Auto sur Statuts :*\n\n` +
@@ -214,8 +219,7 @@ ovlcmd(
         await settings.save();
         return repondre("👍 Les likes automatiques ont été *désactivés*.");
       }
-
-      // Vérifie si c'est un emoji (Unicode emoji regex étendu)
+        
       const emojiRegex = /^(\p{Emoji_Presentation}|\p{Extended_Pictographic})$/u;
       if (!emojiRegex.test(sousCommande)) {
         return afficherAide();

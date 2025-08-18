@@ -28,7 +28,7 @@ const StickCmd = sequelize.define('StickCmd', {
     type: DataTypes.STRING,
     primaryKey: true,
   },
-  stick_url: {
+  stick_hash: {
     type: DataTypes.TEXT,
     allowNull: false,
   },
@@ -43,7 +43,7 @@ const StickCmd = sequelize.define('StickCmd', {
 
 async function set_stick_cmd(no_cmd, stick_url) {
   if (!no_cmd || !stick_url) throw new Error("Commande ou URL manquante");
-  await StickCmd.upsert({ no_cmd, stick_url });
+  await StickCmd.upsert({ no_cmd, stick_hash });
   return true;
 }
 
@@ -55,7 +55,7 @@ async function del_stick_cmd(no_cmd) {
 
 async function get_stick_cmd() {
   const all = await StickCmd.findAll();
-  return all.map(({ no_cmd, stick_url }) => ({ no_cmd, stick_url }));
+  return all.map(({ no_cmd, stick_hash }) => ({ no_cmd, stick_hash }));
 }
 
 module.exports = {
@@ -63,5 +63,3 @@ module.exports = {
   del_stick_cmd,
   get_stick_cmd,
 };
-
-

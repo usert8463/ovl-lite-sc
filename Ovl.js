@@ -25,7 +25,7 @@ const {
   recup_msg
 } = require('./Ovl_events');
 
-const { getSecondAllSessions, getSecondSession } = require('./DataBase/connect');
+const { getSecondAllSessions } = require('./DataBase/connect');
 
 const MAX_SESSIONS = 100;
 const sessionsActives = new Set();
@@ -206,7 +206,14 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
-let publicURL = process.env.RENDER_EXTERNAL_URL || process.env.KOYEB_PUBLIC_DOMAIN ? `https://${process.env.KOYEB_PUBLIC_DOMAIN}` : `http://localhost:${port}`;
+let publicURL;
+if (process.env.RENDER_EXTERNAL_URL) {
+  publicURL = process.env.RENDER_EXTERNAL_URL;
+} else if (process.env.KOYEB_PUBLIC_DOMAIN) {
+  publicURL = `https://${process.env.KOYEB_PUBLIC_DOMAIN}`;
+} else {
+  publicURL = `http://localhost:${port}`;
+}
 
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);
@@ -214,16 +221,21 @@ app.listen(port, () => {
 });
 
 function setupAutoPing(url) {
-    setInterval(async () => {
-        try {
-            const res = await axios.get(url);
-            if (res.data) {
-                console.log(`Ping: OVL-MD-V2 ✅`);
-            }
-        } catch (err) {
-            console.error('Erreur lors du ping ❌', err.message);
-        }
-    }, 30000);
+  if (!url) {
+    console.warn("⚠️ URL invalide pour le ping. Ping automatique désactivé.");
+    return;
+  }
+
+  setInterval(async () => {
+    try {
+      const res = await axios.get(url);
+      if (res.data) {
+        console.log(`Ping: OVL-MD-V2 ✅`);
+      }
+    } catch (err) {
+      console.error('Erreur lors du ping ❌', err.message);
+    }
+  }, 30000);
 }
 
 process.on('uncaughtException', async (e) => {

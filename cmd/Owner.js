@@ -1151,6 +1151,7 @@ ovlcmd({
   nom_cmd: "addstickcmd",
   classe: "Owner",
   react: "✨",
+  alias: ["setstickcmd", "addcmd", "setcmd"],
   desc: "Associer une commande à un sticker (réponds à un sticker)",
 }, async (ms_org, ovl, { repondre, msg_Repondu, arg, prenium_id }) => {
   if (!prenium_id) return repondre("Pas autorisé.");
@@ -1161,10 +1162,10 @@ ovlcmd({
   if (!msg_Repondu || !msg_Repondu.stickerMessage || !msg_Repondu.stickerMessage.url)
     return repondre("Tu dois répondre à un *sticker* pour l'enregistrer.");
 
-  const stick_url = msg_Repondu.stickerMessage.url;
+  const stick_hash = msg_Repondu.stickerMessage.fileSha256?.toString('base64');
 
   try {
-    await set_stick_cmd(name.toLowerCase(), stick_url);
+    await set_stick_cmd(name.toLowerCase(), stick_hash);
     repondre(`✅ Le sticker a été associé à la commande *${name}*`);
   } catch (e) {
     console.error(e);
@@ -1176,6 +1177,7 @@ ovlcmd({
   nom_cmd: "delstickcmd",
   classe: "Owner",
   react: "🗑️",
+  alias: ["delcmd"],
   desc: "Supprimer une commande sticker",
 }, async (ms_org, ovl, { repondre, arg, prenium_id }) => {
   if (!prenium_id) return repondre("Pas autorisé.");
@@ -1191,6 +1193,7 @@ ovlcmd({
   nom_cmd: "getstickcmd",
   classe: "Owner",
   react: "📋",
+  alias: ["getcmd"],
   desc: "Liste des commandes stickers",
 }, async (ms_org, ovl, { repondre, prenium_id }) => {
   if (!prenium_id) return repondre("Pas autorisé.");
@@ -1199,7 +1202,7 @@ ovlcmd({
   if (!list.length) return repondre("Aucune commande sticker trouvée.");
 
   let msg = "*📌 Liste des commandes stickers :*\n\n";
-  for (const { no_cmd, stick_url } of list) {
+  for (const { no_cmd, stick_hash } of list) {
     msg += `• *${no_cmd}*\n`;
   }
 

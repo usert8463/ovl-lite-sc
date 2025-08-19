@@ -50,6 +50,7 @@ ovlcmd(
         nom_cmd: "tagadmin",
         classe: "Groupe",
         react: "💬",
+		alias: ["htag", "hidetag"],
         desc: "Commande pour taguer tous les administrateurs d'un groupe"
     },
     async (ms_org, ovl, cmd_options) => {

@@ -3,7 +3,7 @@ const originalError = console.error;
 
 console.log = (...args) => {
   const msg = args.join(' ');
-  if (msg.includes('Closing open session in favor of incoming prekey bundle')) return;
+  if (msg.includes('Closing') && msg.includes('session')) return;
   originalLog(...args);
 };
 

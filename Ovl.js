@@ -9,7 +9,11 @@ console.log = (...args) => {
 
 console.error = (...args) => {
   const msg = args.join(' ');
-  if (msg.includes('Failed to decrypt message') || msg.includes('Bad MAC')) return;
+  if (
+    msg.includes('Failed to decrypt message') ||
+    msg.includes('Bad MAC') ||
+    msg.includes('Connection Closed')
+  ) return;
   originalError(...args);
 };
 

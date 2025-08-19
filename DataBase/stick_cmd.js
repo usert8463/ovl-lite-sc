@@ -23,7 +23,7 @@ if (!db) {
   });
 }
 
-const StickCmd = sequelize.define('StickCmds', {
+const StickCmds = sequelize.define('StickCmds', {
   no_cmd: {
     type: DataTypes.STRING,
     primaryKey: true,
@@ -33,28 +33,28 @@ const StickCmd = sequelize.define('StickCmds', {
     allowNull: false,
   },
 }, {
-  tableName: 'stickcmd',
+  tableName: 'stickcmds',
   timestamps: false,
 });
 
 (async () => {
-  await StickCmd.sync();
+  await StickCmds.sync();
 })();
 
 async function set_stick_cmd(no_cmd, stick_hash) {
   if (!no_cmd || !stick_hash) throw new Error("Commande ou URL manquante");
-  await StickCmd.upsert({ no_cmd, stick_hash });
+  await StickCmds.upsert({ no_cmd, stick_hash });
   return true;
 }
 
 async function del_stick_cmd(no_cmd) {
   if (!no_cmd) throw new Error("Commande manquante");
-  const deleted = await StickCmd.destroy({ where: { no_cmd } });
+  const deleted = await StickCmds.destroy({ where: { no_cmd } });
   return deleted > 0;
 }
 
 async function get_stick_cmd() {
-  const all = await StickCmd.findAll();
+  const all = await StickCmds.findAll();
   return all.map(({ no_cmd, stick_hash }) => ({ no_cmd, stick_hash }));
 }
 

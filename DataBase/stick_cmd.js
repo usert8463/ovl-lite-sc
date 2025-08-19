@@ -41,8 +41,8 @@ const StickCmd = sequelize.define('StickCmds', {
   await StickCmd.sync();
 })();
 
-async function set_stick_cmd(no_cmd, stick_url) {
-  if (!no_cmd || !stick_url) throw new Error("Commande ou URL manquante");
+async function set_stick_cmd(no_cmd, stick_hash) {
+  if (!no_cmd || !stick_hash) throw new Error("Commande ou URL manquante");
   await StickCmd.upsert({ no_cmd, stick_hash });
   return true;
 }

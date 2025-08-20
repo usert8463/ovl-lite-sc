@@ -292,60 +292,68 @@ ovlcmd(
 );
 
 ovlcmd(
-{
-  nom_cmd: "apk",
-  classe: "Telechargement",
-  react: "📥",
-  desc: "Télécharger une application depuis Aptoide",
-},
-async (ms_org, ovl, { repondre, arg, ms }) => {
-  try {
-    const appName = arg.join(' ');
-    if (!appName) return repondre("*Entrer le nom de l'application à rechercher*");
+  {
+    nom_cmd: "apk",
+    classe: "Telechargement",
+    react: "📥",
+    desc: "Télécharger une application depuis Aptoide",
+  },
+  async (ms_org, ovl, { repondre, arg, ms }) => {
+    try {
+      const appName = arg.join(' ');
+      if (!appName) return repondre("*Entrer le nom de l'application à rechercher*");
 
-    const searchResults = await apkdl(appName);
-    if (!Array.isArray(searchResults) || searchResults.length === 0) return repondre("*Application non existante*");
+      const searchResults = await apkdl(appName);
+      if (!Array.isArray(searchResults) || searchResults.length === 0) return repondre("*Application non existante*");
 
-    const appData = searchResults[0];
-    if (!appData.dllink || !appData.size) return repondre("*Impossible de récupérer le lien*");
+      const appData = searchResults[0];
+      if (!appData.dllink || !appData.size) return repondre("*Impossible de récupérer le lien*");
 
-    const fileSizeMB = parseFloat(appData.size.replace(/[^\d\.]/g, '')) || 0;
-    if (fileSizeMB > 300) return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");
+      const fileSizeMB = parseFloat(appData.size.replace(/[^\d\.]/g, '')) || 0;
+      if (fileSizeMB > 300) return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");
 
-    const tmpDir = path.join(process.cwd(), 'temp');
-    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+      const tmpDir = path.join(process.cwd(), 'temp');
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
-    const apkFileName = (appData.name || "Downloader") + ".apk";
-    const tempFilePath = path.join(tmpDir, apkFileName);
+      const apkFileName = (appData.name || "Downloader") + ".apk";
+      const tempFilePath = path.join(tmpDir, apkFileName);
 
-    const response = await axios.get(appData.dllink, { responseType: 'stream' });
-    const writer = fs.createWriteStream(tempFilePath);
-    response.data.pipe(writer);
-    await new Promise((resolve, reject) => { writer.on('finish', resolve); writer.on('error', reject); });
+      const response = await axios.get(appData.dllink, { responseType: 'stream' });
+      const writer = fs.createWriteStream(tempFilePath);
+      response.data.pipe(writer);
+      await new Promise((resolve, reject) => { writer.on('finish', resolve); writer.on('error', reject); });
 
-    let thumbBuffer = null;
-    try { thumbBuffer = (await axios.get(appData.icon, { responseType: 'arraybuffer' })).data; } catch {}
-
-    await ovl.sendMessage(ms_org, {
-      document: fs.createReadStream(tempFilePath),
-      mimetype: 'application/vnd.android.package-archive',
-      fileName: apkFileName,
-      contextInfo: {
-        externalAdReply: {
-          title: appData.name,
-          body: appData.size,
-          mediaUrl: appData.icon || '',
-          mediaType: 2,
-          thumbnail: thumbBuffer,
-          sourceUrl: appData.icon || ''
+      let thumbBuffer;
+      try {
+        if (appData.icon) {
+          const iconResp = await axios.get(appData.icon, { responseType: 'arraybuffer' });
+          thumbBuffer = Buffer.from(iconResp.data);
         }
+      } catch (err) {
+        thumbBuffer = undefined;
       }
-    }, { quoted: ms });
 
-    fs.unlinkSync(tempFilePath);
+      await ovl.sendMessage(ms_org, {
+        document: fs.createReadStream(tempFilePath),
+        mimetype: 'application/vnd.android.package-archive',
+        fileName: apkFileName,
+        contextInfo: thumbBuffer ? {
+          externalAdReply: {
+            title: appData.name,
+            body: appData.size,
+            mediaUrl: appData.icon || '',
+            mediaType: 2,
+            thumbnail: thumbBuffer,
+            sourceUrl: appData.icon || ''
+          }
+        } : undefined
+      }, { quoted: ms });
 
-  } catch (error) {
-    console.error('Erreur apk:', error);
-    repondre("*Erreur lors du traitement de la commande apk*");
+      fs.unlinkSync(tempFilePath);
+
+    } catch (error) {
+      console.error('Erreur apk:', error);
+      repondre("*Erreur lors du traitement de la commande apk*");
+    }
   }
-});
+);

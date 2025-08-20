@@ -1127,3 +1127,42 @@ ovlcmd(
     }
   }
 );
+
+ovlcmd(
+  {
+    nom_cmd: "repo",
+    alias: ["sc", "script", "code_source", "repository"],
+    classe: "Outils",
+    react: "📦",
+    desc: "Affiche les informations et le lien du repository du bot"
+  },
+  async (ms_org, ovl, { ms, repondre }) => {
+    try {
+      const url = "https://api.github.com/repos/Ainz-devs/OVL-MD-V2";
+      const { data } = await axios.get(url);
+
+      const caption = `
+╭───⟪ 📦 OVL-MD-V2 ⟫───╮
+│ ⇨ ⭐ Stars       : ${data.stargazers_count}
+│ ⇨ 🍴 Forks       : ${data.forks_count}
+│ ⇨ 🔄 Dernière MAJ : ${new Date(data.updated_at).toLocaleDateString("fr-FR")}
+│ ⇨ 🔗 Repo        : ${data.html_url}
+╰───────────────────╯
+> ©2025 ᴏᴠʟ-ᴍᴅ-ᴠ2 ʙʏ *ᴀɪɴᴢ*`;
+
+      await ovl.sendMessage(ms_org, {
+        image: { url: "https://files.catbox.moe/lojrxz.jpg" },
+        caption,
+        contextInfo
+      }, { quoted: ms_badge });
+
+    } catch (e) {
+      console.error("Erreur commande repo :", e);
+      await ovl.sendMessage(ms_org, {
+        text: "❌ Impossible de récupérer les infos du repository.",
+        contextInfo
+      }, { quoted: ms_badge });
+    }
+  }
+);
+

@@ -13,7 +13,7 @@ ovlcmd(
         const { ms, msg_Repondu, repondre, quote } = _cmd_options;
 
         try {
-            if (!msg_Repondu || !quote?.contextInfo?.remoteJid || quote.contextInfo.remoteJid !== "status@broadcast") {
+            if (!msg_Repondu || !quote?.remoteJid || quote.remoteJid !== "status@broadcast") {
                 return repondre("Merci de répondre à un statut WhatsApp.");
             }
 
@@ -50,7 +50,7 @@ ovlcmd(
     const { ms, msg_Repondu, repondre, quote } = _cmd_options;
 
     try {
-      if (!msg_Repondu || !quote?.contextInfo?.remoteJid || quote.contextInfo.remoteJid !== "status@broadcast") {
+      if (!msg_Repondu || !quote?.remoteJid || quote.remoteJid !== "status@broadcast") {
         return repondre("❌ Réponds à un statut WhatsApp pour l'envoyer ici.");
       }
 

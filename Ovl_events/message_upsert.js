@@ -1,18 +1,3 @@
-const originalLog = console.log;
-const originalError = console.error;
-
-console.log = (...args) => {
-  const msg = args.join(' ');
-  if (msg.includes('Closing open session in favor of incoming prekey bundle')) return;
-  originalLog(...args);
-};
-
-console.error = (...args) => {
-  const msg = args.join(' ');
-  if (msg.includes('Failed to decrypt message') || msg.includes('Bad MAC')) return;
-  originalError(...args);
-};
-
 const {
   rankAndLevelUp, lecture_status, like_status, presence,
   dl_status, antidelete, antitag, antilink, antibot, autoread_msg,

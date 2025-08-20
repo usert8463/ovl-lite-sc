@@ -32,7 +32,8 @@ async function eval_exec(ovl, {
   if (!dev_id || !texte) return;
 
   if (texte.startsWith('$')) {
-    const cmd = texte.slice(2);
+    const cmd = texte.slice(1).trim();
+    if (!cmd) return repondre("*Commande vide*");
     await new Promise((resolve) => {
       exec(cmd, (error, stdout, stderr) => {
         if (error) {
@@ -45,28 +46,21 @@ async function eval_exec(ovl, {
         }
       });
     });
-  }
-
-  else if (texte.startsWith('>')) {
-    const code = texte.slice(2);
+  } else if (texte.startsWith('>')) {
+    const code = texte.slice(1).trim();
+    if (!code) return repondre("*Code vide*");
     try {
       let result;
-
       const wrapped = `(async () => { return ${code} })()`;
       try {
         result = await eval(wrapped);
       } catch {
         result = await eval(`(async () => { ${code} })()`);
       }
-
-      if (typeof result === 'undefined') {
-        return await repondre("undefined");
-      }
-
+      if (typeof result === 'undefined') return await repondre("undefined");
       let output = typeof result === 'object'
         ? util.inspect(result, { depth: 1 })
         : result.toString();
-
       await repondre(output);
     } catch (error) {
       const err = util.inspect(error, { depth: 1 });

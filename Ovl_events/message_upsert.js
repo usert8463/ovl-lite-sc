@@ -98,11 +98,12 @@ async function message_upsert(m, ovl) {
     const nom_Auteur_Message = ms.pushName;
 
     let arg = texte.trim().split(/ +/).slice(1);
-    arg = arg.filter(mot => mot.startsWith("https"));
     if (arg.length === 0 && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
       if (typeof repTexte === "string") {
-        arg = repTexte.split(/ +/).filter(mot => mot.startsWith("https"));
+        const mots = repTexte.split(/ +/);
+        const lien = mots.find(mot => mot.startsWith("https"));
+        if (lien) arg = [lien];
       }
     }
 

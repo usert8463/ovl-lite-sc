@@ -120,6 +120,7 @@ ovlcmd(
     nom_cmd: "fbdl",
     classe: "Telechargement",
     react: "📥",
+	alias: ["facebook", "facebockdl"],
     desc: "Télécharger ou envoyer directement une vidéo depuis Facebook"
   },
   async (ms_org, ovl, cmd_options) => {
@@ -157,6 +158,7 @@ ovlcmd(
     nom_cmd: "ttdl",
     classe: "Telechargement",
     react: "📥",
+	alias: ["tiktok", "tikdl", "tiktokdl"],
     desc: "Télécharger un média depuis TikTok"
 },
 async (ms_org, ovl, cmd_options) => {
@@ -218,6 +220,7 @@ ovlcmd(
     nom_cmd: "igdl",
     classe: "Telechargement",
     react: "📥",
+    alias: ["insta", "instadl", "instagram", "instagramdl"],
     desc: "Télécharger ou envoyer directement une vidéo depuis Instagram",
   },
   async (ms_org, ovl, cmd_options) => {
@@ -256,6 +259,7 @@ ovlcmd(
     nom_cmd: "twitterdl",
     classe: "Telechargement",
     react: "📥",
+	alias: ["twitter", "twitdl"],
     desc: "Télécharger ou envoyer directement une vidéo depuis Twitter",
   },
   async (ms_org, ovl, cmd_options) => {
@@ -293,66 +297,69 @@ ovlcmd(
 
 ovlcmd(
   {
-    nom_cmd: "apk",
+    nom_cmd: "app",
     classe: "Telechargement",
     react: "📥",
     desc: "Télécharger une application depuis Aptoide",
   },
-  async (ms_org, ovl, { repondre, arg, ms }) => {
+  async (ms_org, ovl, cmd_options) => {
+    const { repondre, arg, ms } = cmd_options;
+
     try {
-      const appName = arg.join(' ');
-      if (!appName) return repondre("*Entrer le nom de l'application à rechercher*");
-
-      const searchResults = await apkdl(appName);
-      if (!Array.isArray(searchResults) || searchResults.length === 0) return repondre("*Application non existante*");
-
-      const appData = searchResults[0];
-      if (!appData.dllink || !appData.size) return repondre("*Impossible de récupérer le lien*");
-
-      const fileSizeMB = parseFloat(appData.size.replace(/[^\d\.]/g, '')) || 0;
-      if (fileSizeMB > 300) return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");
-
-      const tmpDir = path.join(process.cwd(), 'temp');
-      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
-
-      const apkFileName = (appData.name || "Downloader") + ".apk";
-      const tempFilePath = path.join(tmpDir, apkFileName);
-
-      const response = await axios.get(appData.dllink, { responseType: 'stream' });
-      const writer = fs.createWriteStream(tempFilePath);
-      response.data.pipe(writer);
-      await new Promise((resolve, reject) => { writer.on('finish', resolve); writer.on('error', reject); });
-
-      let thumbBuffer;
-      try {
-        if (appData.icon) {
-          const iconResp = await axios.get(appData.icon, { responseType: 'arraybuffer' });
-          thumbBuffer = Buffer.from(iconResp.data);
-        }
-      } catch (err) {
-        thumbBuffer = undefined;
+      const appName = arg.join(" ");
+      if (!appName) {
+        return repondre("*Entrer le nom de l'application à rechercher*");
       }
 
-      await ovl.sendMessage(ms_org, {
-        document: fs.createReadStream(tempFilePath),
-        mimetype: 'application/vnd.android.package-archive',
+      const searchResults = await apkdl(appName, 1);
+
+      if (searchResults.length === 0) {
+        return repondre("*Application non existante, veuillez entrer un autre nom*");
+      }
+
+      const appData = searchResults[0];
+      const fileSize = parseFloat(appData.size);
+
+      if (isNaN(fileSize)) {
+        return repondre("*Erreur dans la taille du fichier*");
+      }
+
+      if (fileSize > 300) {
+        return repondre("Le fichier dépasse 300 Mo, impossible de le télécharger.");
+      }
+
+      const downloadLink = appData.dllink;
+      const captionText =
+        "『 *ᴏᴠʟ-ᴍᴅ-ᴠ𝟸 ᴀᴘᴋ-ᴅʟ* 』\n\n" +
+        "*📱ɴᴏᴍ :* " + appData.name +
+        "\n*🆔ɪᴅ :* " + appData.package +
+        "\n*📅ᴍɪsᴇ ᴀ̀ ᴊᴏᴜʀ:* " + appData.lastup +
+        "\n*📦ᴛᴀɪʟʟᴇ :* " + appData.size + " MB\n";
+
+      const apkFileName = (appData?.name || "Downloader") + ".apk";
+      const filePath = apkFileName;
+
+      const response = await axios.get(downloadLink, { responseType: "stream" });
+      const fileWriter = fs.createWriteStream(filePath);
+      response.data.pipe(fileWriter);
+
+      await new Promise((resolve, reject) => {
+        fileWriter.on("finish", resolve);
+        fileWriter.on("error", reject);
+      });
+
+      const documentMessage = {
+        document: fs.readFileSync(filePath),
+        mimetype: "application/vnd.android.package-archive",
         fileName: apkFileName,
-        contextInfo: thumbBuffer ? {
-          externalAdReply: {
-            title: appData.name,
-            body: appData.size,
-            mediaUrl: appData.icon || '',
-            mediaType: 2,
-            thumbnail: thumbBuffer,
-            sourceUrl: appData.icon || ''
-          }
-        } : undefined
-      }, { quoted: ms });
+      };
 
-      fs.unlinkSync(tempFilePath);
+      await ovl.sendMessage(ms_org, { image: { url: appData.icon }, caption: captionText }, { quoted: ms });
+      await ovl.sendMessage(ms_org, documentMessage, { quoted: ms });
 
+      fs.unlinkSync(filePath);
     } catch (error) {
-      console.error('Erreur apk:', error);
+      console.error("Erreur lors du traitement de la commande apk:", error);
       repondre("*Erreur lors du traitement de la commande apk*");
     }
   }

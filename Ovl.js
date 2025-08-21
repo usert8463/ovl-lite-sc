@@ -247,7 +247,7 @@ function detectPlatform() {
   if (process.env.KOYEB_PUBLIC_DOMAIN) return "Koyeb";
   if (process.env.TALKDROVE_APP_ID || process.env.TALKDROVE) return "Talkdrove";
   if (process.env.DYNO) return "Heroku";
-  if (process.env.STARTUP) return "Vps;
+  if (process.env.STARTUP) return "Vps";
   return "Inconnu";
 }
 

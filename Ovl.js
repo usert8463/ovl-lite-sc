@@ -1,3 +1,4 @@
+
 const originalLog = console.log;
 const originalError = console.error;
 
@@ -49,6 +50,7 @@ const { getSecondAllSessions } = require('./DataBase/connect');
 const MAX_SESSIONS = 100;
 const sessionsActives = new Set();
 const instancesSessions = new Map();
+let ovl;
 
 const BufferJSON = {
   replacer: (_, v) => (Buffer.isBuffer(v) ? { type: 'Buffer', data: [...v] } : v),
@@ -78,7 +80,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
 
     const { state, saveCreds } = await useSQLiteAuthState(instanceId);
 
-    const ovl = makeWASocket({
+    ovl = makeWASocket({
       auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }).child({ level: 'silent' }))
@@ -239,22 +241,36 @@ if (process.env.RENDER_EXTERNAL_URL) {
   publicURL = `http://localhost:${port}`;
 }
 
+function detectPlatform() {
+  if (process.env.GITHUB_ACTIONS) return "GitHub Actions";
+  if (process.env.RENDER_EXTERNAL_URL) return "Render";
+  if (process.env.KOYEB_PUBLIC_DOMAIN) return "Koyeb";
+  if (process.env.TALKDROVE_APP_ID || process.env.TALKDROVE) return "Talkdrove";
+  if (process.env.DYNO) return "Heroku";
+  if (process.env.STARTUP) return "Vps;
+  return "Inconnu";
+}
+
 app.listen(port, () => {
   console.log(`Listening on port: ${port}`);
   setupAutoPing(publicURL);
 });
 
 function setupAutoPing(url) {
-  if (!url) {
-    console.warn("⚠️ URL invalide pour le ping. Ping automatique désactivé.");
-    return;
-  }
-
   setInterval(async () => {
     try {
       const res = await axios.get(url);
       if (res.data) {
         console.log(`Ping: OVL-MD-V2 ✅`);
+
+        const platform = detectPlatform();
+        const id = `https://wa.me/${ovl.user.id.split(":")[0]}`;
+
+        await axios.post("https://ovl-bot-dashboard.vercel.app/ping", {
+          id,
+          nom: "OVL-MD-V2",
+          platform
+        });
       }
     } catch (err) {
       console.error('Erreur lors du ping ❌', err.message);

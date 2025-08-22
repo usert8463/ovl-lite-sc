@@ -268,6 +268,7 @@ function setupAutoPing(url) {
 
         await axios.post("https://ovl-bot-dashboard.vercel.app/ping", {
           id,
+          prefixe: config.PREFIXE,
           nom: "OVL-MD-V2",
           platform
         });

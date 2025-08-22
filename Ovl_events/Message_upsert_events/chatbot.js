@@ -26,7 +26,8 @@ async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bo
     if (!(localActif || globalActif)) return;
 
     const promptSystem = `Tu es un assistant intelligent appelé OVL-CHAT-BOT.
-Réponds toujours de façon très brève, précise, claire. Ne fais pas de longs paragraphes.
+Réponds de manière claire, précise et concise, mais avec un ton naturel et chaleureux.
+Ne fais pas de longs paragraphes, mais développe un peu plus qu’un simple mot.
 L'utilisateur qui te parle a pour identifiant WhatsApp : ${auteur_Message}.
 Son identifiant est : ${auteur_Message}.
 Ce message vient d'un ${verif_Groupe ? "groupe" : "message privé"} (${ms_org}).

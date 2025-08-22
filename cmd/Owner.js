@@ -1017,7 +1017,7 @@ ovlcmd(
     desc: "Configurer le message d'antimention global",
   },
   async (jid, ovl, cmd_options) => {
-    const { repondre, arg, prenium_id } = cmd_options;
+    const { ms, repondre, arg, prenium_id } = cmd_options;
 
     if (!prenium_id) return repondre("❌ Seuls les utilisateurs premium peuvent utiliser cette commande.");
 
@@ -1028,10 +1028,10 @@ ovlcmd(
           `🛠️ Utilisation de la commande *setmention* :
 
 1️⃣ Pour une image, vidéo, audio ou texte avec type spécifié :
-> *setmention type=audio url=https://exemple.com/fichier.opus text=Votre_message*
-> *setmention type=video url=https://exemple.com/video.mp4 text=Votre_message*
-> *setmention type=image url=https://exemple.com/image.jpg text=Votre_message*
-> *setmention type=texte text=Votre_message*
+> *setmention type=audio url=https://exemple.com/fichier.opus*
+> *setmention type=video url=https://exemple.com/video.mp4 text=Votre_message_ici*
+> *setmention type=texte text=Votre_message_ici*
+> *setmention type=image url=https://exemple.com/image.jpg text=Votre_message_ici*
 
 📌 Les types valides sont : audio, video, texte, image.`
         );
@@ -1041,7 +1041,7 @@ ovlcmd(
       let text = "";
       let type = "";
 
-      const regex = /(type|url|text)=(.*?)(?=\s(?:type=|url=|text=)|$)/gi;
+      const regex = /(type|url|text)=(.*?)(?=\s(?:type=|url=|text=)|$)/gis;
       let match;
       while ((match = regex.exec(joined)) !== null) {
         const key = match[1].toLowerCase();
@@ -1055,13 +1055,12 @@ ovlcmd(
 
       await setMention({ url, text, type, mode: "oui" });
 
-      let confirmMsg = `✅ Mention de type '${type}' enregistrée avec succès.\n`;
-      if (text) confirmMsg += `📌 Texte : ${text}`;
+      const msg = `✅ Mention de type '${type}' enregistrée avec succès.`;
 
-      return repondre(confirmMsg);
+      return repondre(msg);
     } catch (e) {
       console.error("Erreur dans setmention:", e);
-      repondre("❌ Une erreur s'est produite lors de la configuration.");
+      repondre("Une erreur s'est produite lors de la configuration.");
     }
   }
 );

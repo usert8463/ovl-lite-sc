@@ -1017,7 +1017,7 @@ ovlcmd(
     desc: "Configurer le message d'antimention global",
   },
   async (jid, ovl, cmd_options) => {
-    const { ms, repondre, arg, prenium_id } = cmd_options;
+    const { repondre, arg, prenium_id } = cmd_options;
 
     if (!prenium_id) return repondre("❌ Seuls les utilisateurs premium peuvent utiliser cette commande.");
 
@@ -1028,10 +1028,10 @@ ovlcmd(
           `🛠️ Utilisation de la commande *setmention* :
 
 1️⃣ Pour une image, vidéo, audio ou texte avec type spécifié :
-> *setmention type=audio url=https://exemple.com/fichier.opus*
-> *setmention type=video url=https://exemple.com/video.mp4 text=Votre_message_ici*
-> *setmention type=texte text=Votre_message_ici*
-> *setmention type=image url=https://exemple.com/image.jpg text=Votre_message_ici*
+> *setmention type=audio url=https://exemple.com/fichier.opus text=Votre_message*
+> *setmention type=video url=https://exemple.com/video.mp4 text=Votre_message*
+> *setmention type=image url=https://exemple.com/image.jpg text=Votre_message*
+> *setmention type=texte text=Votre_message*
 
 📌 Les types valides sont : audio, video, texte, image.`
         );
@@ -1040,7 +1040,7 @@ ovlcmd(
       let url = "";
       let text = "";
       let type = "";
-      
+
       const regex = /(type|url|text)=(.*?)(?=\s(?:type=|url=|text=)|$)/gi;
       let match;
       while ((match = regex.exec(joined)) !== null) {
@@ -1055,10 +1055,13 @@ ovlcmd(
 
       await setMention({ url, text, type, mode: "oui" });
 
-      return repondre(`✅ Mention de type '${type}' enregistrée avec succès.\n📌 Texte : ${text || "aucun"}`);
+      let confirmMsg = `✅ Mention de type '${type}' enregistrée avec succès.\n`;
+      if (text) confirmMsg += `📌 Texte : ${text}`;
+
+      return repondre(confirmMsg);
     } catch (e) {
       console.error("Erreur dans setmention:", e);
-      repondre("Une erreur s'est produite lors de la configuration.");
+      repondre("❌ Une erreur s'est produite lors de la configuration.");
     }
   }
 );

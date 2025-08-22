@@ -1040,12 +1040,12 @@ ovlcmd(
       let url = "";
       let text = "";
       let type = "";
-
-      const regex = /(type|url|text)=([^\s]+)/gi;
+      
+      const regex = /(type|url|text)=(.*?)(?=\s(?:type=|url=|text=)|$)/gi;
       let match;
       while ((match = regex.exec(joined)) !== null) {
         const key = match[1].toLowerCase();
-        const value = match[2];
+        const value = match[2].trim();
         if (key === "type") type = value.toLowerCase();
         else if (key === "url") url = value;
         else if (key === "text") text = value.replace(/_/g, " ");
@@ -1055,7 +1055,7 @@ ovlcmd(
 
       await setMention({ url, text, type, mode: "oui" });
 
-      return repondre(`✅ Mention de type '${type}' enregistrée avec succès.`);
+      return repondre(`✅ Mention de type '${type}' enregistrée avec succès.\n📌 Texte : ${text || "aucun"}`);
     } catch (e) {
       console.error("Erreur dans setmention:", e);
       repondre("Une erreur s'est produite lors de la configuration.");

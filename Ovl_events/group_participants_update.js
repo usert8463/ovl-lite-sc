@@ -126,15 +126,15 @@ async function group_participants_update(data, ovl) {
       const mentions = actor ? [participant, actor] : [participant];
       const contextInfo = { mentionedJid: mentions };
 
-      if (data.action === 'add' && welcome === 'oui') {
+      if (data.action == 'add' && welcome == 'oui') {
         if (eventSettings) await envoyerWelcomeGoodbye(data.id, participant, "welcome", eventSettings, ovl);
       }
 
-      if (data.action === 'remove' && goodbye === 'oui') {
+      if (data.action == 'remove' && goodbye == 'oui') {
         if (eventSettings) await envoyerWelcomeGoodbye(data.id, participant, "goodbye", eventSettings, ovl);
       }
 
-      if (data.action === 'promote' || data.action === 'demote') {
+      if (data.action == 'promote' || data.action == 'demote') {
         const authorJid = await getJid(data.author, data.id, ovl);
         const ownerJid = await getJid(metadata.owner, data.id, ovl);
         const botJid = await getJid(parseID(ovl.user.id), data.id, ovl);
@@ -145,24 +145,24 @@ async function group_participants_update(data, ovl) {
 
         const isExempted = [ownerJid, botJid, ownerNumJid, participantJid, exemptJid1, exemptJid2].includes(authorJid);
 
-        if (data.action === 'promote') {
-          if (antipromote === 'oui' && isExempted) continue;
-          if (antipromote === 'oui') {
+        if (data.action == 'promote') {
+          if (antipromote == 'oui' && isExempted) continue;
+          if (antipromote == 'oui') {
             await ovl.groupParticipantsUpdate(data.id, [participant], "demote");
             await ovl.sendMessage(data.id, { text: `🚫 *Promotion refusée !*\n${actorMention} n’a pas le droit de promouvoir ${userMention}.`, mentions, contextInfo }, { quoted: ms_badge });
-          } else if (promoteAlert === 'oui') {
+          } else if (promoteAlert == 'oui') {
             let pp = "https://files.catbox.moe/82g8ey.jpg";
             try { pp = await ovl.profilePictureUrl(participant, 'image'); } catch {}
             await ovl.sendMessage(data.id, { image: { url: pp }, caption: `🆙 ${userMention} a été promu par ${actorMention}.`, mentions, contextInfo }, { quoted: ms_badge });
           }
         }
 
-        if (data.action === 'demote') {
-          if (antidemote === 'oui' && isExempted) continue;
-          if (antidemote === 'oui') {
+        if (data.action == 'demote') {
+          if (antidemote == 'oui' && isExempted) continue;
+          if (antidemote == 'oui') {
             await ovl.groupParticipantsUpdate(data.id, [participant], "promote");
             await ovl.sendMessage(data.id, { text: `🚫 *Rétrogradation refusée !*\n${actorMention} ne peut pas rétrograder ${userMention}.`, mentions, contextInfo }, { quoted: ms_badge });
-          } else if (demoteAlert === 'oui') {
+          } else if (demoteAlert == 'oui') {
             let pp = "https://files.catbox.moe/82g8ey.jpg";
             try { pp = await ovl.profilePictureUrl(participant, 'image'); } catch {}
             await ovl.sendMessage(data.id, { image: { url: pp }, caption: `⬇️ ${userMention} a été rétrogradé par ${actorMention}.`, mentions, contextInfo }, { quoted: ms_badge });

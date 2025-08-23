@@ -66,7 +66,6 @@ async function connection_update(con, ovl, main, startNextSession = null) {
                         newsletterName: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
                     },
                 }
-            }
             });
 
             await delay(10000);

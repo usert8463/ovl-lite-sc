@@ -530,17 +530,15 @@ ovlcmd(
 
       try {
         const url = await uploadToCatbox(image);
-        const rmImage = await axios.get(`https://fastrestapis.fasturl.cloud/aiimage/upscale?resize=8&imageUrl=${url}`, {
-          responseType: 'arraybuffer',
-        });
+        const rmImage = await axios.get(`https://www.itzky.xyz/api/remini?url=${url}`);
 
         await ovl.sendMessage(ms_org, {
-          image: rmImage.data,
+          image: { url: rmImage.data.result },
           caption: "```Powered By OVL-MD-V2```",
         }, { quoted: ms });
         return;
       } catch {
-      }
+	  }
 
       try {
         const enhancedImageBuffer = await remini(image, 'enhance');

@@ -66,22 +66,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
                         newsletterName: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
                     },
                 }
-            }, {
-                quoted: {
-                    key: {
-                        fromMe: false,
-                        participant: '0@s.whatsapp.net',
-                        remoteJid: '0@s.whatsapp.net',
-                    },
-                    message: {
-                        extendedTextMessage: {
-                            text: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
-                            contextInfo: {
-                                mentionedJid: [],
-                            },
-                        },
-                    }
-                }
+            }
             });
 
             await delay(10000);

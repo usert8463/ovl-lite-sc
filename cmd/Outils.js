@@ -24,22 +24,6 @@ function stylize(text) {
     }).join('');
 }
 
-const ms_badge = {
-  key: {
-    fromMe: false,
-    participant: '0@s.whatsapp.net',
-    remoteJid: '0@s.whatsapp.net',
-  },
-  message: {
-    extendedTextMessage: {
-      text: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
-      contextInfo: {
-        mentionedJid: [],
-      },
-    },
-  }
-};
-
 const contextInfo = {
     forwardingScore: 1,
     isForwarded: true,
@@ -85,13 +69,13 @@ ovlcmd(
           caption: stylize(menu),
           gifPlayback: true,
           contextInfo
-        }, { quoted: ms_badge });
+        }, { quoted: ms });
       } else {
         await ovl.sendMessage(ms_org, {
           image: { url: lien },
           caption: stylize(menu),
           contextInfo
-        }, { quoted: ms_badge });
+        }, { quoted: ms });
       }
 
     } catch (e) {
@@ -101,7 +85,7 @@ ovlcmd(
       await ovl.sendMessage(ms_org, {
         text: stylize(fallback),
         contextInfo
-      }, { quoted: ms_badge });
+      }, { quoted: ms });
     }
   }
 );
@@ -301,6 +285,7 @@ ovlcmd(
     desc: "Affiche le menu du bot",
   },
   async (ms_org, ovl, cmd_options) => {
+      const { ms } = cmd_options;
     try {
       const arg = cmd_options.arg;
       const seconds = process.uptime();
@@ -400,13 +385,13 @@ ovlcmd(
             caption: stylize(menu),
             gifPlayback: true,
             contextInfo
-          }, { quoted: ms_badge });
+          }, { quoted: ms });
         } else if (lien) {
           await ovl.sendMessage(ms_org, {
             image: { url: lien },
             caption: stylize(menu),
             contextInfo
-          }, { quoted: ms_badge });
+          }, { quoted: ms });
         } else {
           throw new Error("Aucun thème trouvé");
         }
@@ -414,14 +399,14 @@ ovlcmd(
         await ovl.sendMessage(ms_org, {
           text: stylize(menu),
           contextInfo
-        }, { quoted: ms_badge });
+        }, { quoted: ms });
       }
 
     } catch (error) {
       await ovl.sendMessage(ms_org, {
         text: "Une erreur est survenue lors de la génération du menu.",
         contextInfo
-      }, { quoted: ms_badge });
+      }, { quoted: ms });
     }
   }
 );
@@ -434,6 +419,7 @@ ovlcmd(
     desc: "Affiche toutes les commandes du bot",
   },
   async (ms_org, ovl, cmd_options) => {
+      const { ms } = cmd_options;
     try {
       const seconds = process.uptime();
       const j = Math.floor(seconds / 86400);
@@ -513,13 +499,13 @@ ovlcmd(
             caption: stylize(menu),
             gifPlayback: true,
             contextInfo
-          }, { quoted: ms_badge });
+          }, { quoted: ms });
         } else if (lien) {
           await ovl.sendMessage(ms_org, {
             image: { url: lien },
             caption: stylize(menu),
             contextInfo
-          }, { quoted: ms_badge });
+          }, { quoted: ms });
         } else {
           throw new Error("Aucun thème trouvé");
         }
@@ -527,14 +513,14 @@ ovlcmd(
         await ovl.sendMessage(ms_org, {
           text: stylize(menu),
           contextInfo
-        }, { quoted: ms_badge });
+        }, { quoted: ms });
       }
 
     } catch (error) {
       await ovl.sendMessage(ms_org, {
         text: "Une erreur est survenue lors de l'affichage du menu complet.",
         contextInfo
-      }, { quoted: ms_badge });
+      }, { quoted: ms });
     }
   }
 );
@@ -690,7 +676,7 @@ ovlcmd(
     const msg_envoye = await ovl.sendMessage(ms_org, {
       text: "*OVL-MD-V2 Ping...*",
       contextInfo
-    }, { quoted: ms_badge });
+    }, { quoted: cmd_options.ms });
 
     const end = Date.now();
     const latency = end - start;
@@ -721,7 +707,7 @@ ovlcmd(
         if (h > 0) uptime += `${h}H `;
         if (m > 0) uptime += `${m}M `;
         if (s > 0) uptime += `${s}S`;
-        await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}`, contextInfo }, { quoted: ms_badge });
+        await ovl.sendMessage(ms_org, { text: `⏳ Temps de fonctionnement : ${uptime}`, contextInfo }, { quoted: cmd_options.ms });
     }
 );
 
@@ -1101,7 +1087,7 @@ ovlcmd(
         contacts: [{ vcard }],
       },
       contextInfo
-    }, { quoted: ms_badge });
+    }, { quoted: cmd_options.ms });
   }
 );
 
@@ -1121,9 +1107,9 @@ ovlcmd(
 
     if (verif_Groupe) {
       await repondre("📩 Le lien d'invitation a été envoyé en message privé.");
-      await ovl.sendMessage(auteur_Message, { text: message, contextInfo }, { quoted: ms_badge });
+      await ovl.sendMessage(auteur_Message, { text: message, contextInfo }, { quoted: ms });
      } else {
-      await ovl.sendMessage(ms_org, { text: message, contextInfo}, { quoted: ms_badge });
+      await ovl.sendMessage(ms_org, { text: message, contextInfo}, { quoted: ms });
     }
   }
 );
@@ -1154,15 +1140,14 @@ ovlcmd(
         image: { url: "https://files.catbox.moe/lojrxz.jpg" },
         caption,
         contextInfo
-      }, { quoted: ms_badge });
+      }, { quoted: ms });
 
     } catch (e) {
       console.error("Erreur commande repo :", e);
       await ovl.sendMessage(ms_org, {
         text: "❌ Impossible de récupérer les infos du repository.",
         contextInfo
-      }, { quoted: ms_badge });
+      }, { quoted: ms });
     }
   }
 );
-

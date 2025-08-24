@@ -14,7 +14,7 @@ const parseID = (jid) => {
 };
 
 async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl) {
-  const groupInfo = await getCache(jid, ovl);
+  const groupInfo = await ovl.groupMetadata(jid);
   const groupName = groupInfo.subject || "Groupe";
   const totalMembers = groupInfo.participants.length;
   const userMention = `@${participant.split("@")[0]}`;
@@ -92,7 +92,6 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
 async function group_participants_update(data, ovl) {
   try {
     const groupInfo = await ovl.groupMetadata(data.id);
-    await setCache(data.id, groupInfo);
 
     const metadata = groupInfo;
     const settings = await GroupSettings.findOne({ where: { id: data.id } });

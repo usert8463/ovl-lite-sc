@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const { getCache } = require("../../lib/cache_metadata");
 
 const filePath = path.join(__dirname, "../../lib/cache_jid.json");
 
@@ -25,7 +24,7 @@ async function getJid(lid, ms_org, ovl, attempt = 0) {
     const cache = readCache();
     if (cache[lid]) return cache[lid];
 
-    const metadata = await getCache(ms_org, ovl);
+    const metadata = await ovl.groupMetadata(ms_org);
     if (!metadata || !Array.isArray(metadata.participants)) return null;
 
     const participant = metadata.participants.find(p => p.id == lid);

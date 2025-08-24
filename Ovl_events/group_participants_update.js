@@ -1,5 +1,4 @@
 const { GroupSettings, Events2 } = require("../DataBase/events");
-const { getCache, setCache } = require("../lib/cache_metadata");
 const { jidDecode } = require("@whiskeysockets/baileys");
 const { getJid } = require('./Message_upsert_events');
 const config = require("../set");

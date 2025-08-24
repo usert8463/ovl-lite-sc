@@ -8,7 +8,6 @@ const { Bans, OnlyAdmins } = require("../DataBase/ban");
 const { Sudo } = require('../DataBase/sudo');
 const { getMessage, addMessage } = require('../lib/store');
 const { jidDecode, getContentType } = require("@whiskeysockets/baileys");
-const { getCache } = require("../lib/cache_metadata");
 const evt = require("../lib/ovlcmd");
 const config = require("../set");
 const { get_stick_cmd } = require("../DataBase/stick_cmd");
@@ -61,7 +60,7 @@ async function message_upsert(m, ovl) {
     const id_Bot_N = id_Bot.split('@')[0];
 
     const verif_Groupe = ms_org.endsWith("@g.us");
-    const infos_Groupe = verif_Groupe ? await getCache(ms_org, ovl) : {};
+    const infos_Groupe = verif_Groupe ? await ovl.groupMetadata(ms_org) : {};
     const nom_Groupe = infos_Groupe.subject || "";
     const mbre_membre = verif_Groupe ? infos_Groupe.participants : [];
     const groupe_Admin = mbre_membre.filter(p => p.admin).map(p => p.jid);

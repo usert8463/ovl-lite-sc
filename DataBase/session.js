@@ -68,7 +68,7 @@ async function restaureAuth(instanceId, creds, keys) {
     for (const keyFile in keys) {
       fs.writeFileSync(
         path.join(sessionDir, `${keyFile}.json`),
-        JSON.stringify(keys[keyFile])
+        JSON.stringify(keys[keyFile], null, 2);
       );
     }
   }

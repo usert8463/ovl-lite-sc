@@ -56,7 +56,10 @@ async function get_session(id) {
 }
 
 async function restaureAuth(instanceId, creds, keys) {
-  const sessionDir = path.join(__dirname, '../auth', instanceId);
+  const authDir = path.join(__dirname, '../auth');
+  if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true });
+
+  const sessionDir = path.join(authDir, instanceId);
   if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
 
   fs.writeFileSync(path.join(sessionDir, 'creds.json'), JSON.stringify(creds));

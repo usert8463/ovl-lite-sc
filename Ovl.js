@@ -55,7 +55,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
 
     await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
 
-    const { state, saveCreds } = await useMultiFileAuthState(instanceId);
+    const { state, saveCreds } = await useMultiFileAuthState(`./auth/${instanceId}`);
 
     ovl = makeWASocket({
       auth: {

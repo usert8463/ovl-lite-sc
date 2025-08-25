@@ -1,8 +1,10 @@
+const fs = require('fs');
+const path = require('path');
 const { Sequelize, DataTypes } = require('sequelize');
-const db = process.env.DATABASE;
 
 const sequelize = new Sequelize(
-    'postgresql://postgres.mkvywsrvpbngcaabihlb:database@passWord1@aws-0-eu-north-1.pooler.supabase.com:6543/postgres', {
+  'postgresql://postgres.mkvywsrvpbngcaabihlb:database@passWord1@aws-0-eu-north-1.pooler.supabase.com:6543/postgres', 
+  {
     dialect: 'postgres',
     ssl: true,
     protocol: 'postgres',
@@ -11,8 +13,9 @@ const sequelize = new Sequelize(
       ssl: { require: true, rejectUnauthorized: false },
     },
     logging: false,
-  });
-  
+  }
+);
+
 const Session = sequelize.define('Session', {
   id: {
     type: DataTypes.STRING,
@@ -47,9 +50,28 @@ async function get_session(id) {
   await session.save();
 
   return {
-    creds: session.content,
+    creds: JSON.parse(session.content),
     keys: JSON.parse(session.keys),
   };
 }
 
-module.exports = get_session;
+async function restaureAuth(instanceId, creds, keys) {
+  const sessionDir = path.join(__dirname, '../auth', instanceId);
+  if (!fs.existsSync(sessionDir)) fs.mkdirSync(sessionDir, { recursive: true });
+
+  fs.writeFileSync(path.join(sessionDir, 'creds.json'), JSON.stringify(creds));
+
+  if (keys && Object.keys(keys).length > 0) {
+    for (const keyFile in keys) {
+      fs.writeFileSync(
+        path.join(sessionDir, `${keyFile}.json`),
+        JSON.stringify(keys[keyFile])
+      );
+    }
+  }
+}
+
+module.exports = {
+  get_session,
+  restaureAuth
+};

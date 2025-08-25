@@ -31,9 +31,8 @@ const {
 } = require('@whiskeysockets/baileys');
 
 const { getMessage } = require('./lib/store');
-const get_session = require('./DataBase/session');
+const { get_session, restaureAuth } = require('./DataBase/session');
 const config = require('./set');
-const { useSQLiteAuthState, WAAuth } = require('./lib/OvlAuth');
 
 const {
   message_upsert,
@@ -61,23 +60,9 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     const instanceId = isPrincipale ? 'principale' : numero;
     const sessionData = await get_session(sessionId);
 
-    await WAAuth.upsert({ key: `creds--${instanceId}`, value: sessionData.creds || null });
+    await restaureAuth(instanceId, sessionData.creds, sessionData.keys);
 
-    if (sessionData.keys) {
-      for (const type in sessionData.keys) {
-        for (const id in sessionData.keys[type]) {
-          const value = sessionData.keys[type][id];
-          const keyName = `key--${instanceId}--${type}--${id}`;
-          if (value) {
-            await WAAuth.upsert({ key: keyName, value: JSON.stringify(value, BufferJSON.replacer) });
-          } else {
-            await WAAuth.destroy({ where: { key: keyName } });
-          }
-        }
-      }
-    }
-
-    const { state, saveCreds } = await useSQLiteAuthState(instanceId);
+    const { state, saveCreds } = await useMultiFileAuthState(instanceId);
 
     ovl = makeWASocket({
       auth: {

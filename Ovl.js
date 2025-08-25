@@ -1,4 +1,3 @@
-
 const originalLog = console.log;
 const originalError = console.error;
 
@@ -27,13 +26,13 @@ const {
   makeCacheableSignalKeyStore,
   Browsers,
   fetchLatestBaileysVersion,
-  delay
+  delay,
+  useMultiFileAuthState
 } = require('@whiskeysockets/baileys');
 
 const { getMessage } = require('./lib/store');
 const { get_session, restaureAuth } = require('./DataBase/session');
 const config = require('./set');
-
 const {
   message_upsert,
   group_participants_update,
@@ -42,18 +41,12 @@ const {
   dl_save_media_ms,
   recup_msg
 } = require('./Ovl_events');
-
 const { getSecondAllSessions } = require('./DataBase/connect');
 
 const MAX_SESSIONS = 100;
 const sessionsActives = new Set();
 const instancesSessions = new Map();
 let ovl;
-
-const BufferJSON = {
-  replacer: (_, v) => (Buffer.isBuffer(v) ? { type: 'Buffer', data: [...v] } : v),
-  reviver: (_, v) => (v?.type === 'Buffer' ? Buffer.from(v.data) : v),
-};
 
 async function startGenericSession({ numero, isPrincipale = false, sessionId = null }) {
   try {
@@ -119,7 +112,8 @@ async function stopSession(numero) {
     }
     instancesSessions.delete(numero);
     sessionsActives.delete(numero);
-    await WAAuth.destroy({ where: { key: numero } });
+    const sessionDir = path.join(__dirname, '../auth', numero);
+    if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true });
   }
 }
 
@@ -191,35 +185,31 @@ app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OVL-Bot Web Page</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #121212; font-family: Arial, sans-serif; color: #fff; overflow: hidden; }
-    .content { text-align: center; padding: 30px; background-color: #1e1e1e; border-radius: 12px; box-shadow: 0 8px 20px rgba(255,255,255,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-    .content:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(255,255,255,0.15); }
-    h1 { font-size: 2em; color: #f0f0f0; margin-bottom: 15px; letter-spacing: 1px; }
-    p { font-size: 1.1em; color: #d3d3d3; line-height: 1.5; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OVL-Bot Web Page</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #121212; font-family: Arial, sans-serif; color: #fff; overflow: hidden; }
+.content { text-align: center; padding: 30px; background-color: #1e1e1e; border-radius: 12px; box-shadow: 0 8px 20px rgba(255,255,255,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.content:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(255,255,255,0.15); }
+h1 { font-size: 2em; color: #f0f0f0; margin-bottom: 15px; letter-spacing: 1px; }
+p { font-size: 1.1em; color: #d3d3d3; line-height: 1.5; }
+</style>
 </head>
 <body>
-  <div class="content">
-    <h1>Bienvenue sur OVL-MD-V2</h1>
-    <p>Votre assistant WhatsApp</p>
-  </div>
+<div class="content">
+<h1>Bienvenue sur OVL-MD-V2</h1>
+<p>Votre assistant WhatsApp</p>
+</div>
 </body>
 </html>`);
 });
 
 let publicURL;
-if (process.env.RENDER_EXTERNAL_URL) {
-  publicURL = process.env.RENDER_EXTERNAL_URL;
-} else if (process.env.KOYEB_PUBLIC_DOMAIN) {
-  publicURL = `https://${process.env.KOYEB_PUBLIC_DOMAIN}`;
-} else {
-  publicURL = `http://localhost:${port}`;
-}
+if (process.env.RENDER_EXTERNAL_URL) publicURL = process.env.RENDER_EXTERNAL_URL;
+else if (process.env.KOYEB_PUBLIC_DOMAIN) publicURL = `https://${process.env.KOYEB_PUBLIC_DOMAIN}`;
+else publicURL = `http://localhost:${port}`;
 
 function detectPlatform() {
   if (process.env.GITHUB_ACTIONS) return "GitHub Actions";
@@ -240,12 +230,10 @@ function setupAutoPing(url) {
   setInterval(async () => {
     try {
       const res = await axios.get(url);
-      if (res.data) {
+      if (res.data && ovl?.user?.id) {
         console.log(`Ping: OVL-MD-V2 ✅`);
-
         const platform = detectPlatform();
         const id = `https://wa.me/${ovl.user.id.split(":")[0]}`;
-
         await axios.post("https://ovl-bot-dashboard.vercel.app/ping", {
           id,
           prefixe: config.PREFIXE,
@@ -261,4 +249,8 @@ function setupAutoPing(url) {
 
 process.on('uncaughtException', async (e) => {
   console.log('Une erreur inattendue est survenue :', e.message);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Rejection non gérée :', reason);
 });

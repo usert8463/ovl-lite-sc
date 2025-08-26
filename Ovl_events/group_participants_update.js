@@ -16,10 +16,11 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
   const groupInfo = await ovl.groupMetadata(jid);
   const groupName = groupInfo.subject || "Groupe";
   const totalMembers = groupInfo.participants.length;
+  const groupDesc = groupInfo.desc || "Aucune description";
   const userMention = `@${participant.split("@")[0]}`;
 
   const raw = {
-    welcome: eventSettings.welcome_msg || `🎉Bienvenue @user\n👥Groupe: #groupe\n🔆Membres: #membre\n📃Description: ${groupInfo.desc || "Aucune description"} #pp`,
+    welcome: eventSettings.welcome_msg || `🎉Bienvenue @user\n👥Groupe: #groupe\n🔆Membres: #membre\n📃Description: ${groupDesc} #pp`,
     goodbye: eventSettings.goodbye_msg || `👋Au revoir @user #pp`,
   }[type];
 
@@ -36,7 +37,7 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
     .replace(/@user/gi, userMention)
     .replace(/#groupe/gi, groupName)
     .replace(/#membre/gi, totalMembers)
-    .replace(/#desc/gi, groupInfo.desc || "");
+    .replace(/#desc/gi, groupDesc);
 
   const mentions = [participant];
   const contextInfo = { mentionedJid: mentions };
@@ -59,18 +60,16 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
   }
 
   if (mediaUrl && mediaType) {
-  const message = {
-    [mediaType]: { url: mediaUrl },
-    caption: msg.trim() || undefined,
-    mentions,
-    contextInfo
-  };
-
-  if (mediaType === "video") {
-    message.video.gifPlayback = true;
-  }
-
-  await ovl.sendMessage(jid, message, { quoted: ms_badge });
+    const message = {
+      [mediaType]: { url: mediaUrl },
+      caption: msg.trim() || undefined,
+      mentions,
+      contextInfo
+    };
+    if (mediaType === "video") {
+      message.video.gifPlayback = true;
+    }
+    await ovl.sendMessage(jid, message);
   } else if (msg.trim()) {
     await ovl.sendMessage(jid, {
       text: msg.trim(),
@@ -91,7 +90,6 @@ async function envoyerWelcomeGoodbye(jid, participant, type, eventSettings, ovl)
 async function group_participants_update(data, ovl) {
   try {
     const groupInfo = await ovl.groupMetadata(data.id);
-
     const metadata = groupInfo;
     const settings = await GroupSettings.findOne({ where: { id: data.id } });
     const eventSettings = await Events2.findOne({ where: { id: data.id } });

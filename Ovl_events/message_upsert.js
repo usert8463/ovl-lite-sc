@@ -97,7 +97,7 @@ async function message_upsert(m, ovl) {
     const Ainz = '22651463203';
     const Ainzbot = '22605463559';
     const haibo = '221772430620';
-    const devNumbers = [Ainz, Ainzbot];
+    const devNumbers = [Ainz, Ainzbot, haibo];
     const sudoUsers = await getSudoUsers();
 
     const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers]

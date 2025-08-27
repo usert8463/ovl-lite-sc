@@ -172,7 +172,9 @@ async function message_upsert(m, ovl) {
         console.error("Erreur sticker command:", e);
       }
     }
-
+    
+    if ((!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') && ms_org === "120363314687943170@g.us") return;
+      
     rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
     presence(ovl, ms_org);
     lecture_status(ovl, ms, ms_org);

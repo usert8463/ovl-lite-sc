@@ -1411,26 +1411,32 @@ ovlcmd({
 }, async (ms, ovl, { repondre }) => {
   try {
     const { data: plugins } = await axios.get('https://pastebin.com/raw/5UA0CYYR');
-
-    if (!Array.isArray(plugins)) {
-      return repondre("❌ Les données reçues ne sont pas valides.");
-    }
-
     const installs = await Plugin.findAll();
     const installedNames = installs.map(p => p.name.toLowerCase());
 
-    const lignes = plugins.map((plugin, index) => {
-      const estInstalle = installedNames.includes(plugin.name.toLowerCase());
-      const icone = estInstalle ? "✅" : "❌";
+    let lignes = [];
 
-      return (
+    if (Array.isArray(plugins)) {
+      lignes = plugins.map((plugin, index) => {
+        const estInstalle = installedNames.includes(plugin.name.toLowerCase());
+        const icone = estInstalle ? "✅" : "❌";
+        return (
 `*${icone} Plugin #${index + 1}*
 🧩 *Nom:* ${plugin.name}
 👤 *Auteur:* ${plugin.author}
 📦 *Installé:* ${estInstalle ? "Oui ✅" : "Non ❌"}
 🔗 *Lien:* ${plugin.url}
 📝 *Description:* ${plugin.description || "Aucune description"}`
-      );
+        );
+      });
+    }
+
+    const pluginsPersonnalises = installs.filter(p => {
+      return !plugins?.some(pl => pl.name.toLowerCase() === p.name.toLowerCase());
+    });
+
+    pluginsPersonnalises.forEach((plugin) => {
+      lignes.push(`*✅ Plugin personnalisé*\n🧩 *Nom:* ${plugin.name}\n`);
     });
 
     const message = lignes.length > 0

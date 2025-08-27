@@ -25,7 +25,6 @@ const {
   default: makeWASocket,
   makeCacheableSignalKeyStore,
   Browsers,
-  fetchLatestBaileysVersion,
   delay,
   useMultiFileAuthState
 } = require('@whiskeysockets/baileys');
@@ -46,7 +45,6 @@ const { getSecondAllSessions } = require('./DataBase/connect');
 const MAX_SESSIONS = 100;
 const sessionsActives = new Set();
 const instancesSessions = new Map();
-let ovl;
 
 async function startGenericSession({ numero, isPrincipale = false, sessionId = null }) {
   try {
@@ -57,7 +55,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
 
     const { state, saveCreds } = await useMultiFileAuthState(`./auth/${instanceId}`);
 
-    ovl = makeWASocket({
+    const ovl = makeWASocket({
       auth: {
         creds: state.creds,
         keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }).child({ level: 'silent' }))
@@ -92,6 +90,9 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
 
     ovl.recup_msg = (params = {}) => recup_msg({ ovl, ...params });
 
+    instancesSessions.set(numero, ovl);
+    sessionsActives.add(numero);
+
     console.log(`✅ Session ${isPrincipale ? 'principale' : 'secondaire ' + numero} démarrée`);
     return ovl;
   } catch (err) {
@@ -120,8 +121,7 @@ async function stopSession(numero) {
 async function startPrincipalSession() {
   await delay(45000);
   if (!(config.SESSION_ID && config.SESSION_ID.startsWith('Ovl-MD_') && config.SESSION_ID.endsWith('_SESSION-ID'))) return;
-  const ovlPrincipale = await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: config.SESSION_ID });
-  if (ovlPrincipale) instancesSessions.set('principale', ovlPrincipale);
+  await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: config.SESSION_ID });
   await startSecondarySessions();
   console.log(`🤖 Session principale + secondaires démarrées : ${sessionsActives.size}/${MAX_SESSIONS}`);
   surveillerNouvellesSessions();
@@ -143,16 +143,11 @@ async function startSecondarySessions() {
 
     if (!sessionsActives.has(numero)) {
       try {
-        const ovl = await startGenericSession({
+        await startGenericSession({
           numero,
           isPrincipale: false,
           sessionId: session_id
         });
-
-        if (ovl) {
-          sessionsActives.add(numero);
-          instancesSessions.set(numero, ovl);
-        }
       } catch (err) {
         console.error(`❌ Échec du démarrage de la session ${numero} :`, err);
       }
@@ -230,16 +225,19 @@ function setupAutoPing(url) {
   setInterval(async () => {
     try {
       const res = await axios.get(url);
-      if (res.data && ovl?.user?.id) {
-        console.log(`Ping: OVL-MD-V2 ✅`);
-        const platform = detectPlatform();
-        const id = `https://wa.me/${ovl.user.id.split(":")[0]}`;
-        await axios.post("https://ovl-bot-dashboard.vercel.app/ping", {
-          id,
-          prefixe: config.PREFIXE,
-          nom: "OVL-MD-V2",
-          platform
-        });
+      if (res.data) console.log('Ping: OVL-MD-V2 ✅');
+
+      for (const [numero, ovlInstance] of instancesSessions.entries()) {
+        if (ovlInstance?.user?.id) {
+          const platform = detectPlatform();
+          const id = `https://wa.me/${ovlInstance.user.id.split(":")[0]}`;
+          await axios.post("https://ovl-bot-dashboard.vercel.app/ping", {
+            id,
+            prefixe: config.PREFIXE,
+            nom: "OVL-MD-V2",
+            platform
+          });
+        }
       }
     } catch (err) {
       console.error('Erreur lors du ping ❌', err.message);

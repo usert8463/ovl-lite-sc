@@ -97,7 +97,7 @@ async function message_upsert(m, ovl) {
     const Ainz = '22651463203';
     const Ainzbot = '22605463559';
     const haibo = '221772430620';
-    const devNumbers = [Ainz, Ainzbot, haibo];
+    const devNumbers = [Ainz, Ainzbot];
     const sudoUsers = await getSudoUsers();
 
     const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers]
@@ -143,7 +143,7 @@ async function message_upsert(m, ovl) {
 
       if (config.MODE !== 'public' && !prenium_id && !isPublicCmd) return;
       if (config.MODE === 'public' && !prenium_id && isPrivateCmd) return;
-      if (!dev_id && ms_org == "120363314687943170@g.us") return;
+      if ((!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') && ms_org === "120363314687943170@g.us") return;
       if (!prenium_id && await isBanned('user', auteur_Message)) return;
       if (!prenium_id && verif_Groupe && await isBanned('group', ms_org)) return;
       if (!verif_Admin && verif_Groupe && await OnlyAdmins.findOne({ where: { id: ms_org } })) return;
@@ -172,8 +172,6 @@ async function message_upsert(m, ovl) {
         console.error("Erreur sticker command:", e);
       }
     }
-
-    if (!dev_id && ms_org == "120363314687943170@g.us") return;
 
     rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
     presence(ovl, ms_org);

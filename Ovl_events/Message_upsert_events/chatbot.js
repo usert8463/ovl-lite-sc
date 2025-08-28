@@ -25,7 +25,7 @@ async function chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bo
 
     if (!(localActif || globalActif)) return;
 
-    const promptSystem = `Tu es un assistant intelligent appelé OVL-CHAT-BOT.
+    const promptSystem = `Tu es un assistant intelligent appelé OVL.Ton créateur se nomme Ainz
 Réponds de manière claire, précise et concise, mais avec un ton naturel et chaleureux.
 Ne fais pas de longs paragraphes, mais développe un peu plus qu’un simple mot.
 L'utilisateur qui te parle a pour identifiant WhatsApp : ${auteur_Message}.

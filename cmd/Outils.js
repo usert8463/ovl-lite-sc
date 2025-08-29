@@ -1085,7 +1085,6 @@ ovlcmd(
         displayName: devNom,
         contacts: [{ vcard }],
       },
-      contextInfo
     }, { quoted: cmd_options.ms });
   }
 );
@@ -1126,7 +1125,7 @@ ovlcmd(
     let caption;
 
     try {
-      const { data } = await axios.get(repoUrl);
+      const { data } = await axios.get("https://api.github.com/repos/Ainz-devs/OVL-MD-V2");
       caption = `
 ╭───⟪ 📦 OVL-MD-V2 ⟫───╮
 │ ⇨ ⭐ Stars       : ${data.stargazers_count}

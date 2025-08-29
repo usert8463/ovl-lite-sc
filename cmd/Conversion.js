@@ -361,7 +361,7 @@ ovlcmd(
     classe: "Conversion",
     react: "✍️",
     desc: "Convertit un sticker en image",
-    alias: ["toimg"],
+    alias: ["toimg", "photo"],
   },
   async (ms_org, ovl, cmd_options) => {
     const { msg_Repondu, ms } = cmd_options;

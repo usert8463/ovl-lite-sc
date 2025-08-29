@@ -37,7 +37,6 @@ const {
   group_participants_update,
   connection_update,
   call,
-  presence_update,
   dl_save_media_ms,
   recup_msg
 } = require('./Ovl_events');
@@ -85,7 +84,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     });
     ovl.ev.on('creds.update', saveCreds);
     ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));
-    ovl.ev.on('presence.update', async (presenceEvent) => presence_update(presenceEvent, ovl));
+    ovl.ev.on('presence.update', async (presenceEvent) => {});
     
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);

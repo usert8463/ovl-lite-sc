@@ -12,13 +12,24 @@ ovlcmd(
     desc: "Télécharge une chanson depuis YouTube avec un terme de recherche",
     alias: ["play"],
   },
-  async (ms_org, ovl, { arg, ms, repondre }) => {
+  async (ms_org, ovl, { arg, ms, repondre, msg_Repondu }) => {
+    if (!arg.length && msg_Repondu) {
+      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+      if (typeof repTexte === "string") {
+        const mots = repTexte.split(/ +/);
+        const lien = mots.find(mot => mot.startsWith("https"));
+        if (lien) arg = [lien];
+      }
+    }
+
     if (!arg.length) return repondre("Veuillez spécifier un titre ou un lien YouTube.");
+
     try {
       const query = arg.join(" ");
       const info = await ytdl(query, "audio");
       const audio = info.yts[0];
       const caption = `*AUDIO* 𝙊𝙑𝙇-𝙈𝘿\n\n🎼 *Titre* : ${audio.title}\n🕐 *Durée* : ${audio.duration}\n👁️ *Vues* : ${audio.views}\n🔗 *Lien* : ${audio.url}\n\n🔊 *Powered by OVL-MD-V2*`;
+      
       await ovl.sendMessage(ms_org, { image: { url: audio.thumbnail }, caption }, { quoted: ms });
 
       const response = await axios.get(
@@ -27,6 +38,7 @@ ovlcmd(
       );
       const audioBuffer = Buffer.from(response.data);
       await ovl.sendMessage(ms_org, { audio: audioBuffer, mimetype: "audio/mpeg", caption: "```Powered by OVL-MD-V2```" }, { quoted: ms });
+
     } catch (e) {
       console.error(e);
       repondre("❌ Erreur lors du téléchargement de la chanson.");
@@ -41,7 +53,16 @@ ovlcmd(
     react: "🎥",
     desc: "Télécharge une vidéo depuis YouTube avec un terme de recherche",
   },
-  async (ms_org, ovl, { arg, ms, repondre }) => {
+  async (ms_org, ovl, { arg, ms, repondre, msg_Repondu }) => {
+	if (!arg.length && msg_Repondu) {
+      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+      if (typeof repTexte === "string") {
+        const mots = repTexte.split(/ +/);
+        const lien = mots.find(mot => mot.startsWith("https"));
+        if (lien) arg = [lien];
+      }
+	}
+	  
     if (!arg.length) return repondre("Veuillez spécifier un titre ou un lien YouTube.");
     try {
       const query = arg.join(" ");
@@ -71,7 +92,16 @@ ovlcmd(
     desc: "Télécharge l'audio d'une vidéo YouTube à l'aide d'un lien",
     alias: ["ytmp3"],
   },
-  async (ms_org, ovl, { arg, ms, repondre }) => {
+  async (ms_org, ovl, { arg, ms, repondre, msg_Repondu }) => {
+	if (!arg.length && msg_Repondu) {
+      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+      if (typeof repTexte === "string") {
+        const mots = repTexte.split(/ +/);
+        const lien = mots.find(mot => mot.startsWith("https"));
+        if (lien) arg = [lien];
+      }
+	}
+	  
     const link = arg.join(" ");
     if (!link) return repondre("Exemple : *yta https://youtube.com/watch?v=xyz*");
     try {
@@ -97,7 +127,16 @@ ovlcmd(
     desc: "Télécharge une vidéo YouTube à l'aide d'un lien",
     alias: ["ytmp4"],
   },
-  async (ms_org, ovl, { arg, ms, repondre }) => {
+  async (ms_org, ovl, { arg, ms, repondre, msg_Repondu }) => {
+	if (!arg.length && msg_Repondu) {
+      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+      if (typeof repTexte === "string") {
+        const mots = repTexte.split(/ +/);
+        const lien = mots.find(mot => mot.startsWith("https"));
+        if (lien) arg = [lien];
+      }
+	}
+	  
     const link = arg.join(" ");
     if (!link) return repondre("Exemple : *ytv https://youtube.com/watch?v=xyz*");
     try {
@@ -124,7 +163,16 @@ ovlcmd(
     desc: "Télécharger ou envoyer directement une vidéo depuis Facebook"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { arg, ms } = cmd_options;
+    const { arg, ms, msg_Repondu } = cmd_options;
+	if (!arg.length && msg_Repondu) {
+      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+      if (typeof repTexte === "string") {
+        const mots = repTexte.split(/ +/);
+        const lien = mots.find(mot => mot.startsWith("https"));
+        if (lien) arg = [lien];
+      }
+	}
+	  
     const videoLink = arg.join(" ");
     
     if (!videoLink) {
@@ -162,8 +210,16 @@ ovlcmd(
     desc: "Télécharger un média depuis TikTok"
 },
 async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, auteur_Message } = cmd_options;
-
+    const { arg, ms, auteur_Message, msg_Repondu } = cmd_options;
+    if (!arg.length && msg_Repondu) {
+      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+      if (typeof repTexte === "string") {
+        const mots = repTexte.split(/ +/);
+        const lien = mots.find(mot => mot.startsWith("https"));
+        if (lien) arg = [lien];
+      }
+	}
+	
     const videoLink = arg.join(" ");
     if (!videoLink) return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok, par exemple : ttdl https://vm.tiktok.com/..." }, { quoted: ms });
 
@@ -224,7 +280,16 @@ ovlcmd(
     desc: "Télécharger ou envoyer directement une vidéo depuis Instagram",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { arg, ms } = cmd_options;
+    const { arg, ms, msg_Repondu } = cmd_options;
+	if (!arg.length && msg_Repondu) {
+      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+      if (typeof repTexte === "string") {
+        const mots = repTexte.split(/ +/);
+        const lien = mots.find(mot => mot.startsWith("https"));
+        if (lien) arg = [lien];
+      }
+	}
+	  
     const videoLink = arg.join(" ");
 
     if (!videoLink) {
@@ -263,7 +328,16 @@ ovlcmd(
     desc: "Télécharger ou envoyer directement une vidéo depuis Twitter",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { arg, ms } = cmd_options;
+    const { arg, ms, msg_Repondu } = cmd_options;
+	if (!arg.length && msg_Repondu) {
+      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
+      if (typeof repTexte === "string") {
+        const mots = repTexte.split(/ +/);
+        const lien = mots.find(mot => mot.startsWith("https"));
+        if (lien) arg = [lien];
+      }
+	}
+	  
     const videoLink = arg.join(" ");
 
     if (!videoLink) {

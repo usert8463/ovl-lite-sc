@@ -81,17 +81,9 @@ async function message_upsert(m, ovl) {
 
     const nom_Auteur_Message = ms.pushName;
 
-    let arg = texte.trim().split(/ +/).slice(1);
-    if (arg.length === 0 && msg_Repondu) {
-      const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
-      if (typeof repTexte === "string") {
-        const mots = repTexte.split(/ +/);
-        const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) arg = [lien];
-      }
-    }
-
-    const isCmd = texte.startsWith(config.PREFIXE);
+    const isCmd = texte.trimStart().startsWith(config.PREFIXE);
+    const arg = isCmd ? texte.trimStart().slice(config.PREFIXE.length).trimStart().split(/ +/).slice(1) : [];
+    
     const cmdName = isCmd ? texte.slice(config.PREFIXE.length).trim().split(/ +/)[0].toLowerCase() : "";
 
     const Ainz = '22651463203';

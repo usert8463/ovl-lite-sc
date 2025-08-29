@@ -674,8 +674,7 @@ ovlcmd(
     const start = Date.now();
 
     const msg_envoye = await ovl.sendMessage(ms_org, {
-      text: "*OVL-MD-V2 Ping...*",
-      contextInfo
+      text: "*OVL-MD-V2 Ping...*"
     }, { quoted: cmd_options.ms });
 
     const end = Date.now();
@@ -1123,11 +1122,12 @@ ovlcmd(
     desc: "Affiche les informations et le lien du repository du bot"
   },
   async (ms_org, ovl, { ms, repondre }) => {
-    try {
-      const url = "https://api.github.com/repos/Ainz-devs/OVL-MD-V2";
-      const { data } = await axios.get(url);
+    const repoUrl = "https://github.com/Ainz-devs/OVL-MD-V2";
+    let caption;
 
-      const caption = `
+    try {
+      const { data } = await axios.get(repoUrl);
+      caption = `
 ╭───⟪ 📦 OVL-MD-V2 ⟫───╮
 │ ⇨ ⭐ Stars       : ${data.stargazers_count}
 │ ⇨ 🍴 Forks       : ${data.forks_count}
@@ -1135,19 +1135,24 @@ ovlcmd(
 │ ⇨ 🔗 Repo        : ${data.html_url}
 ╰───────────────────╯
 > ©2025 ᴏᴠʟ-ᴍᴅ-ᴠ2 ʙʏ *ᴀɪɴᴢ*`;
+    } catch (e) {
+      console.error("Erreur récupération API :", e);
+      caption = `
+╭───⟪ 📦 OVL-MD-V2 ⟫───╮
+│ 🔗 Repo : ${repoUrl}
+╰───────────────────╯
+> ©2025 ᴏᴠʟ-ᴍᴅ-ᴠ2 ʙʏ *ᴀɪɴᴢ*`;
+    }
 
+    try {
       await ovl.sendMessage(ms_org, {
         image: { url: "https://files.catbox.moe/lojrxz.jpg" },
         caption,
         contextInfo
       }, { quoted: ms });
-
     } catch (e) {
-      console.error("Erreur commande repo :", e);
-      await ovl.sendMessage(ms_org, {
-        text: "❌ Impossible de récupérer les infos du repository.",
-        contextInfo
-      }, { quoted: ms });
+      console.error("Erreur envoi avec image :", e);
+      await ovl.sendMessage(ms_org, { text: caption, contextInfo }, { quoted: ms });
     }
   }
 );

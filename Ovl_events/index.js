@@ -5,6 +5,7 @@ module.exports = {
   group_participants_update: require('./group_participants_update'),
   connection_update: require('./connection'),
   call: require('./call'),
+  presence_update: require('./presence_update'),
   dl_save_media_ms,
   recup_msg,
 };

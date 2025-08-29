@@ -13,32 +13,28 @@ ovlcmd(
     alias: ["play"],
   },
   async (ms_org, ovl, { arg, ms, repondre, msg_Repondu }) => {
-    if (!arg.length && msg_Repondu) {
+    let finalArg = arg;
+    if (!finalArg.length && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
       if (typeof repTexte === "string") {
         const mots = repTexte.split(/ +/);
         const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) arg = [lien];
+        if (lien) finalArg = [lien];
       }
     }
-
-    if (!arg.length) return repondre("Veuillez spécifier un titre ou un lien YouTube.");
-
+    if (!finalArg.length) return repondre("Veuillez spécifier un titre ou un lien YouTube.");
     try {
-      const query = arg.join(" ");
+      const query = finalArg.join(" ");
       const info = await ytdl(query, "audio");
       const audio = info.yts[0];
       const caption = `*AUDIO* 𝙊𝙑𝙇-𝙈𝘿\n\n🎼 *Titre* : ${audio.title}\n🕐 *Durée* : ${audio.duration}\n👁️ *Vues* : ${audio.views}\n🔗 *Lien* : ${audio.url}\n\n🔊 *Powered by OVL-MD-V2*`;
-      
       await ovl.sendMessage(ms_org, { image: { url: audio.thumbnail }, caption }, { quoted: ms });
-
       const response = await axios.get(
         `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
         { responseType: "arraybuffer" }
       );
       const audioBuffer = Buffer.from(response.data);
       await ovl.sendMessage(ms_org, { audio: audioBuffer, mimetype: "audio/mpeg", caption: "```Powered by OVL-MD-V2```" }, { quoted: ms });
-
     } catch (e) {
       console.error(e);
       repondre("❌ Erreur lors du téléchargement de la chanson.");
@@ -54,23 +50,22 @@ ovlcmd(
     desc: "Télécharge une vidéo depuis YouTube avec un terme de recherche",
   },
   async (ms_org, ovl, { arg, ms, repondre, msg_Repondu }) => {
-	if (!arg.length && msg_Repondu) {
+    let finalArg = arg;
+    if (!finalArg.length && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
       if (typeof repTexte === "string") {
         const mots = repTexte.split(/ +/);
         const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) arg = [lien];
+        if (lien) finalArg = [lien];
       }
-	}
-	  
-    if (!arg.length) return repondre("Veuillez spécifier un titre ou un lien YouTube.");
+    }
+    if (!finalArg.length) return repondre("Veuillez spécifier un titre ou un lien YouTube.");
     try {
-      const query = arg.join(" ");
+      const query = finalArg.join(" ");
       const info = await ytdl(query, "video");
       const video = info.yts[0];
       const caption = `*VIDÉO* 𝙊𝙑𝙇-𝙈𝘿\n\n🎼 *Titre* : ${video.title}\n🕐 *Durée* : ${video.duration}\n👁️ *Vues* : ${video.views}\n🔗 *Lien* : ${video.url}\n\n🎬 *Powered by OVL-MD-V2*`;
       await ovl.sendMessage(ms_org, { image: { url: video.thumbnail }, caption }, { quoted: ms });
-
       const response = await axios.get(
         `https://you-tube-dl-psi.vercel.app/youtube/download?url=${encodeURIComponent(info.ytdl.download)}`,
         { responseType: "arraybuffer" }
@@ -93,17 +88,20 @@ ovlcmd(
     alias: ["ytmp3"],
   },
   async (ms_org, ovl, { arg, ms, repondre, msg_Repondu }) => {
-	if (!arg.length && msg_Repondu) {
+    let finalArg = arg;
+    if (!finalArg.length && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
       if (typeof repTexte === "string") {
         const mots = repTexte.split(/ +/);
         const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) arg = [lien];
+        if (lien) finalArg = [lien];
       }
-	}
-	  
-    const link = arg.join(" ");
-    if (!link) return repondre("Exemple : *yta https://youtube.com/watch?v=xyz*");
+    }
+
+    const link = finalArg.join(" ");
+    if (!link.startsWith("https://")) 
+      return repondre("Exemple : *yta https://youtube.com/watch?v=xyz*");
+
     try {
       const info = await ytdl(link, "audio");
       const response = await axios.get(
@@ -111,7 +109,11 @@ ovlcmd(
         { responseType: "arraybuffer" }
       );
       const audioBuffer = Buffer.from(response.data);
-      await ovl.sendMessage(ms_org, { audio: audioBuffer, mimetype: "audio/mpeg", caption: "```Powered by OVL-MD-V2```" }, { quoted: ms });
+      await ovl.sendMessage(
+        ms_org,
+        { audio: audioBuffer, mimetype: "audio/mpeg", caption: "```Powered by OVL-MD-V2```" },
+        { quoted: ms }
+      );
     } catch (e) {
       console.error(e);
       repondre("Impossible de télécharger l'audio.");
@@ -128,17 +130,20 @@ ovlcmd(
     alias: ["ytmp4"],
   },
   async (ms_org, ovl, { arg, ms, repondre, msg_Repondu }) => {
-	if (!arg.length && msg_Repondu) {
+    let finalArg = arg;
+    if (!finalArg.length && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
       if (typeof repTexte === "string") {
         const mots = repTexte.split(/ +/);
         const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) arg = [lien];
+        if (lien) finalArg = [lien];
       }
-	}
-	  
-    const link = arg.join(" ");
-    if (!link) return repondre("Exemple : *ytv https://youtube.com/watch?v=xyz*");
+    }
+
+    const link = finalArg.join(" ");
+    if (!link.startsWith("https://")) 
+      return repondre("Exemple : *ytv https://youtube.com/watch?v=xyz*");
+
     try {
       const info = await ytdl(link, "video");
       const response = await axios.get(
@@ -146,7 +151,11 @@ ovlcmd(
         { responseType: "arraybuffer" }
       );
       const videoBuffer = Buffer.from(response.data);
-      await ovl.sendMessage(ms_org, { video: videoBuffer, mimetype: "video/mp4", caption: "```Powered by OVL-MD-V2```" }, { quoted: ms });
+      await ovl.sendMessage(
+        ms_org,
+        { video: videoBuffer, mimetype: "video/mp4", caption: "```Powered by OVL-MD-V2```" },
+        { quoted: ms }
+      );
     } catch (e) {
       console.error(e);
       repondre("Impossible de télécharger la vidéo.");
@@ -159,26 +168,24 @@ ovlcmd(
     nom_cmd: "fbdl",
     classe: "Telechargement",
     react: "📥",
-	alias: ["facebook", "facebockdl"],
+    alias: ["facebook", "facebockdl"],
     desc: "Télécharger ou envoyer directement une vidéo depuis Facebook"
   },
   async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, msg_Repondu } = cmd_options;
-	if (!arg.length && msg_Repondu) {
+    let { arg, ms, msg_Repondu } = cmd_options;
+    let finalArg = arg;
+    if (!finalArg.length && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
       if (typeof repTexte === "string") {
         const mots = repTexte.split(/ +/);
         const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) arg = [lien];
+        if (lien) finalArg = [lien];
       }
-	}
-	  
-    const videoLink = arg.join(" ");
-    
+    }
+    const videoLink = finalArg.join(" ");
     if (!videoLink) {
       return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo, par exemple : fbdl https://www.facebook.com/video-link" }, { quoted: ms });
     }
-
     try {
       const videoDownloadLink = await fbdl(videoLink);
       const response = await axios.get(videoDownloadLink, {
@@ -190,9 +197,7 @@ ovlcmd(
         },
       });
       const videoBuffer = Buffer.from(response.data);
-
       return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
-
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
       console.error('Error:', error);
@@ -202,74 +207,68 @@ ovlcmd(
 );
 
 ovlcmd(
-{
+  {
     nom_cmd: "ttdl",
     classe: "Telechargement",
     react: "📥",
-	alias: ["tiktok", "tikdl", "tiktokdl"],
+    alias: ["tiktok", "tikdl", "tiktokdl"],
     desc: "Télécharger un média depuis TikTok"
-},
-async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, auteur_Message, msg_Repondu } = cmd_options;
-    if (!arg.length && msg_Repondu) {
+  },
+  async (ms_org, ovl, cmd_options) => {
+    let { arg, ms, auteur_Message, msg_Repondu } = cmd_options;
+    let finalArg = arg;
+    if (!finalArg.length && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
       if (typeof repTexte === "string") {
         const mots = repTexte.split(/ +/);
         const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) arg = [lien];
+        if (lien) finalArg = [lien];
       }
-	}
-	
-    const videoLink = arg.join(" ");
-    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok, par exemple : ttdl https://vm.tiktok.com/..." }, { quoted: ms });
-
-    try {
-        const links = await ttdl(videoLink);
-        const options = [];
-        if (links.noWatermark) options.push({ type: "video", label: "Vidéo sans filigrane", url: links.noWatermark });
-        if (links.mp3) options.push({ type: "audio", label: "Audio (MP3)", url: links.mp3 });
-        if (links.slides.length > 0) options.push({ type: "images", label: "Images (slides)", urls: links.slides });
-        if (options.length === 0) return ovl.sendMessage(ms_org, { text: "Aucun fichier téléchargeable trouvé." }, { quoted: ms });
-
-        let choixValide = false;
-        let selection;
-
-        while (!choixValide) {
-            let msg = "📥 Options disponibles :\n";
-            options.forEach((opt, idx) => msg += `${idx + 1}. ${opt.label}\n`);
-            msg += "\nRépondez avec le numéro de l'option à télécharger.";
-            await ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
-
-            const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
-            const reponse = rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "";
-            const choix = parseInt(reponse.trim(), 10);
-
-            if (!isNaN(choix) && choix >= 1 && choix <= options.length) {
-                selection = options[choix - 1];
-                choixValide = true;
-            } else {
-                await ovl.sendMessage(ms_org, { text: "Choix invalide, veuillez réessayer." }, { quoted: ms });
-            }
-        }
-
-        if (selection.type === "video") {
-            const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
-            await ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
-        } else if (selection.type === "audio") {
-            const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
-            await ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
-        } else if (selection.type === "images") {
-            for (const imgUrl of selection.urls) {
-                const file = await axios.get(imgUrl, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
-                await ovl.sendMessage(ms_org, { image: Buffer.from(file.data) }, { quoted: ms });
-            }
-        }
-
-    } catch (error) {
-        ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
-        console.error('Error:', error);
     }
-});
+    const videoLink = finalArg.join(" ");
+    if (!videoLink) return ovl.sendMessage(ms_org, { text: "Veuillez fournir un lien vidéo TikTok, par exemple : ttdl https://vm.tiktok.com/..." }, { quoted: ms });
+    try {
+      const links = await ttdl(videoLink);
+      const options = [];
+      if (links.noWatermark) options.push({ type: "video", label: "Vidéo sans filigrane", url: links.noWatermark });
+      if (links.mp3) options.push({ type: "audio", label: "Audio (MP3)", url: links.mp3 });
+      if (links.slides.length > 0) options.push({ type: "images", label: "Images (slides)", urls: links.slides });
+      if (options.length === 0) return ovl.sendMessage(ms_org, { text: "Aucun fichier téléchargeable trouvé." }, { quoted: ms });
+      let choixValide = false;
+      let selection;
+      while (!choixValide) {
+        let msg = "📥 Options disponibles :\n";
+        options.forEach((opt, idx) => msg += `${idx + 1}. ${opt.label}\n`);
+        msg += "\nRépondez avec le numéro de l'option à télécharger.";
+        await ovl.sendMessage(ms_org, { text: msg }, { quoted: ms });
+        const rep = await ovl.recup_msg({ auteur: auteur_Message, ms_org, temps: 60000 });
+        const reponse = rep?.message?.conversation || rep?.message?.extendedTextMessage?.text || "";
+        const choix = parseInt(reponse.trim(), 10);
+        if (!isNaN(choix) && choix >= 1 && choix <= options.length) {
+          selection = options[choix - 1];
+          choixValide = true;
+        } else {
+          await ovl.sendMessage(ms_org, { text: "Choix invalide, veuillez réessayer." }, { quoted: ms });
+        }
+      }
+      if (selection.type === "video") {
+        const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
+        await ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
+      } else if (selection.type === "audio") {
+        const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
+        await ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
+      } else if (selection.type === "images") {
+        for (const imgUrl of selection.urls) {
+          const file = await axios.get(imgUrl, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
+          await ovl.sendMessage(ms_org, { image: Buffer.from(file.data) }, { quoted: ms });
+        }
+      }
+    } catch (error) {
+      ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
+      console.error('Error:', error);
+    }
+  }
+);
 
 ovlcmd(
   {
@@ -280,18 +279,17 @@ ovlcmd(
     desc: "Télécharger ou envoyer directement une vidéo depuis Instagram",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, msg_Repondu } = cmd_options;
-	if (!arg.length && msg_Repondu) {
+    let { arg, ms, msg_Repondu } = cmd_options;
+    let finalArg = arg;
+    if (!finalArg.length && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
       if (typeof repTexte === "string") {
         const mots = repTexte.split(/ +/);
         const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) arg = [lien];
+        if (lien) finalArg = [lien];
       }
-	}
-	  
-    const videoLink = arg.join(" ");
-
+    }
+    const videoLink = finalArg.join(" ");
     if (!videoLink) {
       return ovl.sendMessage(ms_org, {
         text: "Veuillez fournir un lien vidéo Instagram, par exemple : igdl https://www.instagram.com/reel/...",
@@ -307,7 +305,6 @@ ovlcmd(
           "User-Agent": "GoogleBot",
         },
       });
-	    
       return ovl.sendMessage(ms_org, {
         video: Buffer.from(video.data),
         caption: `\`\`\`Powered By OVL-MD-V2\`\`\``
@@ -324,31 +321,28 @@ ovlcmd(
     nom_cmd: "twitterdl",
     classe: "Telechargement",
     react: "📥",
-	alias: ["twitter", "twitdl"],
+    alias: ["twitter", "twitdl"],
     desc: "Télécharger ou envoyer directement une vidéo depuis Twitter",
   },
   async (ms_org, ovl, cmd_options) => {
-    const { arg, ms, msg_Repondu } = cmd_options;
-	if (!arg.length && msg_Repondu) {
+    let { arg, ms, msg_Repondu } = cmd_options;
+    let finalArg = arg;
+    if (!finalArg.length && msg_Repondu) {
       const repTexte = msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text || "";
       if (typeof repTexte === "string") {
         const mots = repTexte.split(/ +/);
         const lien = mots.find(mot => mot.startsWith("https"));
-        if (lien) arg = [lien];
+        if (lien) finalArg = [lien];
       }
-	}
-	  
-    const videoLink = arg.join(" ");
-
+    }
+    const videoLink = finalArg.join(" ");
     if (!videoLink) {
       return ovl.sendMessage(ms_org, {
         text: "Veuillez fournir un lien vidéo Twitter, par exemple : twitterdl https://twitter.com/...",
       }, { quoted: ms });
     }
-
     try {
       const downloadLinks = await twitterdl(videoLink);
-
       const video = await axios.get(downloadLinks.result.video, {
         responseType: "arraybuffer",
         headers: {
@@ -357,7 +351,6 @@ ovlcmd(
           "User-Agent": "GoogleBot",
         },
       });
-
       return ovl.sendMessage(ms_org, {
         video: Buffer.from(video.data),
         caption: `\`\`\`Powered By OVL-MD-V2\`\`\``

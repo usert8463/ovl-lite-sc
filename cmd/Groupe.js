@@ -144,7 +144,7 @@ ovlcmd(
                     contenu_msg = { sticker: sticker_buffer, mentions: membres_Groupe };
                 } else {
                     contenu_msg = {
-                        text: msg_Repondu.conversation,
+                        text: msg_Repondu.conversation || msg_Repondu.extendedTextMessage?.text,
                         mentions: membres_Groupe
                     };
                 }

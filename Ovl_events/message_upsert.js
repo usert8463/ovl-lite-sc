@@ -119,7 +119,7 @@ async function message_upsert(m, ovl) {
       infos_Groupe, nom_Groupe, auteur_Message, nom_Auteur_Message, mtype,
       id_Bot, prenium_id, dev_id, dev_num, id_Bot_N, verif_Ovl_Admin,
       prefixe: config.PREFIXE, arg, repondre, groupe_Admin: () => groupe_Admin,
-      msg_Repondu, auteur_Msg_Repondu, ms, ms_org, texte, getJid, quote
+      msg_Repondu, auteur_Msg_Repondu, ms, ms_org, texte, getJid, quote, m
     };
 
     const executerCommande = async (cd, isStickerCmd = false) => {

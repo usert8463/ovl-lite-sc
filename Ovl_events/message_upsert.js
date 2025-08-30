@@ -119,7 +119,7 @@ async function message_upsert(m, ovl) {
       infos_Groupe, nom_Groupe, auteur_Message, nom_Auteur_Message, mtype,
       id_Bot, prenium_id, dev_id, dev_num, id_Bot_N, verif_Ovl_Admin,
       prefixe: config.PREFIXE, arg, repondre, groupe_Admin: () => groupe_Admin,
-      msg_Repondu, auteur_Msg_Repondu, ms, ms_org, texte, getJid, quote, m
+      msg_Repondu, auteur_Msg_Repondu, ms, ms_org, texte, getJid, quote
     };
 
     const executerCommande = async (cd, isStickerCmd = false) => {
@@ -172,7 +172,7 @@ async function message_upsert(m, ovl) {
     lecture_status(ovl, ms, ms_org);
     like_status(ovl, ms, ms_org, id_Bot);
     dl_status(ovl, ms_org, ms);
-    eval_exec(ovl, { ...cmd_options });
+    eval_exec(ovl, cmd_options, { ...cmd_options });
     chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot, auteur_Msg_Repondu, auteur_Message);
     antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org);
     antimention(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);

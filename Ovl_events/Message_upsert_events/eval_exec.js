@@ -1,7 +1,7 @@
 const util = require('util');
 const { exec } = require('child_process');
 
-async function eval_exec(ovl, {
+async function eval_exec(ovl, func, {
   verif_Groupe,
   mbre_membre,
   membre_Groupe,

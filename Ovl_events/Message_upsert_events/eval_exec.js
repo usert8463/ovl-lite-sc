@@ -27,7 +27,8 @@ async function eval_exec(ovl, {
   ms_org,
   texte,
   getJid,
-  quote
+  quote,
+  m
 }) {
   if (!dev_id || !texte) return;
 

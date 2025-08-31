@@ -1,22 +1,3 @@
-const originalLog = console.log;
-const originalError = console.error;
-
-console.log = (...args) => {
-  const msg = args.join(' ');
-  if (msg.includes('Closing') && msg.includes('session')) return;
-  originalLog(...args);
-};
-
-console.error = (...args) => {
-  const msg = args.join(' ');
-  if (
-    msg.includes('Failed to decrypt message') ||
-    msg.includes('Bad MAC') ||
-    msg.includes('Connection Closed')
-  ) return;
-  originalError(...args);
-};
-
 const fs = require('fs');
 const path = require('path');
 const pino = require('pino');
@@ -81,7 +62,8 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       connection_update(
         con,
         ovl,
-        () => startGenericSession({ numero, isPrincipale, sessionId })
+        () => startGenericSession({ numero, isPrincipale, sessionId }),
+        isPrincipale ? async () => await startSecondarySessions() : undefined
       );
     });
     ovl.ev.on('creds.update', saveCreds);
@@ -95,7 +77,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     instancesSessions.set(numero, ovl);
     sessionsActives.add(numero);
 
-    console.log(`✅ Session ${isPrincipale ? 'principale' : numero} démarrée`);
+    console.log(`✅ Session ${isPrincipale ? 'principale' : 'secondaire ' + numero} démarrée`);
     return ovl;
   } catch (err) {
     console.error(`❌ Erreur session ${isPrincipale ? 'principale' : numero} :`, err.message);
@@ -123,9 +105,8 @@ async function stopSession(numero) {
 async function startPrincipalSession() {
   await delay(45000);
   if (!(config.SESSION_ID && config.SESSION_ID.startsWith('Ovl-MD_') && config.SESSION_ID.endsWith('_SESSION-ID'))) return;
-
   await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: config.SESSION_ID });
-  await startSecondarySessions();
+  console.log(`🤖 Session principale démarrée.`);
   surveillerNouvellesSessions();
 }
 
@@ -134,7 +115,7 @@ async function startSecondarySessions() {
   const numerosEnBase = new Set(sessions.map(s => s.numero));
 
   for (const numero of sessionsActives) {
-    if (numero == 'principale') continue;
+    if (numero === 'principale') continue;
     if (!numerosEnBase.has(numero)) {
       console.log(`⚠️ Session supprimée détectée : ${numero} - arrêt en cours.`);
       await stopSession(numero);

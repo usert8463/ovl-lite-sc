@@ -122,7 +122,7 @@ async function startPrincipalSession() {
   await delay(45000);
   if (!(config.SESSION_ID && config.SESSION_ID.startsWith('Ovl-MD_') && config.SESSION_ID.endsWith('_SESSION-ID'))) return;
   await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: config.SESSION_ID });
-  await startSecondarySessions();
+ // await startSecondarySessions();
   console.log(`🤖 Session principale + secondaires démarrées : ${sessionsActives.size}/${MAX_SESSIONS}`);
   surveillerNouvellesSessions();
 }
@@ -132,7 +132,7 @@ async function startSecondarySessions() {
   const numerosEnBase = new Set(sessions.map(s => s.numero));
 
   for (const numero of sessionsActives) {
-    //if (numero == 'principale') continue;
+    if (numero == 'principale') continue;
     if (!numerosEnBase.has(numero)) {
       console.log(`⚠️ Session supprimée détectée : ${numero} - arrêt en cours.`);
       await stopSession(numero);

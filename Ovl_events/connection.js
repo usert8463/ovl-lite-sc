@@ -73,10 +73,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
             });
 
             await delay(10000);
-
-            if (startNextSession) {
-                await startNextSession();
-            }
+            
             break;
 
         case "close":

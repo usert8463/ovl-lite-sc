@@ -42,7 +42,7 @@ const {
 } = require('./Ovl_events');
 const { getSecondAllSessions } = require('./DataBase/connect');
 
-const MAX_SESSIONS = 100;
+const MAX_SESSIONS = 10;
 const sessionsActives = new Set();
 const instancesSessions = new Map();
 
@@ -58,10 +58,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     const ovl = makeWASocket({
       auth: {
         creds: state.creds,
-        keys: makeCacheableSignalKeyStore(
-          state.keys,
-          pino({ level: 'silent' }).child({ level: 'silent' })
-        )
+        keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }).child({ level: 'silent' }))
       },
       logger: pino({ level: 'silent' }),
       browser: Browsers.ubuntu('Chrome'),
@@ -82,12 +79,12 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
         con,
         ovl,
         () => startGenericSession({ numero, isPrincipale, sessionId }),
-        isPrincipale ? async () => await startSecondarySessions() : undefined
       );
     });
     ovl.ev.on('creds.update', saveCreds);
     ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));
-
+    ovl.ev.on('presence.update', async (presenceEvent) => {});
+    
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);
 
@@ -135,6 +132,7 @@ async function startSecondarySessions() {
   const numerosEnBase = new Set(sessions.map(s => s.numero));
 
   for (const numero of sessionsActives) {
+    if (numero == 'principale') continue;
     if (!numerosEnBase.has(numero)) {
       console.log(`⚠️ Session supprimée détectée : ${numero} - arrêt en cours.`);
       await stopSession(numero);

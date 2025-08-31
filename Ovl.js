@@ -122,8 +122,6 @@ async function startPrincipalSession() {
   await delay(45000);
   if (!(config.SESSION_ID && config.SESSION_ID.startsWith('Ovl-MD_') && config.SESSION_ID.endsWith('_SESSION-ID'))) return;
   await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: config.SESSION_ID });
- // await startSecondarySessions();
-  console.log(`🤖 Session principale + secondaires démarrées : ${sessionsActives.size}/${MAX_SESSIONS}`);
   surveillerNouvellesSessions();
 }
 

@@ -81,7 +81,8 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       connection_update(
         con,
         ovl,
-        () => startGenericSession({ numero, isPrincipale, sessionId })
+        () => startGenericSession({ numero, isPrincipale, sessionId }),
+        isPrincipale ? async () => await startSecondarySessions() : undefined
       );
     });
     ovl.ev.on('creds.update', saveCreds);
@@ -134,7 +135,6 @@ async function startSecondarySessions() {
   const numerosEnBase = new Set(sessions.map(s => s.numero));
 
   for (const numero of sessionsActives) {
-    if (numero == 'principale') continue;
     if (!numerosEnBase.has(numero)) {
       console.log(`⚠️ Session supprimée détectée : ${numero} - arrêt en cours.`);
       await stopSession(numero);

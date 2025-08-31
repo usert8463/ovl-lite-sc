@@ -1,3 +1,22 @@
+const originalLog = console.log;
+const originalError = console.error;
+
+console.log = (...args) => {
+  const msg = args.join(' ');
+  if (msg.includes('Closing') && msg.includes('session')) return;
+  originalLog(...args);
+};
+
+console.error = (...args) => {
+  const msg = args.join(' ');
+  if (
+    msg.includes('Failed to decrypt message') ||
+    msg.includes('Bad MAC') ||
+    msg.includes('Connection Closed')
+  ) return;
+  originalError(...args);
+};
+
 const fs = require('fs');
 const path = require('path');
 const pino = require('pino');
@@ -23,7 +42,7 @@ const {
 } = require('./Ovl_events');
 const { getSecondAllSessions } = require('./DataBase/connect');
 
-const MAX_SESSIONS = 10;
+const MAX_SESSIONS = 100;
 const sessionsActives = new Set();
 const instancesSessions = new Map();
 
@@ -62,8 +81,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       connection_update(
         con,
         ovl,
-        () => startGenericSession({ numero, isPrincipale, sessionId }),
-        isPrincipale ? async () => await startSecondarySessions() : undefined
+        () => startGenericSession({ numero, isPrincipale, sessionId })
       );
     });
     ovl.ev.on('creds.update', saveCreds);
@@ -106,7 +124,8 @@ async function startPrincipalSession() {
   await delay(45000);
   if (!(config.SESSION_ID && config.SESSION_ID.startsWith('Ovl-MD_') && config.SESSION_ID.endsWith('_SESSION-ID'))) return;
   await startGenericSession({ numero: 'principale', isPrincipale: true, sessionId: config.SESSION_ID });
-  console.log(`🤖 Session principale démarrée.`);
+  await startSecondarySessions();
+  console.log(`🤖 Session principale + secondaires démarrées : ${sessionsActives.size}/${MAX_SESSIONS}`);
   surveillerNouvellesSessions();
 }
 
@@ -115,7 +134,7 @@ async function startSecondarySessions() {
   const numerosEnBase = new Set(sessions.map(s => s.numero));
 
   for (const numero of sessionsActives) {
-    if (numero === 'principale') continue;
+    if (numero == 'principale') continue;
     if (!numerosEnBase.has(numero)) {
       console.log(`⚠️ Session supprimée détectée : ${numero} - arrêt en cours.`);
       await stopSession(numero);
@@ -123,7 +142,8 @@ async function startSecondarySessions() {
   }
 
   for (const { numero, session_id } of sessions) {
-    if (sessionsActives.size >= MAX_SESSIONS + 1) break;
+    if (sessionsActives.size >= MAX_SESSIONS) break;
+
     if (!sessionsActives.has(numero)) {
       try {
         await startGenericSession({

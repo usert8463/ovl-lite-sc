@@ -4,8 +4,6 @@ const { delay, DisconnectReason } = require("@whiskeysockets/baileys");
 let evt = require("../lib/ovlcmd");
 const pkg = require('../package');
 const config = require("../set");
-const { installpg } = require("../lib/plugin");
-const { manage_env } = require("../lib/manage_env");
 
 async function connection_update(con, ovl, main, startNextSession = null) {
     const { connection, lastDisconnect } = con;
@@ -22,12 +20,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
 │    🎉  OVL BOT ONLINE 🎉   
 │                          
 ╰─────────────────╯
-`);
-
-            console.log("🔄 Synchronisation des variables d'environnement...");
-            await manage_env();
-            console.log("✅ Variables synchronisées.");
-
+`);            
             const commandes = fs.readdirSync(path.join(__dirname, "../cmd"))
                 .filter(f => path.extname(f).toLowerCase() === ".js");
 

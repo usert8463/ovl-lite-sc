@@ -220,7 +220,7 @@ ovlcmd(
         );
       }
 
-      let menu = `╭──⟪ 🤖 OVL-MD BOT V2 ⟫──╮
+      let menu = `╭──⟪ 🤖 OVL-MD V2 LITE ⟫──╮
 ├ ߷ Préfixe       : ${config.PREFIXE}
 ├ ߷ Owner         : ${config.NOM_OWNER}
 ├ ߷ Commandes  : ${commandes.length}

@@ -5,9 +5,7 @@
   "main": "Ovl.js",
   "scripts": {
     "start": "node Ovl.js",
-    "stop": "pm2 stop all",
-    "Ovl": "pm2 start Ovl.js --attach --name ovl"
-    },
+  },
   "engines": {
     "node": "20.x"
   },
@@ -32,7 +30,6 @@
     "jimp": "^1.6.0",
     "pg": "^8.16.3",
     "pino": "^9.7.0",
-    "pm2": "^6.0.8",
     "sqlite3": "^5.1.7",
     "tempmail.lol": "^4.4.0",
     "sequelize": "^6.37.7",

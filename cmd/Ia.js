@@ -16,11 +16,11 @@ ovlcmd(
         }
 
         const prompt = arg.join(" ");
-        const apiUrl = `https://api.shizo.top/ai/gpt?apikey=shizo&query=${encodeURIComponent(prompt)}`;
+        const apiUrl = `https://ab-chatgpt4o.abrahamdw882.workers.dev/?q=${encodeURIComponent(prompt)}`;
 
         try {
             const result = await axios.get(apiUrl);
-            const responseText = result.data?.msg || "Erreur de réponse de l\'API.";
+            const responseText = result.data?.data || "Erreur de réponse de l\'API.";
             return repondre(responseText);
         } catch (error) {
             console.error("Erreur GPT :", error);

@@ -1,7 +1,6 @@
 const { ovlcmd, cmd } = require("../lib/ovlcmd");
 const axios = require('axios');
 const gis = require("g-i-s");
-const wiki = require('wikipedia');
 const { Sticker, StickerTypes } = require("wa-sticker-formatter");
 const config = require('../set');
 const { translate } = require('@vitalets/google-translate-api');
@@ -91,35 +90,6 @@ ovlcmd(
             console.error("Erreur dans la recherche Google :", error);
             await ovl.sendMessage(ms_org, {
                 text: "❗ Une erreur est survenue lors de la recherche sur Google. Veuillez réessayer.",
-            }, { quoted: ms });
-        }
-    }
-);
-
-ovlcmd(
-    {
-        nom_cmd: "wiki",
-        classe: "Search",
-        react: "📖",
-        desc: "Recherche sur Wikipédia.",
-    },
-    async (ms_org, ovl, cmd_options) => {
-        const { arg, ms } = cmd_options;
-        if (!arg[0]) {
-            return await ovl.sendMessage(ms_org, { text: "❗ Entrez un terme à rechercher sur Wikipédia." }, { quoted: ms });
-        }
-
-        const searchTerm = arg.join(" ");
-        try {
-            const con = await wiki.summary(searchTerm);
-
-            const mess = `*📖Wikipédia :*\n\n*📌Titre:* ${con.title}\n\n*📃Description:* ${con.description}\n\n*📄Résumé:* ${con.extract}\n\n*🌐Lien:* ${con.content_urls.mobile.page}`;
-
-            await ovl.sendMessage(ms_org, { text: mess }, { quoted: ms });
-        } catch (error) {
-            console.error("Erreur dans la recherche Wikipédia :", error);
-            await ovl.sendMessage(ms_org, {
-                text: "❗ Une erreur est survenue lors de la recherche sur Wikipédia. Veuillez réessayer.",
             }, { quoted: ms });
         }
     }

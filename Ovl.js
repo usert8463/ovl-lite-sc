@@ -1,22 +1,3 @@
-const originalLog = console.log;
-const originalError = console.error;
-
-console.log = (...args) => {
-  const msg = args.join(' ');
-  if (msg.includes('Closing') && msg.includes('session')) return;
-  originalLog(...args);
-};
-
-console.error = (...args) => {
-  const msg = args.join(' ');
-  if (
-    msg.includes('Failed to decrypt message') ||
-    msg.includes('Bad MAC') ||
-    msg.includes('Connection Closed')
-  ) return;
-  originalError(...args);
-};
-
 const fs = require('fs');
 const path = require('path');
 const pino = require('pino');
@@ -29,14 +10,11 @@ const {
   useMultiFileAuthState
 } = require('@whiskeysockets/baileys');
 
-const { getMessage } = require('./lib/store');
 const { get_session, restaureAuth } = require('./DataBase/session');
 const config = require('./set');
 const {
   message_upsert,
-  group_participants_update,
   connection_update,
-  call,
   dl_save_media_ms,
   recup_msg
 } = require('./Ovl_events');
@@ -66,14 +44,9 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       keepAliveIntervalMs: 10000,
       markOnlineOnConnect: false,
       generateHighQualityLinkPreview: true,
-      getMessage: async (key) => {
-        const msg = getMessage(key.id);
-        return msg?.message || undefined;
-      }
     });
 
     ovl.ev.on('messages.upsert', async (m) => message_upsert(m, ovl));
-    //ovl.ev.on('group-participants.update', async (data) => group_participants_update(data, ovl));
     ovl.ev.on('connection.update', async (con) => {
       connection_update(
         con,
@@ -83,8 +56,6 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       );
     });
     ovl.ev.on('creds.update', saveCreds);
-   // ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));
-    
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);
 

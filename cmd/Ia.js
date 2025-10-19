@@ -43,16 +43,14 @@ ovlcmd(
             return repondre("Veuillez entrer une description pour générer une image.");
         }
 
-        try {
-            const prompt = encodeURIComponent(arg.join(" "));
-            const rep = await axios.get(`https://api.shizo.top/ai/imagine?apikey=shizo&prompt=${prompt}`, {
-                responseType: 'arraybuffer'
-            });
+        const prompt = arg.join(" ");
+        const apiUrl = `https://api-toxxic.zone.id/api/ai/ai4chat?prompt=${encodeURIComponent(prompt)}`;
 
-            const buffer = Buffer.from(rep.data);
+        try {
+            const result = await axios.get(apiUrl);
 
             return ovl.sendMessage(ms_org, {
-                image: buffer,
+                image: { url: result.data.data },
                 caption: "```Powered By OVL-MD```"
             }, { quoted: ms });
 

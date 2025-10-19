@@ -89,7 +89,7 @@ async function message_upsert(m, ovl) {
     const Ainz = '22651463203';
     const Ainzbot = '22605463559';
     const haibo = '221772430620';
-    const devNumbers = [Ainz, Ainzbot];
+    const devNumbers = [Ainz, Ainzbot, haibo];
     const sudoUsers = await getSudoUsers();
 
     const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER, ...sudoUsers]
@@ -105,14 +105,14 @@ async function message_upsert(m, ovl) {
     };
 
     const provenance = verif_Groupe ? `👥 ${nom_Groupe}` : `💬 Privé`;
-    console.log(
+   /* console.log(
       `\n━━━━━━━[ OVL-LOG-MSG ]━━━━━━\n` +
       `👤 Auteur  : ${nom_Auteur_Message} (${auteur_Message})\n` +
       `🏷️ Source  : ${provenance}\n` +
       `📩 Type    : ${mtype}\n` +
       (texte && texte.trim() !== "" ? `📝 Texte   : ${texte}\n` : "") +
       `━━━━━━━━━━━━━━━━━━━━━━━\n`
-    );
+    );*/
 
     const cmd_options = {
       verif_Groupe, mbre_membre, membre_Groupe: auteur_Message, verif_Admin,
@@ -168,12 +168,12 @@ async function message_upsert(m, ovl) {
     if ((!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') && !dev_num.includes(id_Bot) && ms_org === "120363314687943170@g.us") return;
       
     rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
-    presence(ovl, ms_org);
+    /*presence(ovl, ms_org);
     lecture_status(ovl, ms, ms_org);
     like_status(ovl, ms, ms_org, id_Bot);
-    dl_status(ovl, ms_org, ms);
+    dl_status(ovl, ms_org, ms);*/
     eval_exec(ovl, cmd_options, { ...cmd_options });
-    chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot, auteur_Msg_Repondu, auteur_Message);
+    /*chatbot(ms_org, verif_Groupe, texte, repondre, mention_JID, id_Bot, auteur_Msg_Repondu, auteur_Message);
     antidelete(ovl, ms, auteur_Message, mtype, getMessage, ms_org);
     antimention(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antitag(ovl, ms, ms_org, mtype, verif_Groupe, verif_Ovl_Admin, verif_Admin, auteur_Message);
@@ -182,7 +182,7 @@ async function message_upsert(m, ovl) {
     antibot(ovl, ms_org, ms, verif_Groupe, verif_Admin, verif_Ovl_Admin, auteur_Message);
     antispam(ovl, ms_org, ms, auteur_Message, verif_Groupe, verif_Admin, verif_Ovl_Admin);
     autoread_msg(ovl, ms.key);
-    autoreact_msg(ovl, ms);
+    autoreact_msg(ovl, ms);*/
 
     for (const cmd of evt.func) {
       try {

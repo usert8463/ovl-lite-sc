@@ -8,6 +8,9 @@
     "start": "node Ovl.js",
     "stop": "pm2 stop all",
     "Ovl": "pm2 start Ovl.js --attach --name ovl"
+    },
+  "engines": {
+    "node": "20.x"
   },
   "keywords": ["Ainz", "OVL-MD-V2", "Whatsapp", "Baileys", "Muti-device"],
   "author": "Ainz-devs",

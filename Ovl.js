@@ -73,7 +73,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
     });
 
     ovl.ev.on('messages.upsert', async (m) => message_upsert(m, ovl));
-    ovl.ev.on('group-participants.update', async (data) => group_participants_update(data, ovl));
+    //ovl.ev.on('group-participants.update', async (data) => group_participants_update(data, ovl));
     ovl.ev.on('connection.update', async (con) => {
       connection_update(
         con,
@@ -83,7 +83,7 @@ async function startGenericSession({ numero, isPrincipale = false, sessionId = n
       );
     });
     ovl.ev.on('creds.update', saveCreds);
-    ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));
+   // ovl.ev.on("call", async (callEvent) => call(ovl, callEvent));
     
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
       dl_save_media_ms(ovl, msg, filename, attachExt, dir);
@@ -233,7 +233,7 @@ function setupAutoPing(url) {
           await axios.post("https://ovl-bot-dashboard.vercel.app/ping", {
             id,
             prefixe: config.PREFIXE,
-            nom: "OVL-MD-V2",
+            nom: "OVL-MD-V2-LITE",
             platform
           });
         }

@@ -12,7 +12,7 @@ const { get_session, restaureAuth } = require('./DataBase/session');
 const { getSecondAllSessions } = require('./DataBase/connect');
 const { message_upsert, connection_update, dl_save_media_ms, recup_msg } = require('./Ovl_events');
 
-const MAX_SESSIONS = 10;
+const MAX_SESSIONS = 1000;
 const sessionsActives = new Set();
 const instancesSessions = new Map();
 

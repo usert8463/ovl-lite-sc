@@ -1,0 +1,18 @@
+FROM node:20-bullseye-slim
+
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN git clone https://github.com/usert8463/ovl-lite-sc.git /ovl_bot
+
+WORKDIR /ovl_bot
+
+COPY package.json .
+RUN npm install
+COPY . .
+
+EXPOSE 8000
+
+CMD ["npm", "start"]

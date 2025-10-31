@@ -35,6 +35,18 @@ async function get_all_id() {
   }
 }
 
+async function del_id(id) {
+  if (!id) throw new Error('❌ ID requis pour la suppression');
+
+  try {
+    const response = await axios.get(`https://ovl-lite-free.koyeb.app/dlt?id=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('❌ Erreur lors de la suppression de l’ID :', error.message);
+    return null;
+  }
+}
+
 async function restaureAuth(instanceId, creds, keys) {
   const authDir = path.join(__dirname, '../auth');
   if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true });
@@ -57,5 +69,6 @@ async function restaureAuth(instanceId, creds, keys) {
 module.exports = {
   get_session,
   restaureAuth,
-  get_all_id
+  get_all_id,
+  del_id
 };

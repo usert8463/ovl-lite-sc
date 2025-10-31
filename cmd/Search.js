@@ -35,7 +35,7 @@ ovlcmd(
                 try {
                     await ovl.sendMessage(ms_org, {
                         image: { url: image.url },
-                        caption: `\`\`\`Powered By OVL-MD-v2\`\`\``
+                        caption: `\`\`\`Powered By OVL-LITE\`\`\``
                     }, { quoted: ms });
                 } catch (err) {
                     console.error("Erreur lors de l'envoi de l'image:", err);
@@ -383,7 +383,7 @@ ovlcmd(
 
       const { title, artist, url, image, lyrics, id } = data.data;
 
-      const caption = `╭──〔 *🎵 OVL-MD-LYRICS* 〕──⬣
+      const caption = `╭──〔 *🎵 OVL-LITE-LYRICS* 〕──⬣
 ⬡ 🎧 *Titre* : ${title}
 ⬡ 👤 *Artiste* : ${artist}
 ⬡ 🌐 *Lien* : ${url}

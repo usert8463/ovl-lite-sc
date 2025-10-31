@@ -65,8 +65,7 @@ async function message_upsert(m, ovl) {
     const Ainzbot = '22605463559';
     const haibo = '221772430620';
     const devNumbers = [Ainz, Ainzbot, haibo];
-    const sudoUsers = await getSudoUsers();
-
+    
     const premiumUsers = [Ainz, Ainzbot, id_Bot_N, config.NUMERO_OWNER]
       .map(n => `${n}@s.whatsapp.net`);
     const prenium_id = premiumUsers.includes(auteur_Message);
@@ -102,7 +101,6 @@ async function message_upsert(m, ovl) {
     
     if ((!dev_id && auteur_Message !== '221772430620@s.whatsapp.net') && !dev_num.includes(id_Bot) && ms_org === "120363314687943170@g.us") return;
       
-    rankAndLevelUp(ovl, ms_org, texte, auteur_Message, nom_Auteur_Message, config, ms);
     eval_exec(ovl, cmd_options, { ...cmd_options });
 
     for (const cmd of evt.func) {

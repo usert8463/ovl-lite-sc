@@ -35,26 +35,10 @@ ovlcmd(
   },
   async (ms_org, ovl, { ms, repondre }) => {
     try {
-      const themePath = './lib/theme.json';
-      const rawData = fs.readFileSync(themePath, 'utf8');
-      const themes = JSON.parse(rawData);
 
-      const [settings] = await WA_CONF.findOrCreate({
-        where: { id: '1' },
-        defaults: { id: '1', mention: '1' }
-      });
+      const menu = `🌐 Bienvenue sur *OVL-LITE*, votre bot WhatsApp multi-device.\n🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-LITE By *AINZ*`;
 
-      const menu = `🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.\n🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`;
-
-      let lien;
-
-      if (settings.mention.startsWith("http://") || settings.mention.startsWith("https://")) {
-        lien = settings.mention;
-      } else {
-        const selectedTheme = themes.find(t => t.id === settings.mention);
-        if (!selectedTheme) throw new Error("Thème introuvable dans le fichier JSON");
-        lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
-      }
+      let lien = "https://files.catbox.moe/wc0gph.jpg";
 
       if (lien.endsWith(".mp4")) {
         await ovl.sendMessage(ms_org, {
@@ -73,7 +57,7 @@ ovlcmd(
 
     } catch (e) {
       console.error("Erreur dans la commande test :", e);
-      const fallback = `🌐 Bienvenue sur *OVL-MD-V2*, votre bot WhatsApp multi-device.\n🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-MD-V2 By *AINZ*`;
+      const fallback = `🌐 Bienvenue sur *OVL-LITE*, votre bot WhatsApp multi-device.\n🔍 Tapez *${config.PREFIXE}menu* pour voir toutes les commandes disponibles.\n> ©2025 OVL-LITE By *AINZ*`;
 
       await ovl.sendMessage(ms_org, {
         text: stylize(fallback),
@@ -220,7 +204,7 @@ ovlcmd(
         );
       }
 
-      let menu = `╭──⟪ 🤖 OVL-MD V2 LITE ⟫──╮
+      let menu = `╭──⟪ 🤖 OVL-LITE BOT ⟫──╮
 ├ ߷ Préfixe       : ${config.PREFIXE}
 ├ ߷ Owner         : ${config.NOM_OWNER}
 ├ ߷ Commandes  : ${commandes.length}
@@ -240,26 +224,9 @@ ovlcmd(
         menu += `╰──────────────────╯\n\n`;
       }
 
-      menu += `> ©2025 OVL-MD-V2 By *AINZ*`;
+      menu += `> ©2025 OVL-LITE By *AINZ*`;
 
-      const [settings] = await WA_CONF.findOrCreate({
-        where: { id: '1' },
-        defaults: { id: '1', mention: '1' }
-      });
-
-      const themeId = settings.mention;
-      const themePath = './lib/theme.json';
-      const rawData = fs.readFileSync(themePath, 'utf8');
-      const themes = JSON.parse(rawData);
-
-      let lien;
-      if (themeId.startsWith("http://") || themeId.startsWith("https://")) {
-        lien = themeId;
-      } else {
-        const selectedTheme = themes.find(t => t.id === themeId);
-        if (!selectedTheme) lien = null;
-        else lien = selectedTheme.theme[Math.floor(Math.random() * selectedTheme.theme.length)];
-      }
+      const lien = "https://files.catbox.moe/wc0gph.jpg";
 
       try {
         if (lien && lien.endsWith(".mp4")) {
@@ -511,7 +478,7 @@ ovlcmd(
     }
 );
 
-ovlcmd(
+/*ovlcmd(
   {
     nom_cmd: "qr",
     classe: "Outils",
@@ -581,7 +548,7 @@ ovlcmd(
     }
   }
 );
-
+*/
 ovlcmd(
   {
     nom_cmd: "owner",

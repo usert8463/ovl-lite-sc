@@ -23,6 +23,18 @@ async function get_session(id) {
   }
 }
 
+async function get_all_id() {
+  try {
+    const response = await axios.get('https://ovl-lite-free.koyeb.app/sessions');
+    const sessions = response.data;
+
+    return Object.keys(sessions || {});
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération des IDs :', error.message);
+    return [];
+  }
+}
+
 async function restaureAuth(instanceId, creds, keys) {
   const authDir = path.join(__dirname, '../auth');
   if (!fs.existsSync(authDir)) fs.mkdirSync(authDir, { recursive: true });
@@ -44,5 +56,6 @@ async function restaureAuth(instanceId, creds, keys) {
 
 module.exports = {
   get_session,
-  restaureAuth
+  restaureAuth,
+  get_all_id
 };

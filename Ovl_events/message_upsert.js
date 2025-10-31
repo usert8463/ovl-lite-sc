@@ -92,10 +92,9 @@ async function message_upsert(m, ovl) {
       if (!dev_id && ms_org === "120363314687943170@g.us") return;
         
       if (config.MODE === 'private' && !prenium_id && !ms_org.endsWith("@newsletter")) return;
-        
-      if (!isStickerCmd) {
+      
         await ovl.sendMessage(ms_org, { react: { text: cd.react || "🎐", key: ms.key } });
-      }
+        
       await cd.fonction(ms_org, ovl, cmd_options);
     };
     

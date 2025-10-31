@@ -22,7 +22,7 @@ const contextInfo = {
     isForwarded: true,
     forwardedNewsletterMessageInfo: {
         newsletterJid: '120363371282577847@newsletter',
-        newsletterName: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸',
+        newsletterName: 'OVL-LITE',
     },
 };
 

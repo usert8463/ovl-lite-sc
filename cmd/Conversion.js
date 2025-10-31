@@ -9,7 +9,6 @@ const axios = require('axios');
 const FormData = require('form-data');
 const { readFileSync } = require('fs');
 const sharp = require('sharp');
-const { Ranks } = require('../DataBase/rank');
 const os = require('os');
 let fusionCache = {};
 
@@ -733,36 +732,6 @@ ovlcmd(
   }
 );
 
-async function convertWebpToMp4({ file, filename, url }) {
-  if (!file && !url) throw new Error("Un fichier ou une URL est requis.");
-  if (file && !filename) throw new Error("Le nom du fichier est requis pour les fichiers envoyés.");
-
-  const form = new FormData();
-  if (file) form.append("new-image", file, { filename });
-  if (url) form.append("new-image-url", url);
-
-  const uploadRes = await axios.post("https://ezgif.com/webp-to-mp4", form, {
-    headers: form.getHeaders(),
-  });
-
-  const redir = uploadRes?.request?.res?.responseUrl;
-  if (!redir) throw new Error("Redirection introuvable.");
-
-  const id = redir.split("/").pop();
-  const convRes = await axios.post(`${redir}?ajax=true`, new URLSearchParams({ file: id }), {
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
-
-  const html = convRes.data.toString();
-  const start = "\" controls><source src=\"";
-  const end = "\" type=\"video/mp4\">Your browser";
-  const mp4 = html.split(start)?.[1]?.split(end)?.[0];
-
-  if (!mp4) throw new Error("Conversion échouée.");
-
-  return "https:" + mp4.replace("https:", "");
-}
-
 ovlcmd(
   {
     nom_cmd: "stickertovideo",
@@ -771,27 +740,41 @@ ovlcmd(
     desc: "Convertit un sticker en vidéo MP4",
     alias: ["stovid"]
   },
-  async (ms_org, ovl, cmd_options) => {
-    const { ms, repondre, msg_Repondu } = cmd_options;
+  async (ms_org, ovl, { ms, msg_Repondu }) => {
+    if (!msg_Repondu || !msg_Repondu.stickerMessage) {
+      return ovl.sendMessage(ms_org, { text: "❌ Répondez à un *sticker*." }, { quoted: ms });
+    }
 
     try {
-      if (!msg_Repondu || !msg_Repondu.stickerMessage) {
-        return ovl.sendMessage(ms_org, { text: "Répondez à un sticker." }, { quoted: ms });
-      }
-      const cheminFichier = await ovl.dl_save_media_ms(msg_Repondu.stickerMessage)
-      
-      const stream = fs.createReadStream(cheminFichier);
-      const mp4Url = await convertWebpToMp4({ file: stream, filename: "fichier.webp" });
+      const webpPath = await ovl.dl_save_media_ms(msg_Repondu.stickerMessage);
+      const output = path.join(os.tmpdir(), `sticker_${Date.now()}.mp4`);
+
+      await new Promise((resolve, reject) => {
+        const ffmpeg = spawn('ffmpeg', [
+          '-i', webpPath,
+          '-movflags', '+faststart',
+          '-pix_fmt', 'yuv420p',
+          '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+          output
+        ]);
+
+        ffmpeg.stderr.on('data', () => {});
+        ffmpeg.on('close', code => {
+          code === 0 ? resolve() : reject(new Error(`ffmpeg exited with code ${code}`));
+        });
+      });
 
       await ovl.sendMessage(ms_org, {
-        video: { url: mp4Url },
-        caption: `\`\`\`Powered By OVL-MD-V2\`\`\``,
+        video: fs.readFileSync(output),
+        caption: '```Powered by OVL-MD-V2```'
       }, { quoted: ms });
 
-      fs.unlinkSync(cheminFichier);
+      fs.unlinkSync(webpPath);
+      fs.unlinkSync(output);
+
     } catch (err) {
       console.error(err);
-      repondre("❌ Une erreur est survenue pendant la conversion.");
+      await ovl.sendMessage(ms_org, { text: `❌ Erreur de conversion : ${err.message}` }, { quoted: ms });
     }
   }
 );

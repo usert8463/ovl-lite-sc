@@ -5,7 +5,7 @@ let evt = require("../lib/ovlcmd");
 const pkg = require('../package');
 const config = require("../set");
 
-async function connection_update(con, ovl, main, startNextSession = null) {
+async function connection_update(con, del_id, sessionId, ovl, main, startNextSession = null) {
     const { connection, lastDisconnect } = con;
 
     switch (connection) {
@@ -60,7 +60,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363371282577847@newsletter',
-                        newsletterName: 'ᴏᴠʟ-ᴍᴅ-ᴠ𝟸'
+                        newsletterName: 'OVL-LITE'
                     }
                 }
             });
@@ -76,6 +76,7 @@ async function connection_update(con, ovl, main, startNextSession = null) {
         case "close":
             const code = lastDisconnect?.error?.output?.statusCode;
             if (code === DisconnectReason.loggedOut) {
+                await del_id(sessionId);
                 console.log("⛔ Déconnecté : Session terminée.");
             } else {
                 console.log("⚠️ Connexion perdue, tentative de reconnexion...");

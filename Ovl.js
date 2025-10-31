@@ -8,11 +8,15 @@ const {
   delay,
   useMultiFileAuthState
 } = require('@whiskeysockets/baileys');
-const { get_session, restaureAuth } = require('./DataBase/session');
-const { getSecondAllSessions } = require('./DataBase/connect');
+const { 
+  get_session,
+  restaureAuth,
+  get_all_id,
+  del_id
+} = require('./lib/manage_connections');
 const { message_upsert, connection_update, dl_save_media_ms, recup_msg } = require('./Ovl_events');
 
-const MAX_SESSIONS = 1000;
+const MAX_SESSIONS = 500;
 const sessionsActives = new Set();
 const instancesSessions = new Map();
 
@@ -35,7 +39,7 @@ async function startGenericSession({ numero, sessionId }) {
     });
     ovl.ev.on('messages.upsert', async (m) => message_upsert(m, ovl));
     ovl.ev.on('connection.update', async (con) => {
-      connection_update(con, ovl, () => startGenericSession({ numero, sessionId }));
+      connection_update(con, del_id, sessionId, ovl, () => startGenericSession({ numero, sessionId }));
     });
     ovl.ev.on('creds.update', saveCreds);
     ovl.dl_save_media_ms = (msg, filename = '', attachExt = true, dir = './downloads') =>
@@ -67,7 +71,7 @@ async function stopSession(numero) {
 }
 
 async function startSecondarySessions() {
-  const sessions = await getSecondAllSessions();
+  const sessions = await get_all_id();
   const numerosEnBase = new Set(sessions.map(s => s.numero));
   for (const numero of sessionsActives) {
     if (!numerosEnBase.has(numero)) {

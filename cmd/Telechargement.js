@@ -71,7 +71,7 @@ ovlcmd(
         { responseType: "arraybuffer" }
       );
       const videoBuffer = Buffer.from(response.data);
-      await ovl.sendMessage(ms_org, { video: videoBuffer, mimetype: "video/mp4", caption: "```Powered by OVL-MD-V2```" }, { quoted: ms });
+      await ovl.sendMessage(ms_org, { video: videoBuffer, mimetype: "video/mp4", caption: "```Powered by OVL-LITE```" }, { quoted: ms });
     } catch (e) {
       console.error(e);
       repondre("❌ Erreur lors du téléchargement de la vidéo.");
@@ -111,7 +111,7 @@ ovlcmd(
       const audioBuffer = Buffer.from(response.data);
       await ovl.sendMessage(
         ms_org,
-        { audio: audioBuffer, mimetype: "audio/mpeg", caption: "```Powered by OVL-MD-V2```" },
+        { audio: audioBuffer, mimetype: "audio/mpeg", caption: "```Powered by OVL-LITE```" },
         { quoted: ms }
       );
     } catch (e) {
@@ -153,7 +153,7 @@ ovlcmd(
       const videoBuffer = Buffer.from(response.data);
       await ovl.sendMessage(
         ms_org,
-        { video: videoBuffer, mimetype: "video/mp4", caption: "```Powered by OVL-MD-V2```" },
+        { video: videoBuffer, mimetype: "video/mp4", caption: "```Powered by OVL-LITE```" },
         { quoted: ms }
       );
     } catch (e) {
@@ -197,7 +197,7 @@ ovlcmd(
         },
       });
       const videoBuffer = Buffer.from(response.data);
-      return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-MD-V2\`\`\`` }, { quoted: ms });
+      return ovl.sendMessage(ms_org, { video: videoBuffer, caption: `\`\`\`Powered By OVL-LITE\`\`\`` }, { quoted: ms });
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
       console.error('Error:', error);
@@ -253,7 +253,7 @@ ovlcmd(
       }
       if (selection.type === "video") {
         const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
-        await ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-MD-V2```" }, { quoted: ms });
+        await ovl.sendMessage(ms_org, { video: Buffer.from(file.data), caption: "```Powered By OVL-LITE```" }, { quoted: ms });
       } else if (selection.type === "audio") {
         const file = await axios.get(selection.url, { responseType: "arraybuffer", headers: { "Accept": "application/octet-stream", "Content-Type": "application/octet-stream", "User-Agent": "GoogleBot" } });
         await ovl.sendMessage(ms_org, { audio: Buffer.from(file.data), mimetype: "audio/mp4" }, { quoted: ms });
@@ -307,7 +307,7 @@ ovlcmd(
       });
       return ovl.sendMessage(ms_org, {
         video: Buffer.from(video.data),
-        caption: `\`\`\`Powered By OVL-MD-V2\`\`\``
+        caption: `\`\`\`Powered By OVL-LITE\`\`\``
       }, { quoted: ms });
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
@@ -353,7 +353,7 @@ ovlcmd(
       });
       return ovl.sendMessage(ms_org, {
         video: Buffer.from(video.data),
-        caption: `\`\`\`Powered By OVL-MD-V2\`\`\``
+        caption: `\`\`\`Powered By OVL-LITE\`\`\``
       }, { quoted: ms });
     } catch (error) {
       ovl.sendMessage(ms_org, { text: `Erreur: ${error.message}` }, { quoted: ms });
@@ -397,7 +397,7 @@ ovlcmd(
 
       const downloadLink = appData.dllink;
       const captionText =
-        "『 *ᴏᴠʟ-ᴍᴅ-ᴠ𝟸 ᴀᴘᴋ-ᴅʟ* 』\n\n" +
+        "『 *ᴏᴠʟ-ʟɪᴛᴇ ᴀᴘᴋ-ᴅʟ* 』\n\n" +
         "*📱ɴᴏᴍ :* " + appData.name +
         "\n*🆔ɪᴅ :* " + appData.package +
         "\n*📅ᴍɪsᴇ ᴀ̀ ᴊᴏᴜʀ:* " + appData.lastup +

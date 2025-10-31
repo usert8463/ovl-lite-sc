@@ -59,7 +59,7 @@ function addTextproCommand(nom_cmd, text_pro_url, type) {
                     ms_org,
                     {
                         image: { url: logo_url.url },
-                        caption: "\`\`\`Powered By OVL-MD-V2\`\`\`"
+                        caption: "\`\`\`Powered By OVL-LITE\`\`\`"
                     },
                     { quoted: ms }
                 );

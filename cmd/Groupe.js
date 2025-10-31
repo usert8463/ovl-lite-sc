@@ -1,6 +1,5 @@
 const { ovlcmd } = require("../lib/ovlcmd");
 const fs = require("fs");
-const { Ranks } = require('../DataBase/rank');
 
 ovlcmd(
     {
@@ -507,72 +506,6 @@ ovlcmd(
     } catch (error) {
       console.error("Erreur lors de la suppression de la PP :", error);
       ovl.sendMessage(jid, { text: "❌ Une erreur est survenue lors de la suppression de la photo du groupe." }, { quoted: ms });
-    }
-  }
-);
-
-ovlcmd(
-  {
-    nom_cmd: "vcf",
-    classe: "Groupe",
-    react: "📇",
-    desc: "Enregistre les contacts de tous les membres du groupe dans un fichier VCF",
-  },
-  async (ms_org, ovl, cmd_options) => {
-    const { verif_Groupe, prenium_id, ms } = cmd_options;
-
-    try {
-      if (!verif_Groupe)
-        return ovl.sendMessage(ms_org, { text: "Cette commande doit être utilisée dans un groupe." }, { quoted: ms });
-
-      if (!prenium_id)
-        return ovl.sendMessage(ms_org, { text: "Vous n'avez pas les permissions requises pour utiliser cette commande." }, { quoted: ms });
-
-      const groupMetadata = await ovl.groupMetadata(ms_org).catch(() => null);
-      if (!groupMetadata || !groupMetadata.participants)
-        return ovl.sendMessage(ms_org, { text: "Échec de la récupération des métadonnées du groupe ou de la liste des participants." }, { quoted: ms });
-
-      const participants = groupMetadata.participants;
-      const vcfData = [];
-
-      for (const participant of participants) {
-        const jid = participant.jid;
-        const number = jid.split("@")[0];
-
-        let name = number;
-        try {
-          const user = await Ranks.findOne({ where: { id: jid } }).catch(() => null);
-          if (user && user.name) {
-            name = user.name;
-          } else if (participant.notify) {
-            name = participant.notify;
-          }
-        } catch {
-          name = number;
-        }
-
-        vcfData.push(`BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${number}\nEND:VCARD`);
-      }
-
-      const groupName = groupMetadata.subject || `Groupe_${ms_org.key.remoteJid.replace(/[@.]/g, "_")}`;
-      const vcfFileName = `contacts_groupe_${groupName}.vcf`;
-      const vcfFilePath = `./${vcfFileName}`;
-
-      fs.writeFileSync(vcfFilePath, vcfData.join("\n"));
-
-      const message = `*TOUS LES CONTACTS DES MEMBRES ENREGISTRÉS*\nGroupe : *${groupName}*\nContacts : *${participants.length}*`;
-
-      await ovl.sendMessage(ms_org, {
-        document: fs.readFileSync(vcfFilePath),
-        mimetype: "text/vcard",
-        filename: vcfFileName,
-        caption: message,
-      }, { quoted: ms });
-
-      fs.unlinkSync(vcfFilePath);
-    } catch (error) {
-      console.error("Erreur lors du traitement de la commande vcf:", error);
-      return ovl.sendMessage(ms_org, { text: "Une erreur est survenue lors du traitement de la commande vcf." }, { quoted: ms });
     }
   }
 );

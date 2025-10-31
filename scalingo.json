@@ -1,6 +1,0 @@
-{
-  "buildpacks": [
-    { "url": "https://github.com/Scalingo/nodejs-buildpack" },
-    { "url": "https://github.com/Scalingo-community/ffmpeg-buildpack.git" }
-  ]
-}

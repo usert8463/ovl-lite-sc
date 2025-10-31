@@ -7,6 +7,9 @@
   "scripts": {
     "start": "node Ovl.js"
   },
+  "engines": {
+  "node": ">=20.x"
+  }
   "keywords": [
     "Ainz",
     "OVL-MD-V2",

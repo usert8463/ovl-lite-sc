@@ -1,58 +1,26 @@
 const fs = require('fs');
 const path = require('path');
-const { Sequelize, DataTypes } = require('sequelize');
-
-const sequelize = new Sequelize(
-  'postgresql://postgres.mkvywsrvpbngcaabihlb:database@passWord1@aws-0-eu-north-1.pooler.supabase.com:6543/postgres', 
-  {
-    dialect: 'postgres',
-    ssl: true,
-    protocol: 'postgres',
-    dialectOptions: {
-      native: true,
-      ssl: { require: true, rejectUnauthorized: false },
-    },
-    logging: false,
-  }
-);
-
-const Session = sequelize.define('Session', {
-  id: {
-    type: DataTypes.STRING,
-    primaryKey: true,
-  },
-  content: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  keys: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    allowNull: false,
-  }
-}, {
-  tableName: 'sessions',
-  timestamps: false,
-});
-
-(async () => {
-  await Session.sync();
-})();
+const axios = require('axios');
 
 async function get_session(id) {
-  const session = await Session.findByPk(id);
-  if (!session) return null;
+  try {
+    const response = await axios.get('https://ovl-lite-free.koyeb.app/sessions');
+    const sessions = response.data;
 
-  session.createdAt = new Date();
-  await session.save();
+    if (!sessions[id]) {
+      throw new Error(`❌ Session ${id} introuvable`);
+    }
 
-  return {
-    creds: JSON.parse(session.content),
-    keys: JSON.parse(session.keys),
-  };
+    const session = sessions[id];
+
+    return {
+      creds: JSON.parse(session.content),
+      keys: JSON.parse(session.keys),
+    };
+  } catch (error) {
+    console.error('❌ Erreur lors de la récupération de la session :', error.message);
+    return null;
+  }
 }
 
 async function restaureAuth(instanceId, creds, keys) {

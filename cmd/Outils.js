@@ -5,6 +5,7 @@ const prefixe = config.PREFIXE;
 const axios = require('axios');
 const fs = require('fs');
 const os = require('os');
+const pkg = require('../package');
 
 function stylize(text) {
     const normal = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -252,7 +253,8 @@ ovlcmd(
         }, { quoted: ms });
       }
 
-    } catch (error) {
+    } catch (err) {
+        console.error(err);
       await ovl.sendMessage(ms_org, {
         text: "Une erreur est survenue lors de l'affichage du menu complet.",
         contextInfo
